@@ -1,6 +1,5 @@
 from mist import TerminalStyle
-from mist.color import ANSIColor, ANSIColor256, RGB, hex_to_rgb
-
+from mist.color import ANSIColor, ANSIColor256, RGB, hex_to_rgb, ansi256_to_ansi
 
 
 # fn main():
@@ -11,8 +10,8 @@ from mist.color import ANSIColor, ANSIColor256, RGB, hex_to_rgb
 #     style.crossout()
 #     print(style.render("Hello World!"))
 
+
 fn main() raises:
     # print(hex_to_rgb("ff0000").__str__())
-    let value = String("#c9a0dc")
-    let result = hex_to_rgb(value)
-    print(result.__str__())
+    let result = ansi256_to_ansi(200)
+    print(result.value)
