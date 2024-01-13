@@ -1,7 +1,6 @@
 from mist.ansi_colors import AnsiHex
+from mist.hue import RGB, max_float64, DistanceHSLuv
 from mist.stdlib.builtins import dict, HashableStr
-from mist.math import max_float64
-from mist.hue import DistanceHSLuv
 
 
 struct GroundCodes:
@@ -81,24 +80,6 @@ struct ANSIColor256(Color):
         var hex: String = AnsiHex().values[self.value]
 
         return hex_to_rgb(hex)
-
-
-@value
-struct RGB:
-    var R: Float64
-    var G: Float64
-    var B: Float64
-
-    fn __str__(self) -> String:
-        return (
-            "RGB("
-            + String(self.R)
-            + ", "
-            + String(self.G)
-            + ", "
-            + String(self.B)
-            + ")"
-        )
 
 
 # fn convert_base10_to_base16(value: Int) raises -> String:
