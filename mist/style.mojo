@@ -1,4 +1,4 @@
-from mist.color import Color
+from mist.color import Color, ANSIColor, ANSI256Color, RGBColor, hex_to_rgb, hex_to_ansi256, ansi256_to_ansi
 
 
 fn sgr_format(n: String) -> String:
@@ -61,10 +61,12 @@ struct Properties:
 struct TerminalStyle:
     var styles: DynamicVector[String]
     var properties: Properties
+    var profile: Profile
 
-    fn __init__(inout self):
+    fn __init__(inout self, profile: Profile):
         self.properties = Properties()
         self.styles = DynamicVector[String]()
+        self.profile = profile
 
     fn color[T: Color](inout self, color: T) raises -> None:
         self.styles.push_back(color.sequence(False))

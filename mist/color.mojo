@@ -33,9 +33,18 @@ struct ANSIColor(Color):
     """ANSIColor is a color (0-15) as defined by the ANSI Standard."""
 
     var value: Int
+    var type: String
+
+    fn __init__(inout self, value: Int):
+        self.value = value
+        self.type = "ANSIColor"
 
     fn sequence(self, is_background: Bool) raises -> String:
-        """String returns the ANSI Sequence for the color and the text."""
+        """Returns the ANSI Sequence for the color and the text.
+        
+        Args:
+            is_background: Whether the color is a background color.
+        """
         var modifier: Int = 0
         if is_background:
             modifier += 10
@@ -64,6 +73,11 @@ struct ANSI256Color(Color):
     var value: Int
 
     fn sequence(self, is_background: Bool) raises -> String:
+        """Returns the ANSI Sequence for the color and the text.
+        
+        Args:
+            is_background: Whether the color is a background color.
+        """
         var prefix = GroundCodes().foreground
         if is_background:
             prefix = GroundCodes().background
@@ -154,6 +168,11 @@ struct RGBColor(Color):
     var value: String
 
     fn sequence(self, is_background: Bool) raises -> String:
+        """Returns the ANSI Sequence for the color and the text.
+        
+        Args:
+            is_background: Whether the color is a background color.
+        """
         let rgb = hex_to_rgb(self.value)
 
         var prefix = GroundCodes().foreground
@@ -176,7 +195,11 @@ struct RGBColor(Color):
 
 
 fn ansi256_to_ansi(value: Int) raises -> ANSIColor:
-    """TODO: Converts an ANSI256 color to an ANSI color."""
+    """Converts an ANSI256 color to an ANSI color.
+    
+    Args:
+        value: ANSI256 color value.
+    """
     var r: Int = 0
     var md = max_float64()
 
@@ -207,7 +230,11 @@ fn v2ci(value: Float64) -> Int:
 
 
 fn hex_to_ansi256(color: RGB) -> ANSI256Color:
-    """TODO: Converts a hex code to a ANSI256 color."""
+    """Converts a hex code to a ANSI256 color.
+    
+    Args:
+        color: RGB hex code.
+    """
 	# Calculate the nearest 0-based color index at 16..231
     # Originally had * 255 in each of these
     let r: Float64 = v2ci(color.R) # 0..5 each
@@ -250,5 +277,8 @@ fn hex_to_ansi256(color: RGB) -> ANSI256Color:
 
 fn sgr_format(n: String) -> String:
     """SGR formatting: https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
+
+    Args:
+        n: ANSI n code.
     """
     return chr(27) + "[" + n + "m"

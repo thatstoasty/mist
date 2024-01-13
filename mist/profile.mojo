@@ -1,6 +1,8 @@
 from mist.stdlib.builtins.vector import contains
 from mist.color import NoColor, ANSIColor, ANSI256Color, RGBColor, hex_to_ansi256, ansi256_to_ansi, hex_to_rgb
 
+# Currently not used, but will be in the future once we have a way to check types or have variables in traits.
+# For now, we can't really make use of the color degradation functions here.
 @value
 struct Profile():
     var setting: String
