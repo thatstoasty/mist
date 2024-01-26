@@ -186,6 +186,9 @@ struct RGBColor(Color):
 
     var value: String
 
+    fn __init__(inout self, value: String):
+        self.value = value.tolower()
+
     fn __eq__(self, other: RGBColor) -> Bool:
         return self.value == other.value
 
@@ -234,7 +237,6 @@ fn ansi256_to_ansi(value: Int) raises -> ANSIColor:
     while i <= 15:
         let hb = hex_to_rgb(AnsiHex().values[i])
         let d = h.distance_HSLuv(hb)
-        print(h.__str__(), hb.__str__(), d)
 
         if d < md:
             md = d

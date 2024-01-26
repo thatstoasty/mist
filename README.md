@@ -1,12 +1,14 @@
 # mist
 `mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions. This is a port/conversion of https://github.com/muesli/termenv/tree/master.
 
+![Example](https://github.com/thatstoasty/mist/blob/main/examples/hello_world/hello_world.png)
+
 > NOTE: This is not a 1:1 port or stable due to missing features in Mojo and that I haven't ported everything over yet.
 
 I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
 # Colors
-It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TrueColor (24-bit RGB). At the moment, the Profile is not used, so you'll need to set the foreground or background colors directly with the Color objects.
+It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TrueColor (24-bit RGB). At the moment, the Profile is not used, so you'll need to set the foreground or background colors directly with the Color objects. Eventually, calling p.Color and providing a hex code or ansi color will automatically convert it to the best matching color in the profile.
 
 Once we have type checking in Mojo, Colors will automatically be degraded to the best matching available color in the desired profile:
 `TrueColor` => `ANSI 256 Color`s => `ANSI 16 Colors` => `Ascii`
