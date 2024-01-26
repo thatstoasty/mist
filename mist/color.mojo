@@ -1,18 +1,24 @@
 from mist.ansi_colors import AnsiHex
 from mist.hue import RGB, max_float64
-from mist.stdlib.builtins import dict, HashableStr
+from collections.dict import Dict
+from mist.collections import StringKey
 
 
-struct GroundCodes:
-    var foreground: String
-    var background: String
-
-    fn __init__(inout self):
-        self.foreground = "38"
-        self.background = "48"
+alias foreground = "38"
+alias background = "48"
 
 
-trait Color(Movable, Copyable):    
+trait Equalable:
+    fn __eq__(self: Self, other: Self) -> Bool:
+        ...
+
+
+trait NotEqualable:
+    fn __ne__(self: Self, other: Self) -> Bool:
+        ...
+
+
+trait Color(Movable, Copyable, Equalable, NotEqualable):
     fn sequence(self, is_background: Bool) raises -> String:
         """Sequence returns the ANSI Sequence for the color."""
         ...
@@ -20,6 +26,12 @@ trait Color(Movable, Copyable):
 
 @value
 struct NoColor(Color):
+    fn __eq__(self, other: NoColor) -> Bool:
+        return True
+
+    fn __ne__(self, other: NoColor) -> Bool:
+        return False
+
     fn sequence(self, is_background: Bool) raises -> String:
         return ""
 
@@ -33,15 +45,16 @@ struct ANSIColor(Color):
     """ANSIColor is a color (0-15) as defined by the ANSI Standard."""
 
     var value: Int
-    var type: String
 
-    fn __init__(inout self, value: Int):
-        self.value = value
-        self.type = "ANSIColor"
+    fn __eq__(self, other: ANSIColor) -> Bool:
+        return self.value == other.value
+
+    fn __ne__(self, other: ANSIColor) -> Bool:
+        return self.value != other.value
 
     fn sequence(self, is_background: Bool) raises -> String:
         """Returns the ANSI Sequence for the color and the text.
-        
+
         Args:
             is_background: Whether the color is a background color.
         """
@@ -72,15 +85,21 @@ struct ANSI256Color(Color):
 
     var value: Int
 
+    fn __eq__(self, other: ANSI256Color) -> Bool:
+        return self.value == other.value
+
+    fn __ne__(self, other: ANSI256Color) -> Bool:
+        return self.value != other.value
+
     fn sequence(self, is_background: Bool) raises -> String:
         """Returns the ANSI Sequence for the color and the text.
-        
+
         Args:
             is_background: Whether the color is a background color.
         """
-        var prefix = GroundCodes().foreground
+        var prefix: String = foreground
         if is_background:
-            prefix = GroundCodes().background
+            prefix = background
 
         return prefix + ";5;" + String(self.value)
 
@@ -111,7 +130,7 @@ fn convert_base16_to_base10(value: String) raises -> Int:
     """Converts a base 16 number to base 10.
     https://www.catalyst2.com/knowledgebase/dictionary/hexadecimal-base-16-numbers/#:~:text=To%20convert%20the%20hex%20number,16%20%2B%200%20%3D%2016).
     """
-    var mapping = dict[HashableStr, Int]()
+    var mapping = Dict[StringKey, Int]()
     mapping["0"] = 0
     mapping["1"] = 1
     mapping["2"] = 2
@@ -167,17 +186,23 @@ struct RGBColor(Color):
 
     var value: String
 
+    fn __eq__(self, other: RGBColor) -> Bool:
+        return self.value == other.value
+
+    fn __ne__(self, other: RGBColor) -> Bool:
+        return self.value != other.value
+
     fn sequence(self, is_background: Bool) raises -> String:
         """Returns the ANSI Sequence for the color and the text.
-        
+
         Args:
             is_background: Whether the color is a background color.
         """
         let rgb = hex_to_rgb(self.value)
 
-        var prefix = GroundCodes().foreground
+        var prefix = foreground
         if is_background:
-            prefix = GroundCodes().background
+            prefix = background
 
         return (
             prefix
@@ -196,7 +221,7 @@ struct RGBColor(Color):
 
 fn ansi256_to_ansi(value: Int) raises -> ANSIColor:
     """Converts an ANSI256 color to an ANSI color.
-    
+
     Args:
         value: ANSI256 color value.
     """
@@ -231,39 +256,39 @@ fn v2ci(value: Float64) -> Int:
 
 fn hex_to_ansi256(color: RGB) -> ANSI256Color:
     """Converts a hex code to a ANSI256 color.
-    
+
     Args:
         color: RGB hex code.
     """
-	# Calculate the nearest 0-based color index at 16..231
+    # Calculate the nearest 0-based color index at 16..231
     # Originally had * 255 in each of these
-    let r: Float64 = v2ci(color.R) # 0..5 each
+    let r: Float64 = v2ci(color.R)  # 0..5 each
     let g: Float64 = v2ci(color.G)
     let b: Float64 = v2ci(color.B)
-    let ci: Int = int((36 * r) + (6 * g) + b) # 0..215
+    let ci: Int = int((36 * r) + (6 * g) + b)  # 0..215
 
-	# Calculate the represented colors back from the index
+    # Calculate the represented colors back from the index
     var i2cv: DynamicVector[Int] = DynamicVector[Int]()
     i2cv.append(0)
-    i2cv.append(0x5f)
+    i2cv.append(0x5F)
     i2cv.append(0x87)
-    i2cv.append(0xaf)
-    i2cv.append(0xd7)
-    i2cv.append(0xff)
-    let cr = i2cv[int(r)] # r/g/b, 0..255 each
+    i2cv.append(0xAF)
+    i2cv.append(0xD7)
+    i2cv.append(0xFF)
+    let cr = i2cv[int(r)]  # r/g/b, 0..255 each
     let cg = i2cv[int(g)]
     let cb = i2cv[int(b)]
 
-	# Calculate the nearest 0-based gray index at 232..255
+    # Calculate the nearest 0-based gray index at 232..255
     let grayIdx: Int
     let average = (r + g + b) / 3
     if average > 238:
         grayIdx = 23
     else:
-        grayIdx = int((average - 3) / 10 )# 0..23
-    let gv = 8 + 10 * grayIdx # same value for r/g/b, 0..255
+        grayIdx = int((average - 3) / 10)  # 0..23
+    let gv = 8 + 10 * grayIdx  # same value for r/g/b, 0..255
 
-	# Return the one which is nearer to the original input rgb value
+    # Return the one which is nearer to the original input rgb value
     # Originall had / 255.0 for r, g, and b in each of these
     let c2 = RGB(cr, cg, cb)
     let g2 = RGB(gv, gv, gv)
@@ -273,12 +298,3 @@ fn hex_to_ansi256(color: RGB) -> ANSI256Color:
     if color_dist <= gray_dist:
         return ANSI256Color(16 + ci)
     return ANSI256Color(232 + grayIdx)
-
-
-fn sgr_format(n: String) -> String:
-    """SGR formatting: https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
-
-    Args:
-        n: ANSI n code.
-    """
-    return chr(27) + "[" + n + "m"

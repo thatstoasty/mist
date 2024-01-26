@@ -1,5 +1,5 @@
 from mist import TerminalStyle, Profile
-from mist.color import ANSIColor, ANSI256Color, RGBColor, RGB, hex_to_rgb, ansi256_to_ansi
+from mist.color import ANSIColor, ANSI256Color, RGBColor
 
 
 fn main() raises:
@@ -8,6 +8,7 @@ fn main() raises:
     # let text_color = profile.color[RGBColor]("#c9a0dc")
     var style = TerminalStyle(profile)
     # style.background(ANSI256Color(33))
-    style.color(RGBColor("#c9a0dc"))
+    style.foreground(RGBColor("#c9a0dc"))
     style.underline()
-    print(style.render("Hello World!"))
+    let styled = style.render("Hello World!")
+    print(styled)

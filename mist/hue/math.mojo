@@ -1,5 +1,6 @@
 from math import max, min
 
+
 fn cube(v: Float64) -> Float64:
     return v * v * v
 

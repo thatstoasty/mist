@@ -11,7 +11,7 @@ fn linearize(v: Float64) -> Float64:
 
     let lhs: Float64 = (v + 0.055) / 1.055
     let rhs: Float64 = 2.4
-    return lhs ** rhs
+    return lhs**rhs
 
 
 fn linear_rgb_to_xyz(r: Float64, g: Float64, b: Float64) -> (Float64, Float64, Float64):
@@ -38,8 +38,8 @@ fn luv_to_xyz_white_ref(
     var x: Float64 = 0
     var z: Float64 = 0
     if l != 0.0:
-        var ubis = (u / (13.0 * l)) + un
-        var vbis = (v / (13.0 * l)) + vn
+        let ubis = (u / (13.0 * l)) + un
+        let vbis = (v / (13.0 * l)) + vn
         x = y * 9.0 * ubis / (4.0 * vbis)
         z = y * (12.0 - (3.0 * ubis) - (20.0 * vbis)) / (4.0 * vbis)
     else:
@@ -71,7 +71,7 @@ fn xyz_to_uv(x: Float64, y: Float64, z: Float64) -> (Float64, Float64):
 fn xyz_to_Luv_white_ref(
     x: Float64, y: Float64, z: Float64, wref: DynamicVector[Float64]
 ) -> (Float64, Float64, Float64):
-    var l: Float64
+    let l: Float64
     if y / wref[1] <= 6.0 / 29.0 * 6.0 / 29.0 * 6.0 / 29.0:
         l = y / wref[1] * (29.0 / 3.0 * 29.0 / 3.0 * 29.0 / 3.0) / 100.0
     else:
@@ -95,7 +95,7 @@ fn xyz_to_Luv_white_ref(
 
 fn LuvToLuvLCh(L: Float64, u: Float64, v: Float64) -> (Float64, Float64, Float64):
     # Oops, floating point workaround necessary if u ~= v and both are very small (i.e. almost zero).
-    var h: Float64
+    let h: Float64
     if math.abs(v - u) > 1e-4 and math.abs(u) > 1e-4:
         h = math.mod(
             57.29577951308232087721 * math.atan2(v, u) + 360.0, 360.0
@@ -119,7 +119,7 @@ fn hSLuvD65() -> DynamicVector[Float64]:
 
 
 fn getBounds(l: Float64) -> DynamicVector[DynamicVector[Float64]]:
-    var sub2: Float64
+    let sub2: Float64
     let sub1 = (l + 16.0**3.0) / 1560896.0
     let epsilon = 0.0088564516790356308
     let kappa = 903.2962962962963
@@ -219,11 +219,11 @@ fn maxChromaForLH(l: Float64, h: Float64) -> Float64:
 
 fn LuvLch_to_HSLuv(l: Float64, c: Float64, h: Float64) -> (Float64, Float64, Float64):
     # [-1..1] but the code expects it to be [-100..100]
-    var tmp_l: Float64 = l * 100.0
-    var tmp_c: Float64 = c * 100.0
+    let tmp_l: Float64 = l * 100.0
+    let tmp_c: Float64 = c * 100.0
 
-    var s: Float64
-    var max: Float64
+    let s: Float64
+    let max: Float64
     if l > 99.9999999 or l < 0.00000001:
         s = 0.0
     else:
@@ -267,6 +267,7 @@ fn xyz(x: Float64, y: Float64, z: Float64) -> RGB:
     r, g, b = xyz_to_linear_rgb(x, y, z)
     return LinearRgb(r, g, b)
 
+
 # Generates a color by using data given in CIE L*u*v* space, taking
 # into account a given reference white. (i.e. the monitor's white)
 # L* is in [0..1] and both u* and v* are in about [-1..1]
@@ -280,7 +281,7 @@ fn LuvWhiteRef(l: Float64, u: Float64, v: Float64, wref: DynamicVector[Float64])
 
 
 @value
-struct RGB():
+struct RGB:
     var R: Float64
     var G: Float64
     var B: Float64
@@ -295,9 +296,10 @@ struct RGB():
             + String(self.B)
             + ")"
         )
-    
+
     fn LinearRgb(self) -> (Float64, Float64, Float64):
-        """LinearRgb converts the color into the linear RGB space (see http://www.sjbrown.co.uk/2004/05/14/gamma-correct-rendering/)."""
+        """LinearRgb converts the color into the linear RGB space (see http://www.sjbrown.co.uk/2004/05/14/gamma-correct-rendering/).
+        """
         let r: Float64
         let g: Float64
         let b: Float64
@@ -306,7 +308,7 @@ struct RGB():
         g = linearize(self.G)
         b = linearize(self.B)
         return r, g, b
-    
+
     fn xyz(self) -> (Float64, Float64, Float64):
         let r: Float64
         let g: Float64
@@ -319,30 +321,29 @@ struct RGB():
         x, y, z = linear_rgb_to_xyz(r, g, b)
         return x, y, z
 
-
     fn Luv_white_ref(self, wref: DynamicVector[Float64]) -> (Float64, Float64, Float64):
-        """Converts the given color to CIE L*u*v* space, taking into account a given reference white. (i.e. the monitor's white) 
+        """Converts the given color to CIE L*u*v* space, taking into account a given reference white. (i.e. the monitor's white)
         L* is in [0..1] and both u* and v* are in about [-1..1]."""
-        var x: Float64
-        var y: Float64
-        var z: Float64
+        let x: Float64
+        let y: Float64
+        let z: Float64
         x, y, z = self.xyz()
 
-        var l: Float64
-        var u: Float64
-        var v: Float64
+        let l: Float64
+        let u: Float64
+        let v: Float64
         l, u, v = xyz_to_Luv_white_ref(x, y, z, wref)
         return l, u, v
 
-    
-    fn LuvLCh_white_ref(self, wref: DynamicVector[Float64]) -> (Float64, Float64, Float64):
+    fn LuvLCh_white_ref(
+        self, wref: DynamicVector[Float64]
+    ) -> (Float64, Float64, Float64):
         let l: Float64
         let u: Float64
         let v: Float64
         l, u, v = self.Luv_white_ref(wref)
 
         return LuvToLuvLCh(l, u, v)
-
 
     fn HSLuv(self) -> (Float64, Float64, Float64):
         """Order: sRGB -> Linear RGB -> CIEXYZ -> CIELUV -> LuvLCh -> HSLuv.
@@ -358,7 +359,6 @@ struct RGB():
 
         return LuvLch_to_HSLuv(l, c, h)
 
-    
     fn distance_HSLuv(self, c2: RGB) -> Float64:
         let h1: Float64
         let s1: Float64
