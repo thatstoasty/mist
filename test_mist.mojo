@@ -9,6 +9,7 @@ fn main() raises:
     var style = TerminalStyle(profile)
     # style.background(ANSI256Color(33))
     style.foreground(RGBColor("#c9a0dc"))
+    style.foreground(style.profile.color("#c9a0dc"))
     style.underline()
     let styled = style.render("Hello World!")
     print(styled)
