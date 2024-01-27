@@ -21,7 +21,7 @@ alias overline = "53"
 
 # ANSI Operations
 alias escape = chr(27)  # Escape character
-alias bell = "\a"  # Bell
+alias bel = "\a"  # Bell
 alias csi = escape + "["  # Control Sequence Introducer
 alias osc = escape + "]"  # Operating System Command
 alias st = escape + chr(
