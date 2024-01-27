@@ -74,5 +74,3 @@ Color chart lifted from https://github.com/muesli/termenv, give their projects a
 - Enable color degradation via profile
 - Add chaining support
 - Enable terminal querying
-- Add notification support
-- Add hyperlink support
