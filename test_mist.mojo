@@ -1,6 +1,8 @@
 from mist import TerminalStyle, Profile
 from mist.color import ANSIColor, ANSI256Color, RGBColor
 from mist.screen import cursor_forward, cursor_down, cursor_up, cursor_back, clear_line, clear_line_right
+from mist.notification import notify
+from mist.hyperlink import hyperlink
 
 # fn main() raises:
 #     let profile = Profile("TrueColor")
@@ -16,6 +18,8 @@ from mist.screen import cursor_forward, cursor_down, cursor_up, cursor_back, cle
 
 
 fn main() raises:
-    print_no_newline("hello")
-    cursor_back(2)
-    clear_line_right()
+    # print_no_newline("hello")
+    # cursor_back(2)
+    # clear_line_right()
+    notify("Hello World!", "This is a notification")
+    print(hyperlink("https://google.com", "Google"))

@@ -70,10 +70,9 @@ Color chart lifted from https://github.com/muesli/termenv, give their projects a
 
 
 # TODO
-- Screen operations
-- Cursor operations
-- Session operations
 - Mouse operations
 - Enable color degradation via profile
 - Add chaining support
 - Enable terminal querying
+- Add notification support
+- Add hyperlink support
