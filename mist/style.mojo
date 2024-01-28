@@ -1,8 +1,10 @@
 from mist.color import (
     Color,
+    NoColor,
     ANSIColor,
     ANSI256Color,
     RGBColor,
+    AnyColor,
     hex_to_rgb,
     hex_to_ansi256,
     ansi256_to_ansi,
@@ -71,11 +73,33 @@ struct TerminalStyle:
     fn overline(inout self) -> None:
         self.styles.push_back(overline)
 
-    fn background[T: Color](inout self, color: T) raises -> None:
-        self.styles.push_back(color.sequence(True))
+    fn background(inout self, color: AnyColor) raises -> None:
+        if color.isa[NoColor]():
+            return None
+        
+        if color.isa[ANSIColor]():
+            let c = color.get[ANSIColor]()
+            self.styles.push_back(c.sequence(True))
+        if color.isa[ANSI256Color]():
+            let c = color.get[ANSI256Color]()
+            self.styles.push_back(c.sequence(True))
+        if color.isa[RGBColor]():
+            let c = color.get[RGBColor]()
+            self.styles.push_back(c.sequence(True))
 
-    fn foreground[T: Color](inout self, color: T) raises -> None:
-        self.styles.push_back(color.sequence(False))
+    fn foreground(inout self, color: AnyColor) raises -> None:
+        if color.isa[NoColor]():
+            return None
+        
+        if color.isa[ANSIColor]():
+            let c = color.get[ANSIColor]()
+            self.styles.push_back(c.sequence(False))
+        if color.isa[ANSI256Color]():
+            let c = color.get[ANSI256Color]()
+            self.styles.push_back(c.sequence(False))
+        if color.isa[RGBColor]():
+            let c = color.get[RGBColor]()
+            self.styles.push_back(c.sequence(False))
 
     fn render(self, text: String) -> String:
         if self.profile.setting == "ASCII":

@@ -4,6 +4,7 @@ from mist.color import (
     ANSIColor,
     ANSI256Color,
     RGBColor,
+    AnyColor,
     hex_to_ansi256,
     ansi256_to_ansi,
     hex_to_rgb,
@@ -36,39 +37,36 @@ struct Profile:
             )
 
         self.setting = setting
-
-    # can't check types yet, so each convert function takes a different type of color and can return any color
-    fn convert[T: Color](self, color: ANSIColor) -> T:
+    
+    fn convert(self, color: AnyColor) raises -> AnyColor:
         if self.setting == "ASCII":
             return NoColor()
 
-        return color
-
-    fn convert[T: Color](self, color: ANSI256Color) raises -> T:
-        if self.setting == "ASCII":
-            return NoColor()
-
-        if self.setting == "ANSI":
-            return ansi256_to_ansi(color.value)
-
-        return color
-
-    fn convert[T: Color](self, color: RGBColor) raises -> T:
-        if self.setting == "ASCII":
-            return NoColor()
-
-        let h = hex_to_rgb(color.value)
-
-        if self.setting != "TrueColor":
-            let ansi256 = hex_to_ansi256(h)
+        if color.isa[NoColor]():
+            return color.get[NoColor]()
+        elif color.isa[ANSIColor]():
+            return color.get[ANSIColor]()
+        elif color.isa[ANSI256Color]():
             if self.setting == "ANSI":
-                return ansi256_to_ansi(ansi256.value)
+                return ansi256_to_ansi(color.get[ANSIColor]().value)
+            
+            return color.get[ANSIColor]()
+        elif color.isa[RGBColor]():
+            let h = hex_to_rgb(color.get[RGBColor]().value)
 
-            return ansi256
+            if self.setting != "TrueColor":
+                let ansi256 = hex_to_ansi256(h)
+                if self.setting == "ANSI":
+                    return ansi256_to_ansi(ansi256.value)
 
-        return color
+                return ansi256
+            
+            return color.get[RGBColor]()
 
-    fn color[T: Color](self, s: String) raises -> T:
+        # If it somehow gets here, just return No Color until I can figure out how to just return whatever color was passed in.
+        return color.get[NoColor]()
+
+    fn color(self, s: String) raises -> AnyColor:
         """Color creates a Color from a string. Valid inputs are hex colors, as well as
         ANSI color codes (0-15, 16-255)."""
         if len(s) == 0:
@@ -76,14 +74,14 @@ struct Profile:
 
         if s[0] == "#":
             let c = RGBColor(s)
-            return self.convert[RGBColor](c)
+            return self.convert(c)
         else:
             let i = atol(s)
             if i < 16:
                 let c = ANSIColor(i)
-                return self.convert[ANSIColor](c)
+                return self.convert(c)
             elif i < 256:
                 let c = ANSI256Color(i)
-                return self.convert[ANSI256Color](c)
+                return self.convert(c)
             else:
                 raise Error("Invalid color code, must be between 0 and 255")

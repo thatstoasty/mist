@@ -2,10 +2,12 @@ from mist.ansi_colors import AnsiHex
 from mist.hue import RGB, max_float64
 from collections.dict import Dict
 from mist.collections import StringKey
+from utils.variant import Variant
 
 
 alias foreground = "38"
 alias background = "48"
+alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
 
 
 trait Equalable:
@@ -18,7 +20,7 @@ trait NotEqualable:
         ...
 
 
-trait Color(Movable, Copyable, Equalable, NotEqualable):
+trait Color(Movable, Copyable, Equalable, NotEqualable, CollectionElement):
     fn sequence(self, is_background: Bool) raises -> String:
         """Sequence returns the ANSI Sequence for the color."""
         ...
