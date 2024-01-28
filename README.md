@@ -70,6 +70,5 @@ Color chart lifted from https://github.com/muesli/termenv, give their projects a
 
 
 # TODO
-- Add chaining support
 - Enable terminal querying
 - Switch to stdout writer
