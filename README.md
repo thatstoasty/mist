@@ -70,8 +70,6 @@ Color chart lifted from https://github.com/muesli/termenv, give their projects a
 
 
 # TODO
-- Mouse operations
-- Enable color degradation via profile
 - Add chaining support
 - Enable terminal querying
 - Switch to stdout writer
