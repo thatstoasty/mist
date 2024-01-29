@@ -1,4 +1,5 @@
 from mist.style import bel, csi, reset, osc
+from mist.color import AnyColor, NoColor, ANSIColor, ANSI256Color, RGBColor
 
 
 # Sequence definitions.
@@ -20,23 +21,6 @@ alias restore_cursor_position_seq = "u"
 alias change_scrolling_region_seq = "%d;%dr"
 alias insert_line_seq = "%dL"
 alias delete_line_seq = "%dM"
-# alias cursor_up_seq              = "A"
-# alias cursor_down_seq            = "B"
-# alias cursor_forward_seq         = "C"
-# alias cursor_back_seq            = "D"
-# alias cursor_next_line_seq        = "E"
-# alias cursor_previous_line_seq    = "F"
-# alias cursor_horizontal_seq      = "G"
-# alias cursor_position_seq        = "%d;%dH"
-# alias erase_display_seq          = "J"
-# alias erase_line_seq             = "K"
-# alias scroll_up_seq              = "S"
-# alias scroll_down_seq            = "T"
-# alias save_cursor_position_seq    = "s"
-# alias restore_cursor_position_seq = "u"
-# alias change_scrolling_region_seq = "%d;%dr"
-# alias insert_line_seq            = "L"
-# alias delete_line_seq            = "M"
 
 ## Explicit values for EraseLineSeq.
 alias erase_line_right_seq = "0K"
@@ -139,18 +123,47 @@ fn reset_terminal():
 
 
 # SetForegroundColor sets the default foreground color.
-# fn set_foreground_color(color: Color):
-# 	print_no_newline(osc + set_foreground_color_seq, color)
+fn set_foreground_color(color: AnyColor) raises:
+    var c: String = ""
+
+    if color.isa[ANSIColor]():
+        c = color.get[ANSIColor]().sequence(False)
+    elif color.isa[ANSI256Color]():
+        c = color.get[ANSI256Color]().sequence(False)
+    elif color.isa[RGBColor]():
+        c = color.get[RGBColor]().sequence(False)
+
+    print_no_newline(osc + set_foreground_color_seq, c)
 
 
-# # SetBackgroundColor sets the default background color.
-# fn set_background_color(color: Color):
-# 	print_no_newline(osc+set_background_color_seq, color)
+# SetBackgroundColor sets the default background color.
+fn set_background_color(color: AnyColor) raises:
+    var c: String = ""
+    if color.isa[NoColor]():
+        pass
+    elif color.isa[ANSIColor]():
+        c = color.get[ANSIColor]().sequence(True)
+    elif color.isa[ANSI256Color]():
+        c = color.get[ANSI256Color]().sequence(True)
+    elif color.isa[RGBColor]():
+        c = color.get[RGBColor]().sequence(True)
+        
+    print_no_newline(osc+set_background_color_seq, c)
 
 
-# # SetCursorColor sets the cursor color.
-# fn set_cursor_color(color: Color):
-# 	print_no_newline(osc+set_cursor_color_seq, color)
+# SetCursorColor sets the cursor color.
+fn set_cursor_color(color: AnyColor) raises:
+    var c: String = ""
+    if color.isa[NoColor]():
+        pass
+    elif color.isa[ANSIColor]():
+        c = color.get[ANSIColor]().sequence(True)
+    elif color.isa[ANSI256Color]():
+        c = color.get[ANSI256Color]().sequence(True)
+    elif color.isa[RGBColor]():
+        c = color.get[RGBColor]().sequence(True)
+
+    print_no_newline(osc + set_cursor_color_seq, c)
 
 
 # restore_screen restores a previously saved screen state.
@@ -186,6 +199,7 @@ fn move_cursor(row: Int, column: Int):
     print_no_newline(sprintf(csi + cursor_position_seq, row, column))
 
 
+# TODO: Show and Hide cursor don't seem to work ATM.
 # HideCursor hides the cursor.
 fn hide_cursor():
     print_no_newline(csi + hide_cursor_seq)
