@@ -1,4 +1,3 @@
-from mist.collections import contains
 from mist.color import (
     NoColor,
     ANSIColor,
@@ -9,6 +8,13 @@ from mist.color import (
     ansi256_to_ansi,
     hex_to_rgb,
 )
+
+
+fn contains(vector: DynamicVector[String], value: String) -> Bool:
+    for i in range(vector.size):
+        if vector[i] == value:
+            return True
+    return False
 
 
 # Currently not used, but will be in the future once we have a way to check types or have variables in traits.
@@ -33,18 +39,18 @@ struct Profile:
         self.valid = valid
         self.value = value
         self.validate_value(value)
-    
+
     fn validate_value(self, value: String) raises -> None:
         if not contains(self.valid, value):
             raise Error(
                 "Invalid setting, valid values are ['TrueColor', 'ANSI256', 'ANSI',"
                 " 'ASCII']"
             )
-    
+
     fn set_setting(inout self, value: String) raises:
         self.validate_value(value)
         self.value = value
-    
+
     fn convert(self, color: AnyColor) raises -> AnyColor:
         if self.value == "ASCII":
             return NoColor()
@@ -56,7 +62,7 @@ struct Profile:
         elif color.isa[ANSI256Color]():
             if self.value == "ANSI":
                 return ansi256_to_ansi(color.get[ANSIColor]().value)
-            
+
             return color.get[ANSI256Color]()
         elif color.isa[RGBColor]():
             let h = hex_to_rgb(color.get[RGBColor]().value)
@@ -67,7 +73,7 @@ struct Profile:
                     return ansi256_to_ansi(ansi256.value)
 
                 return ansi256
-            
+
             return color.get[RGBColor]()
 
         # If it somehow gets here, just return No Color until I can figure out how to just return whatever color was passed in.
@@ -78,7 +84,7 @@ struct Profile:
         ANSI color codes (0-15, 16-255)."""
         if len(s) == 0:
             raise Error("No string passed to color function for formatting!")
-        
+
         if self.value == "ASCII":
             return NoColor()
 

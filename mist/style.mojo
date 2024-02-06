@@ -41,7 +41,7 @@ fn sgr_format(n: String) -> String:
 
 
 @value
-struct TerminalStyle:
+struct TerminalStyle():
     var styles: DynamicVector[String]
     var profile: Profile
 
@@ -76,7 +76,7 @@ struct TerminalStyle:
     fn background(inout self, color: AnyColor) raises -> None:
         if color.isa[NoColor]():
             return None
-        
+
         if color.isa[ANSIColor]():
             let c = color.get[ANSIColor]()
             self.styles.push_back(c.sequence(True))
@@ -90,7 +90,7 @@ struct TerminalStyle:
     fn foreground(inout self, color: AnyColor) raises -> None:
         if color.isa[NoColor]():
             return None
-        
+
         if color.isa[ANSIColor]():
             let c = color.get[ANSIColor]()
             self.styles.push_back(c.sequence(False))

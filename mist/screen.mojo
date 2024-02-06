@@ -147,8 +147,8 @@ fn set_background_color(color: AnyColor) raises:
         c = color.get[ANSI256Color]().sequence(True)
     elif color.isa[RGBColor]():
         c = color.get[RGBColor]().sequence(True)
-        
-    print_no_newline(osc+set_background_color_seq, c)
+
+    print_no_newline(osc + set_background_color_seq, c)
 
 
 # SetCursorColor sets the cursor color.

@@ -1,7 +1,7 @@
 """Ported from https:#github.com/lucasb-eyer/go-colorful/blob/master/colors.go#L470"""
 
-from mist.hue.math import cube, clamp01, sq, pi, max_float64
-from mist.hue.color import RGB
+from external.hue.math import cube, clamp01, sq, pi, max_float64
+from external.hue.color import RGB
 import math
 
 

@@ -1,8 +1,24 @@
-from mist.ansi_colors import AnsiHex
-from mist.hue import RGB, max_float64
-from collections.dict import Dict
-from mist.collections import StringKey
+from collections.dict import Dict, KeyElement
 from utils.variant import Variant
+from external.hue import RGB, max_float64
+from mist.ansi_colors import AnsiHex
+
+
+@value
+struct StringKey(KeyElement):
+    var s: String
+
+    fn __init__(inout self, owned s: String):
+        self.s = s ^
+
+    fn __init__(inout self, s: StringLiteral):
+        self.s = String(s)
+
+    fn __hash__(self) -> Int:
+        return hash(self.s)
+
+    fn __eq__(self, other: Self) -> Bool:
+        return self.s == other.s
 
 
 alias foreground = "38"
@@ -157,7 +173,7 @@ fn convert_base16_to_base10(value: String) raises -> Int:
         sum += mapping[value[i]] * (16**exponent)
 
     return sum
-
+    
 
 fn hex_to_rgb(value: String) raises -> RGB:
     """Converts a hex color to RGB.
@@ -169,12 +185,13 @@ fn hex_to_rgb(value: String) raises -> RGB:
         RGB color.
     """
     let hex = value[1:]
-    var indices: DynamicVector[Int] = DynamicVector[Int]()
+    var indices = DynamicVector[Int]()
     indices.append(0)
     indices.append(2)
     indices.append(4)
 
-    var results: DynamicVector[Int] = DynamicVector[Int]()
+    var results = DynamicVector[Int]()
+    
     for i in range(len(indices)):
         let base_10 = convert_base16_to_base10(hex[indices[i] : indices[i] + 2])
         results.append(atol(base_10))
