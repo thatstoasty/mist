@@ -41,7 +41,7 @@ fn sgr_format(n: String) -> String:
 
 
 @value
-struct TerminalStyle():
+struct TerminalStyle:
     var styles: DynamicVector[String]
     var profile: Profile
 

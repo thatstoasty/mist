@@ -173,7 +173,7 @@ fn convert_base16_to_base10(value: String) raises -> Int:
         sum += mapping[value[i]] * (16**exponent)
 
     return sum
-    
+
 
 fn hex_to_rgb(value: String) raises -> RGB:
     """Converts a hex color to RGB.
@@ -191,7 +191,7 @@ fn hex_to_rgb(value: String) raises -> RGB:
     indices.append(4)
 
     var results = DynamicVector[Int]()
-    
+
     for i in range(len(indices)):
         let base_10 = convert_base16_to_base10(hex[indices[i] : indices[i] + 2])
         results.append(atol(base_10))
