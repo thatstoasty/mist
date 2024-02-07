@@ -1,4 +1,4 @@
-from external.hue.math import cube, clamp01, sq, pi, max_float64
+from mist.external.hue.math import cube, clamp01, sq, pi, max_float64
 
 
 fn clamped(rgb: RGB) -> RGB:
