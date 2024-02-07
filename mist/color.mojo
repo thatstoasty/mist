@@ -1,6 +1,6 @@
 from collections.dict import Dict, KeyElement
 from utils.variant import Variant
-from external.hue import RGB, max_float64
+from mist.external.hue import RGB, max_float64
 from mist.ansi_colors import AnsiHex
 
 
