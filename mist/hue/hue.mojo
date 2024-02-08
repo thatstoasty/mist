@@ -1,6 +1,6 @@
 """Ported from https:#github.com/lucasb-eyer/go-colorful/blob/master/colors.go#L470"""
 
-from .math import cube, clamp01, sq, pi, max_float64
+from .helpers import cube, clamp01, sq, pi, max_float64
 from .color import RGB
 import math
 
