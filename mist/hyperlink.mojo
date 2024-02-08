@@ -1,4 +1,4 @@
-from mist.style import osc, st
+from .style import osc, st
 
 
 # hyperlink creates a hyperlink using OSC8.

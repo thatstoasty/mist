@@ -1,2 +1,2 @@
-from mist.external.hue.color import RGB
-from mist.external.hue.math import max_float64
+from .color import RGB
+from .math import max_float64

@@ -1,5 +1,5 @@
-from mist.style import bel, csi, reset, osc
-from mist.color import AnyColor, NoColor, ANSIColor, ANSI256Color, RGBColor
+from .style import bel, csi, reset, osc
+from .color import AnyColor, NoColor, ANSIColor, ANSI256Color, RGBColor
 
 
 # Sequence definitions.

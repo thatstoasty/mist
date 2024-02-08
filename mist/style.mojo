@@ -1,4 +1,4 @@
-from mist.color import (
+from .color import (
     Color,
     NoColor,
     ANSIColor,
