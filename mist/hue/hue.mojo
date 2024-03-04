@@ -1,7 +1,7 @@
 """Ported from https:#github.com/lucasb-eyer/go-colorful/blob/master/colors.go#L470"""
 
-from mist.external.hue.math import cube, clamp01, sq, pi, max_float64
-from mist.external.hue.color import RGB
+from .helpers import cube, clamp01, sq, pi, max_float64
+from .color import RGB
 import math
 
 
@@ -22,9 +22,9 @@ import math
 
 
 fn LuvLCh_to_Luv(l: Float64, c: Float64, h: Float64) -> (Float64, Float64, Float64):
-    let H: Float64 = 0.01745329251994329576 * h  # Deg2Rad
-    let u = c * math.cos(H)
-    let v = c * math.sin(H)
+    var H: Float64 = 0.01745329251994329576 * h  # Deg2Rad
+    var u = c * math.cos(H)
+    var v = c * math.sin(H)
     return l, u, v
 
 

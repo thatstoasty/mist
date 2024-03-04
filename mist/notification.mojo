@@ -1,4 +1,4 @@
-from mist.style import osc, st
+from .style import osc, st
 
 
 fn notify(title: String, body: String):

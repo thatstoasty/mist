@@ -260,3 +260,6 @@ struct AnsiHex:
         self.values.append("#dadada")
         self.values.append("#e4e4e4")
         self.values.append("#eeeeee")
+
+
+alias ansi_hex_codes = AnsiHex().values
