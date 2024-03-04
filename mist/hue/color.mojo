@@ -118,7 +118,33 @@ fn hSLuvD65() -> DynamicVector[Float64]:
     return vector
 
 
-fn getBounds(l: Float64) -> DynamicVector[DynamicVector[Float64]]:
+fn get_bounds_matrix() -> DynamicVector[DynamicVector[Float64]]:
+    var m = DynamicVector[DynamicVector[Float64]]()
+    var m1 = DynamicVector[Float64]()
+    m1.append(3.2409699419045214)
+    m1.append(-1.5373831775700935)
+    m1.append(-0.49861076029300328)
+    m.append(m1)
+
+    var m2 = DynamicVector[Float64]()
+    m2.append(-0.96924363628087983)
+    m2.append(-0.96924363628087983)
+    m2.append(0.041555057407175613)
+    m.append(m2)
+
+    var m3 = DynamicVector[Float64]()
+    m3.append(0.055630079696993609)
+    m3.append(-0.20397695888897657)
+    m3.append(1.0569715142428786)
+    m.append(m3)
+
+    return m
+
+
+alias bounds_matrix = get_bounds_matrix()
+
+
+fn get_bounds(l: Float64) -> DynamicVector[DynamicVector[Float64]]:
     var sub2: Float64
     var sub1 = (l + 16.0**3.0) / 1560896.0
     var epsilon = 0.0088564516790356308
@@ -158,24 +184,7 @@ fn getBounds(l: Float64) -> DynamicVector[DynamicVector[Float64]]:
     ret.append(ret5)
     ret.append(ret6)
 
-    var m = DynamicVector[DynamicVector[Float64]]()
-    var m1 = DynamicVector[Float64]()
-    m1.append(3.2409699419045214)
-    m1.append(-1.5373831775700935)
-    m1.append(-0.49861076029300328)
-    m.append(m1)
-
-    var m2 = DynamicVector[Float64]()
-    m2.append(-0.96924363628087983)
-    m2.append(-0.96924363628087983)
-    m2.append(0.041555057407175613)
-    m.append(m2)
-
-    var m3 = DynamicVector[Float64]()
-    m3.append(0.055630079696993609)
-    m3.append(-0.20397695888897657)
-    m3.append(1.0569715142428786)
-    m.append(m3)
+    var m = bounds_matrix
 
     if sub1 > epsilon:
         sub2 = sub1
@@ -199,18 +208,18 @@ fn getBounds(l: Float64) -> DynamicVector[DynamicVector[Float64]]:
     return ret
 
 
-fn lengthOfRayUntilIntersect(theta: Float64, x: Float64, y: Float64) -> Float64:
+fn length_of_ray_until_intersect(theta: Float64, x: Float64, y: Float64) -> Float64:
     return y / (math.sin(theta) - x * math.cos(theta))
 
 
-fn maxChromaForLH(l: Float64, h: Float64) -> Float64:
-    var hRad = h / 360.0 * pi() * 2.0
-    var minLength = max_float64()
-    var bounds = getBounds(l)
+fn max_chroma_for_lh(l: Float64, h: Float64) -> Float64:
+    var hRad = h / 360.0 * pi * 2.0
+    var minLength = max_float64
+    var bounds = get_bounds(l)
 
     for i in range(len(bounds)):
         var line = bounds[i]
-        var length = lengthOfRayUntilIntersect(hRad, line[0], line[1])
+        var length = length_of_ray_until_intersect(hRad, line[0], line[1])
         if length > 0.0 and length < minLength:
             minLength = length
 
@@ -227,7 +236,7 @@ fn LuvLch_to_HSLuv(l: Float64, c: Float64, h: Float64) -> (Float64, Float64, Flo
     if l > 99.9999999 or l < 0.00000001:
         s = 0.0
     else:
-        max = maxChromaForLH(l, h)
+        max = max_chroma_for_lh(l, h)
         s = c / max * 100.0
 
     return h, clamp01(s / 100.0), clamp01(l / 100.0)

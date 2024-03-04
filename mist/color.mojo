@@ -165,7 +165,7 @@ fn convert_base16_to_base10(value: String) raises -> Int:
     mapping["d"] = 13
     mapping["e"] = 14
     mapping["f"] = 15
-
+    
     var length = len(value)
     var sum: Int = 0
     for i in range(length - 1, -1, -1):
@@ -191,9 +191,8 @@ fn hex_to_rgb(value: String) raises -> RGB:
     indices.append(4)
 
     var results = DynamicVector[Int]()
-
-    for i in range(len(indices)):
-        var base_10 = convert_base16_to_base10(hex[indices[i] : indices[i] + 2])
+    for i in indices:
+        var base_10 = convert_base16_to_base10(hex[i[] : i[] + 2])
         results.append(atol(base_10))
 
     return RGB(results[0], results[1], results[2])
@@ -248,7 +247,7 @@ fn ansi256_to_ansi(value: Int) raises -> ANSIColor:
         value: ANSI256 color value.
     """
     var r: Int = 0
-    var md = max_float64()
+    var md = max_float64
 
     var h = hex_to_rgb(ansi_hex_codes[value])
 
