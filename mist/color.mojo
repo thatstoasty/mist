@@ -144,7 +144,10 @@ struct ANSI256Color(Color):
 #         print(remainder * 16)
 
 
-fn get_base16_mapping() -> Dict[StringKey, Int]:
+fn convert_base16_to_base10(value: String) raises -> Int:
+    """Converts a base 16 number to base 10.
+    https://www.catalyst2.com/knowledgebase/dictionary/hexadecimal-base-16-numbers/#:~:text=To%20convert%20the%20hex%20number,16%20%2B%200%20%3D%2016).
+    """
     var mapping = Dict[StringKey, Int]()
     mapping["0"] = 0
     mapping["1"] = 1
@@ -162,22 +165,12 @@ fn get_base16_mapping() -> Dict[StringKey, Int]:
     mapping["d"] = 13
     mapping["e"] = 14
     mapping["f"] = 15
-
-    return mapping
-
-
-alias base16_mapping = get_base16_mapping()
-
-
-fn convert_base16_to_base10(value: String) raises -> Int:
-    """Converts a base 16 number to base 10.
-    https://www.catalyst2.com/knowledgebase/dictionary/hexadecimal-base-16-numbers/#:~:text=To%20convert%20the%20hex%20number,16%20%2B%200%20%3D%2016).
-    """
+    
     var length = len(value)
     var sum: Int = 0
     for i in range(length - 1, -1, -1):
         var exponent = length - 1 - i
-        sum += base16_mapping[value[i]] * (16**exponent)
+        sum += mapping[value[i]] * (16**exponent)
 
     return sum
 
