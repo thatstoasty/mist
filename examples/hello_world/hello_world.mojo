@@ -2,7 +2,7 @@ from mist import TerminalStyle, Profile
 from mist.color import ANSIColor, ANSI256Color, RGBColor
 
 fn main() raises:
-    let profile = Profile("TrueColor")
+    var profile = Profile("TrueColor")
 
     var a = TerminalStyle(profile)
     a.bold()
