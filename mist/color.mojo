@@ -1,6 +1,6 @@
 from collections.dict import Dict, KeyElement
 from utils.variant import Variant
-from .hue import RGB, max_float64
+from external.hue import RGB, max_float64
 from .ansi_colors import ansi_hex_codes
 
 
