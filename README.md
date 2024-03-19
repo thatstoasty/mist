@@ -19,7 +19,7 @@ from mist.color import ANSIColor, ANSI256Color, RGBColor
 
 
 fn main() raises:
-    let a: String = "Hello World!"
+    var a: String = "Hello World!"
     var profile = Profile("TrueColor")
     var style = TerminalStyle(profile)
 
