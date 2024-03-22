@@ -1,25 +1,26 @@
 from mist import TerminalStyle, Profile
 from mist.color import ANSIColor, ANSI256Color, RGBColor
 
+
 fn main() raises:
     var profile = Profile("TrueColor")
 
-    var a = TerminalStyle(profile)
+    var a = TerminalStyle()
     a.bold()
 
-    var b = TerminalStyle(profile)
+    var b = TerminalStyle()
     b.faint()
 
-    var c = TerminalStyle(profile)
+    var c = TerminalStyle()
     c.italic()
 
-    var d = TerminalStyle(profile)
+    var d = TerminalStyle()
     d.faint()
 
-    var e = TerminalStyle(profile)
+    var e = TerminalStyle()
     e.underline()
 
-    var f = TerminalStyle(profile)
+    var f = TerminalStyle()
     f.crossout()
 
     print_no_newline("\n\t",
@@ -31,26 +32,26 @@ fn main() raises:
         f.render("crossout")
     )
 
-    var red = TerminalStyle(profile)
-    red.foreground(RGBColor("#E88388"))
+    var red = TerminalStyle()
+    red.foreground("#E88388")
 
-    var green = TerminalStyle(profile)
-    green.foreground(RGBColor("#A8CC8C"))
+    var green = TerminalStyle()
+    green.foreground("#A8CC8C")
 
-    var yellow = TerminalStyle(profile)
-    yellow.foreground(RGBColor("#DBAB79"))
+    var yellow = TerminalStyle()
+    yellow.foreground("#DBAB79")
 
-    var blue = TerminalStyle(profile)
-    blue.foreground(RGBColor("#71BEF2"))
+    var blue = TerminalStyle()
+    blue.foreground("#71BEF2")
 
-    var magenta = TerminalStyle(profile)
-    magenta.foreground(RGBColor("#D290E4"))
+    var magenta = TerminalStyle()
+    magenta.foreground("#D290E4")
 
-    var cyan = TerminalStyle(profile)
-    cyan.foreground(RGBColor("#66C2CD"))
+    var cyan = TerminalStyle()
+    cyan.foreground("#66C2CD")
 
-    var gray = TerminalStyle(profile)
-    gray.foreground(RGBColor("#B9BFCA"))
+    var gray = TerminalStyle()
+    gray.foreground("#B9BFCA")
 
     print_no_newline("\n\t",
         red.render("red"), 
@@ -62,33 +63,33 @@ fn main() raises:
         gray.render("gray"),
     )
 
-    var red_bg = TerminalStyle(profile)
-    red_bg.foreground(ANSIColor(0))
-    red_bg.background(RGBColor("#E88388"))
+    var red_bg = TerminalStyle()
+    red_bg.foreground(0)
+    red_bg.background("#E88388")
 
-    var green_bg = TerminalStyle(profile)
-    green_bg.foreground(ANSIColor(0))
-    green_bg.background(RGBColor("#A8CC8C"))
+    var green_bg = TerminalStyle()
+    green_bg.foreground(0)
+    green_bg.background("#A8CC8C")
 
-    var yellow_bg = TerminalStyle(profile)
-    yellow_bg.foreground(ANSIColor(0))
-    yellow_bg.background(RGBColor("#DBAB79"))
+    var yellow_bg = TerminalStyle()
+    yellow_bg.foreground(0)
+    yellow_bg.background("#DBAB79")
 
-    var blue_bg = TerminalStyle(profile)
-    blue_bg.foreground(ANSIColor(0))
-    blue_bg.background(RGBColor("#71BEF2"))
+    var blue_bg = TerminalStyle()
+    blue_bg.foreground(0)
+    blue_bg.background("#71BEF2")
 
-    var magenta_bg = TerminalStyle(profile)
-    magenta_bg.foreground(ANSIColor(0))
-    magenta_bg.background(RGBColor("#D290E4"))
+    var magenta_bg = TerminalStyle()
+    magenta_bg.foreground(0)
+    magenta_bg.background("#D290E4")
 
-    var cyan_bg = TerminalStyle(profile)
-    cyan_bg.foreground(ANSIColor(0))
-    cyan_bg.background(RGBColor("#66C2CD"))
+    var cyan_bg = TerminalStyle()
+    cyan_bg.foreground(0)
+    cyan_bg.background("#66C2CD")
 
-    var gray_bg = TerminalStyle(profile)
-    gray_bg.foreground(ANSIColor(0))
-    gray_bg.background(RGBColor("#B9BFCA"))
+    var gray_bg = TerminalStyle()
+    gray_bg.foreground(0)
+    gray_bg.background("#B9BFCA")
 
     print_no_newline("\n\t",
         red_bg.render("red"), 

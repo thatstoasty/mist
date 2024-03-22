@@ -1,10 +1,18 @@
-from mist.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color, hide_cursor, show_cursor
+from mist.screen import (
+    set_window_title,
+    set_foreground_color,
+    set_background_color,
+    set_cursor_color,
+    hide_cursor,
+    show_cursor,
+)
 from mist.profile import Profile
 
+
 fn main() raises:
-    let title = "Example Title"
-    let profile = Profile("TrueColor")
-    let color = profile.color("#c9a0dc")
+    var title = "Example Title"
+    var profile = Profile("TrueColor")
+    var color = profile.color("#c9a0dc")
 
     # set_window_title sets the terminal window title
     set_window_title(title)
@@ -23,6 +31,7 @@ fn main() raises:
 
     # # Show the cursor
     # show_cursor()
+
 
 # from mist.screen import enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
 

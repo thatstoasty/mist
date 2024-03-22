@@ -1,3 +1,4 @@
+import os
 from .color import (
     NoColor,
     ANSIColor,
@@ -17,12 +18,55 @@ fn contains(vector: DynamicVector[String], value: String) -> Bool:
     return False
 
 
-# Currently not used, but will be in the future once we have a way to check types or have variables in traits.
-# For now, we can't really make use of the color degradation functions here.
+# TODO: UNIX systems only for now. Need to add Windows, POSIX, and SOLARIS support.
+fn get_color_profile() raises -> Profile:
+    """Queries the terminal to determine the color profile it supports.
+    ASCII, ANSI, ANSI256, or TrueColor.
+    """
+    # if not o.isTTY():
+    # 	return Ascii
+
+    if os.getenv("GOOGLE_CLOUD_SHELL") == "true":
+        return Profile("TrueColor")
+
+    var term = os.getenv("TERM").lower()
+    var color_term = os.getenv("COLORTERM").lower()
+
+    # COLORTERM is used by some terminals to indicate TrueColor support.
+    if color_term == "24bit":
+        pass
+    elif color_term == "truecolor":
+        if term.startswith("screen"):
+            # tmux supports TrueColor, screen only ANSI256
+            if os.getenv("TERM_PROGRAM") != "tmux":
+                return Profile("ANSI256")
+            return Profile("TrueColor")
+    elif color_term == "yes":
+        pass
+    elif color_term == "true":
+        return Profile("ANSI256")
+
+    # TERM is used by most terminals to indicate color support.
+    if term == "xterm-kitty" or term == "wezterm" or term == "xterm-ghostty":
+        return Profile("TrueColor")
+    elif term == "linux":
+        return Profile("ANSI")
+
+    if "256color" in term:
+        return Profile("ANSI256")
+
+    if "color" in term:
+        return Profile("ANSI")
+
+    if "ansi" in term:
+        return Profile("ANSI")
+
+    return Profile("ASCII")
+
+
 @value
 struct Profile:
     var value: String
-    var valid: DynamicVector[String]
 
     fn __init__(inout self, value: String = "TrueColor") raises:
         """
@@ -31,23 +75,22 @@ struct Profile:
         Args:
             value: The setting to use for this profile. Valid values: ["TrueColor", "ANSI256", "ANSI", "ASCII"].
         """
-        var valid: DynamicVector[String] = DynamicVector[String]()
-        valid.append("TrueColor")
-        valid.append("ANSI256")
-        valid.append("ANSI")
-        valid.append("ASCII")
-        self.valid = valid
         self.value = value
         self.validate_value(value)
 
     fn validate_value(self, value: String) raises -> None:
-        if not contains(self.valid, value):
+        var valid = DynamicVector[String]()
+        valid.append("TrueColor")
+        valid.append("ANSI256")
+        valid.append("ANSI")
+        valid.append("ASCII")
+        if not contains(valid, value):
             raise Error(
                 "Invalid setting, valid values are ['TrueColor', 'ANSI256', 'ANSI',"
                 " 'ASCII']"
             )
 
-    fn set_setting(inout self, value: String) raises:
+    fn set_value(inout self, value: String) raises:
         self.validate_value(value)
         self.value = value
 

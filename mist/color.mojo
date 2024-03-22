@@ -165,7 +165,7 @@ fn convert_base16_to_base10(value: String) raises -> Int:
     mapping["d"] = 13
     mapping["e"] = 14
     mapping["f"] = 15
-    
+
     var length = len(value)
     var sum: Int = 0
     for i in range(length - 1, -1, -1):

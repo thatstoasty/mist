@@ -9,6 +9,7 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
 )
+from .profile import get_color_profile
 
 # Text formatting sequences
 alias reset = "0"
@@ -34,12 +35,6 @@ alias st = escape + chr(
 alias clear = escape + "[2J" + escape + "[H"
 
 
-fn sgr_format(n: String) -> String:
-    """SGR formatting: https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
-    """
-    return escape + "[" + n + "m"
-
-
 @value
 struct TerminalStyle:
     var styles: DynamicVector[String]
@@ -48,6 +43,10 @@ struct TerminalStyle:
     fn __init__(inout self, profile: Profile):
         self.styles = DynamicVector[String]()
         self.profile = profile
+
+    fn __init__(inout self) raises:
+        self.styles = DynamicVector[String]()
+        self.profile = get_color_profile()
 
     fn bold(inout self) -> None:
         self.styles.push_back(bold)
@@ -73,7 +72,13 @@ struct TerminalStyle:
     fn overline(inout self) -> None:
         self.styles.push_back(overline)
 
-    fn background(inout self, color: AnyColor) raises -> None:
+    fn background(inout self, color_value: String) raises -> None:
+        """Set the background color of the text.
+
+        Args:
+            color_value: The color value to set the background to. This can be a hex value, an ANSI color, or an RGB color.
+        """
+        var color = self.profile.color(color_value)
         if color.isa[NoColor]():
             return None
 
@@ -87,7 +92,13 @@ struct TerminalStyle:
             var c = color.get[RGBColor]()[]
             self.styles.push_back(c.sequence(True))
 
-    fn foreground(inout self, color: AnyColor) raises -> None:
+    fn foreground(inout self, color_value: String) raises -> None:
+        """Set the foreground color of the text.
+
+        Args:
+            color_value: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+        """
+        var color = self.profile.color(color_value)
         if color.isa[NoColor]():
             return None
 

@@ -1,5 +1,6 @@
 # mist
-`mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions. This is a port/conversion of https:#github.com/muesli/termenv/tree/master.
+
+`mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions. This is a port/conversion of <https://github.com/muesli/termenv/tree/master>.
 
 ![Example](https://github.com/thatstoasty/mist/blob/main/examples/hello_world/hello_world.png)
 
@@ -7,7 +8,8 @@
 
 I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
-# Colors
+## Colors
+
 It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TrueColor (24-bit RGB). At the moment, the Profile is not used, so you'll need to set the foreground or background colors directly with the Color objects. Eventually, calling p.Color and providing a hex code or ansi color will automatically convert it to the best matching color in the profile.
 
 Once we have type checking in Mojo, Colors will automatically be degraded to the best matching available color in the desired profile:
@@ -20,63 +22,62 @@ from mist.color import ANSIColor, ANSI256Color, RGBColor
 
 fn main() raises:
     var a: String = "Hello World!"
-    var profile = Profile("TrueColor")
-    var style = TerminalStyle(profile)
+    var style = TerminalStyle()
 
-    # profile.color() will automatically convert the color to the best matching color in the profile.
+    # ) will automatically convert the color to the best matching color in the profile.
     # ANSI Color Support (0-15)
-    style = TerminalStyle(profile)
-    style.foreground(profile.color("12"))
+    style = TerminalStyle()
+    style.foreground("12")
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = TerminalStyle(profile)
-    style.foreground(profile.color("55"))
+    style = TerminalStyle()
+    style.foreground("55")
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = TerminalStyle(profile)
-    style.foreground(profile.color("#c9a0dc"))
+    style = TerminalStyle()
+    style.foreground("#c9a0dc")
     print(style.render(a))
 
-    # profile.color() will also degrade colors automatically depending on the color's supported by the terminal.
+    # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    profile = Profile("ASCII")
+    var profile = Profile("ASCII")
     style = TerminalStyle(profile)
-    style.foreground(profile.color("#c9a0dc"))
+    style.foreground("#c9a0dc")
     print(style.render(a))
 
     # ANSI Color Support (0-15)
     profile = Profile("ANSI")
     style = TerminalStyle(profile)
-    style.foreground(profile.color("#c9a0dc"))
+    style.foreground("#c9a0dc")
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
     profile = Profile("ANSI256")
     style = TerminalStyle(profile)
-    style.foreground(profile.color("#c9a0dc"))
+    style.foreground("#c9a0dc")
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
     profile = Profile("TrueColor")
     style = TerminalStyle(profile)
-    style.foreground(profile.color("#c9a0dc"))
+    style.foreground("#c9a0dc")
     print(style.render(a))
 ```
 
-# Styles
+## Styles
+
 You can apply text formatting effects to your text by setting the rules on the `TerminalStyle` object then using that object to render your text.
 Chaining is not supported yet, but will be in the future!
 
 ```python
-from mist import TerminalStyle, Profile
+from mist import TerminalStyle
 
 fn main() raises:
-    let a: String = "Hello World!"
-    let profile = Profile("TrueColor")
-    var style = TerminalStyle(profile)
+    var a: String = "Hello World!"
+    var style = TerminalStyle()
 
     # Text styles
     style.bold()
@@ -95,7 +96,8 @@ fn main() raises:
     print(style.render(a))
 ```
 
-# Positioning
+## Positioning
+
 ```python
 from mist.screen import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
 
@@ -130,7 +132,8 @@ fn main() raises:
     cursor_prev_line(n)
 ```
 
-# Screen
+## Screen
+
 ```python
 from mist.screen import reset, restore_screen, save_screen, alt_screen, exit_alt_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
 
@@ -172,7 +175,10 @@ fn main() raises:
 ```
 
 ## Example using cursor and screen operations
+
 ```python
+from mist.screen import cursor_back, clear_line_right
+
 fn main() raises:
     print_no_newline("hello")
     cursor_back(2)
@@ -180,11 +186,13 @@ fn main() raises:
 ```
 
 Output
+
 ```txt
 hel
 ```
 
-# Session
+## Session
+
 ```python
 from mist.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
 
@@ -202,7 +210,8 @@ fn main() raises:
     set_cursor_color(color)
 ```
 
-# Mouse
+## Mouse
+
 ```python
 from mist.screen import enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
 
@@ -238,7 +247,8 @@ fn main() raises:
     disable_mouse_all_motion()
 ```
 
-# Bracketed Paste
+## Bracketed Paste
+
 ```python
 from mist.screen import enable_bracketed_paste, disable_bracketed_paste
 
@@ -250,11 +260,12 @@ fn main() raises:
     disable_bracketed_paste()
 ```
 
-# Color Chart
+## Color Chart
+
 Color chart lifted from https:#github.com/muesli/termenv, give their projects a star if you like this!
 ![ANSI color chart](https://github.com/thatstoasty/mist/blob/main/color-chart.png)
 
+## TODO
 
-# TODO
-- Enable terminal querying
+- Enable terminal querying for platforms other than UNIX based.
 - Switch to stdout writer
