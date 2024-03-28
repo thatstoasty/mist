@@ -110,13 +110,7 @@ fn LuvToLuvLCh(L: Float64, u: Float64, v: Float64) -> (Float64, Float64, Float64
     return l, c, h
 
 
-fn hSLuvD65() -> List[Float64]:
-    var vector: List[Float64] = List[Float64]()
-    vector.append(0.95045592705167)
-    vector.append(1.0)
-    vector.append(1.089057750759878)
-
-    return vector
+alias hSLuvD65 = List[Float64](0.95045592705167, 1.0, 1.089057750759878)
 
 
 fn getBounds(l: Float64) -> List[List[Float64]]:
@@ -125,58 +119,20 @@ fn getBounds(l: Float64) -> List[List[Float64]]:
     var epsilon = 0.0088564516790356308
     var kappa = 903.2962962962963
 
-    var ret: List[List[Float64]] = List[
-        List[Float64]
-    ]()
-    var ret1 = List[Float64]()
-    ret1.append(0)
-    ret1.append(0)
+    var ret = List[List[Float64]](
+        List[Float64](0, 0),
+        List[Float64](0, 0),
+        List[Float64](0, 0),
+        List[Float64](0, 0),
+        List[Float64](0, 0),
+        List[Float64](0, 0),
+    )
 
-    var ret2 = List[Float64]()
-    ret2.append(0)
-    ret2.append(0)
-
-    var ret3 = List[Float64]()
-    ret3.append(0)
-    ret3.append(0)
-
-    var ret4 = List[Float64]()
-    ret4.append(0)
-    ret4.append(0)
-
-    var ret5 = List[Float64]()
-    ret5.append(0)
-    ret5.append(0)
-
-    var ret6 = List[Float64]()
-    ret6.append(0)
-    ret6.append(0)
-
-    ret.append(ret1)
-    ret.append(ret2)
-    ret.append(ret3)
-    ret.append(ret4)
-    ret.append(ret5)
-    ret.append(ret6)
-
-    var m = List[List[Float64]]()
-    var m1 = List[Float64]()
-    m1.append(3.2409699419045214)
-    m1.append(-1.5373831775700935)
-    m1.append(-0.49861076029300328)
-    m.append(m1)
-
-    var m2 = List[Float64]()
-    m2.append(-0.96924363628087983)
-    m2.append(-0.96924363628087983)
-    m2.append(0.041555057407175613)
-    m.append(m2)
-
-    var m3 = List[Float64]()
-    m3.append(0.055630079696993609)
-    m3.append(-0.20397695888897657)
-    m3.append(1.0569715142428786)
-    m.append(m3)
+    var m = List[List[Float64]](
+        List[Float64](3.2409699419045214, -1.5373831775700935, -0.49861076029300328),
+        List[Float64](-0.96924363628087983, 1.8759675015077207, 0.041555057407175613),
+        List[Float64](0.055630079696993609, -0.20397695888897657, 1.0569715142428786),
+    )
 
     if sub1 > epsilon:
         sub2 = sub1
@@ -332,9 +288,7 @@ struct RGB:
         l, u, v = xyz_to_Luv_white_ref(x, y, z, wref)
         return l, u, v
 
-    fn LuvLCh_white_ref(
-        self, wref: List[Float64]
-    ) -> (Float64, Float64, Float64):
+    fn LuvLCh_white_ref(self, wref: List[Float64]) -> (Float64, Float64, Float64):
         var l: Float64
         var u: Float64
         var v: Float64
@@ -348,7 +302,7 @@ struct RGB:
         color space. Hue in [0..360], a Saturation [0..1], and a Luminance
         (lightness) in [0..1].
         """
-        var wref: List[Float64] = hSLuvD65()
+        var wref: List[Float64] = hSLuvD65
         var l: Float64
         var c: Float64
         var h: Float64

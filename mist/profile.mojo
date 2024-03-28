@@ -95,6 +95,11 @@ struct Profile:
         self.value = value
 
     fn convert(self, color: AnyColor) raises -> AnyColor:
+        """Degrades a color based on the terminal profile.
+
+        Args:
+            color: The color to convert to the current profile.
+        """
         if self.value == "ASCII":
             return NoColor()
 
@@ -122,20 +127,24 @@ struct Profile:
         # If it somehow gets here, just return No Color until I can figure out how to just return whatever color was passed in.
         return color.get[NoColor]()[]
 
-    fn color(self, s: String) raises -> AnyColor:
+    fn color(self, value: String) raises -> AnyColor:
         """Color creates a Color from a string. Valid inputs are hex colors, as well as
-        ANSI color codes (0-15, 16-255)."""
-        if len(s) == 0:
+        ANSI color codes (0-15, 16-255).
+
+        Args:
+            value: The string to convert to a color.
+        """
+        if len(value) == 0:
             raise Error("No string passed to color function for formatting!")
 
         if self.value == "ASCII":
             return NoColor()
 
-        if s[0] == "#":
-            var c = RGBColor(s)
+        if value[0] == "#":
+            var c = RGBColor(value)
             return self.convert(c)
         else:
-            var i = atol(s)
+            var i = atol(value)
             if i < 16:
                 var c = ANSIColor(i)
                 return self.convert(c)

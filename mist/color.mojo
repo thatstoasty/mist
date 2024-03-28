@@ -2,7 +2,7 @@ from collections.dict import Dict, KeyElement
 from utils.variant import Variant
 from external.hue import RGB
 from external.hue.math import max_float64
-from .ansi_colors import ansi_hex_codes
+from .ansi_colors import ANSI_HEX_CODES
 
 
 @value
@@ -20,10 +20,10 @@ struct StringKey(KeyElement):
 
     fn __eq__(self, other: Self) -> Bool:
         return self.s == other.s
-    
+
     fn __ne__(self, other: Self) -> Bool:
         return self.s != other.s
-    
+
     fn __str__(self) -> String:
         return self.s
 
@@ -50,7 +50,7 @@ trait Color(Movable, Copyable, Equalable, NotEqualable, CollectionElement):
 
 
 @value
-struct NoColor(Color):
+struct NoColor(Color, Stringable):
     fn __eq__(self, other: NoColor) -> Bool:
         return True
 
@@ -60,13 +60,13 @@ struct NoColor(Color):
     fn sequence(self, is_background: Bool) raises -> String:
         return ""
 
-    fn string(self) -> String:
+    fn __str__(self) -> String:
         """String returns the ANSI Sequence for the color and the text."""
         return ""
 
 
 @value
-struct ANSIColor(Color):
+struct ANSIColor(Color, Stringable):
     """ANSIColor is a color (0-15) as defined by the ANSI Standard."""
 
     var value: Int
@@ -92,20 +92,20 @@ struct ANSIColor(Color):
         else:
             return String(modifier + self.value - 8 + 90)
 
-    fn string(self) -> String:
+    fn __str__(self) -> String:
         """String returns the ANSI Sequence for the color and the text."""
-        return ansi_hex_codes[self.value]
+        return ANSI_HEX_CODES[self.value]
 
     fn convert_to_rgb(self) raises -> RGB:
         """Converts an ANSI color to RGB by looking up the hex value and converting it.
         """
-        var hex: String = ansi_hex_codes[self.value]
+        var hex: String = ANSI_HEX_CODES[self.value]
 
         return hex_to_rgb(hex)
 
 
 @value
-struct ANSI256Color(Color):
+struct ANSI256Color(Color, Stringable):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
     var value: Int
@@ -128,14 +128,14 @@ struct ANSI256Color(Color):
 
         return prefix + ";5;" + String(self.value)
 
-    fn string(self) -> String:
+    fn __str__(self) -> String:
         """String returns the ANSI Sequence for the color and the text."""
-        return ansi_hex_codes[self.value]
+        return ANSI_HEX_CODES[self.value]
 
     fn convert_to_rgb(self) raises -> RGB:
         """Converts an ANSI color to RGB by looking up the hex value and converting it.
         """
-        var hex: String = ansi_hex_codes[self.value]
+        var hex: String = ANSI_HEX_CODES[self.value]
 
         return hex_to_rgb(hex)
 
@@ -154,6 +154,12 @@ struct ANSI256Color(Color):
 fn convert_base16_to_base10(value: String) raises -> Int:
     """Converts a base 16 number to base 10.
     https://www.catalyst2.com/knowledgebase/dictionary/hexadecimal-base-16-numbers/#:~:text=To%20convert%20the%20hex%20number,16%20%2B%200%20%3D%2016).
+
+    Args:
+        value: Hexadecimal number.
+
+    Returns:
+        Base 10 number.
     """
     var mapping = Dict[StringKey, Int]()
     mapping["0"] = 0
@@ -192,11 +198,7 @@ fn hex_to_rgb(value: String) raises -> RGB:
         RGB color.
     """
     var hex = value[1:]
-    var indices = List[Int]()
-    indices.append(0)
-    indices.append(2)
-    indices.append(4)
-
+    var indices = List[Int](0, 2, 4)
     var results = List[Int]()
     for i in indices:
         var base_10 = convert_base16_to_base10(hex[i[] : i[] + 2])
@@ -256,11 +258,11 @@ fn ansi256_to_ansi(value: Int) raises -> ANSIColor:
     var r: Int = 0
     var md = max_float64
 
-    var h = hex_to_rgb(ansi_hex_codes[value])
+    var h = hex_to_rgb(ANSI_HEX_CODES[value])
 
     var i: Int = 0
     while i <= 15:
-        var hb = hex_to_rgb(ansi_hex_codes[i])
+        var hb = hex_to_rgb(ANSI_HEX_CODES[i])
         var d = h.distance_HSLuv(hb)
 
         if d < md:
@@ -295,13 +297,7 @@ fn hex_to_ansi256(color: RGB) -> ANSI256Color:
     var ci: Int = int((36 * r) + (6 * g) + b)  # 0..215
 
     # Calculate the represented colors back from the index
-    var i2cv: List[Int] = List[Int]()
-    i2cv.append(0)
-    i2cv.append(0x5F)
-    i2cv.append(0x87)
-    i2cv.append(0xAF)
-    i2cv.append(0xD7)
-    i2cv.append(0xFF)
+    var i2cv = List[Int](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
     var cr = i2cv[int(r)]  # r/g/b, 0..255 each
     var cg = i2cv[int(g)]
     var cb = i2cv[int(b)]
