@@ -11,7 +11,7 @@ from .color import (
 )
 
 
-fn contains(vector: DynamicVector[String], value: String) -> Bool:
+fn contains(vector: List[String], value: String) -> Bool:
     for i in range(vector.size):
         if vector[i] == value:
             return True
@@ -79,7 +79,7 @@ struct Profile:
         self.validate_value(value)
 
     fn validate_value(self, value: String) raises -> None:
-        var valid = DynamicVector[String]()
+        var valid = List[String]()
         valid.append("TrueColor")
         valid.append("ANSI256")
         valid.append("ANSI")

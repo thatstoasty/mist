@@ -1,6 +1,6 @@
 # RGB values of ANSI colors (0-255).
-fn build_ansi_hex_codes() -> DynamicVector[String]:
-    var values = DynamicVector[String]()
+fn build_ansi_hex_codes() -> List[String]:
+    var values = List[String]()
     values.append("#000000")
     values.append("#800000")
     values.append("#008000")

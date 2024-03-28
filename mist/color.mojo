@@ -1,6 +1,7 @@
 from collections.dict import Dict, KeyElement
 from utils.variant import Variant
-from external.hue import RGB, max_float64
+from external.hue import RGB
+from external.hue.math import max_float64
 from .ansi_colors import ansi_hex_codes
 
 
@@ -19,6 +20,12 @@ struct StringKey(KeyElement):
 
     fn __eq__(self, other: Self) -> Bool:
         return self.s == other.s
+    
+    fn __ne__(self, other: Self) -> Bool:
+        return self.s != other.s
+    
+    fn __str__(self) -> String:
+        return self.s
 
 
 alias foreground = "38"
@@ -185,12 +192,12 @@ fn hex_to_rgb(value: String) raises -> RGB:
         RGB color.
     """
     var hex = value[1:]
-    var indices = DynamicVector[Int]()
+    var indices = List[Int]()
     indices.append(0)
     indices.append(2)
     indices.append(4)
 
-    var results = DynamicVector[Int]()
+    var results = List[Int]()
     for i in indices:
         var base_10 = convert_base16_to_base10(hex[i[] : i[] + 2])
         results.append(atol(base_10))
@@ -288,7 +295,7 @@ fn hex_to_ansi256(color: RGB) -> ANSI256Color:
     var ci: Int = int((36 * r) + (6 * g) + b)  # 0..215
 
     # Calculate the represented colors back from the index
-    var i2cv: DynamicVector[Int] = DynamicVector[Int]()
+    var i2cv: List[Int] = List[Int]()
     i2cv.append(0)
     i2cv.append(0x5F)
     i2cv.append(0x87)

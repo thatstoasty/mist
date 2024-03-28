@@ -37,40 +37,40 @@ alias clear = escape + "[2J" + escape + "[H"
 
 @value
 struct TerminalStyle:
-    var styles: DynamicVector[String]
+    var styles: List[String]
     var profile: Profile
 
     fn __init__(inout self, profile: Profile):
-        self.styles = DynamicVector[String]()
+        self.styles = List[String]()
         self.profile = profile
 
     fn __init__(inout self) raises:
-        self.styles = DynamicVector[String]()
+        self.styles = List[String]()
         self.profile = get_color_profile()
 
     fn bold(inout self) -> None:
-        self.styles.push_back(bold)
+        self.styles.append(bold)
 
     fn faint(inout self) -> None:
-        self.styles.push_back(faint)
+        self.styles.append(faint)
 
     fn italic(inout self) -> None:
-        self.styles.push_back(italic)
+        self.styles.append(italic)
 
     fn underline(inout self) -> None:
-        self.styles.push_back(underline)
+        self.styles.append(underline)
 
     fn blink(inout self) -> None:
-        self.styles.push_back(blink)
+        self.styles.append(blink)
 
     fn reverse(inout self) -> None:
-        self.styles.push_back(reverse)
+        self.styles.append(reverse)
 
     fn crossout(inout self) -> None:
-        self.styles.push_back(crossout)
+        self.styles.append(crossout)
 
     fn overline(inout self) -> None:
-        self.styles.push_back(overline)
+        self.styles.append(overline)
 
     fn background(inout self, color_value: String) raises -> None:
         """Set the background color of the text.
@@ -84,13 +84,13 @@ struct TerminalStyle:
 
         if color.isa[ANSIColor]():
             var c = color.get[ANSIColor]()[]
-            self.styles.push_back(c.sequence(True))
+            self.styles.append(c.sequence(True))
         elif color.isa[ANSI256Color]():
             var c = color.get[ANSI256Color]()[]
-            self.styles.push_back(c.sequence(True))
+            self.styles.append(c.sequence(True))
         elif color.isa[RGBColor]():
             var c = color.get[RGBColor]()[]
-            self.styles.push_back(c.sequence(True))
+            self.styles.append(c.sequence(True))
 
     fn foreground(inout self, color_value: String) raises -> None:
         """Set the foreground color of the text.
@@ -104,13 +104,13 @@ struct TerminalStyle:
 
         if color.isa[ANSIColor]():
             var c = color.get[ANSIColor]()[]
-            self.styles.push_back(c.sequence(False))
+            self.styles.append(c.sequence(False))
         elif color.isa[ANSI256Color]():
             var c = color.get[ANSI256Color]()[]
-            self.styles.push_back(c.sequence(False))
+            self.styles.append(c.sequence(False))
         elif color.isa[RGBColor]():
             var c = color.get[RGBColor]()[]
-            self.styles.push_back(c.sequence(False))
+            self.styles.append(c.sequence(False))
 
     fn render(self, text: String) -> String:
         if self.profile.value == "ASCII":
