@@ -1,4 +1,6 @@
-from mist import TerminalStyle, Profile
+from .style import TerminalStyle
+from .profile import Profile
+
 
 alias RED = "#E88388"
 alias GREEN = "#A8CC8C"
