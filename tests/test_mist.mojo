@@ -18,7 +18,7 @@ from mist.hyperlink import hyperlink
 
 
 # fn main() raises:
-#     # var profile = Profile("TrueColor")
+#     # var profile = Profile(TRUE_COLOR)
 #     # degrading colors doesn't exactly work rn, I need to figure that out
 #     # var text_color = "#c9a0dc")
 #     var style = TerminalStyle()

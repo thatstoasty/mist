@@ -122,7 +122,7 @@ fn reset_terminal():
     print(csi + reset + "m", end="")
 
 
-fn set_foreground_color(color: AnyColor) raises:
+fn set_foreground_color(color: AnyColor):
     """Sets the default foreground color.
 
     Args:
@@ -140,7 +140,7 @@ fn set_foreground_color(color: AnyColor) raises:
     print(osc + set_foreground_color_seq, c, end="")
 
 
-fn set_background_color(color: AnyColor) raises:
+fn set_background_color(color: AnyColor):
     """Sets the default background color.
 
     Args:
@@ -159,7 +159,7 @@ fn set_background_color(color: AnyColor) raises:
     print(osc + set_background_color_seq, c, end="")
 
 
-fn set_cursor_color(color: AnyColor) raises:
+fn set_cursor_color(color: AnyColor):
     """Sets the cursor color.
 
     Args:

@@ -3,7 +3,7 @@ from mist.color import ANSIColor, ANSI256Color, RGBColor
 
 
 fn main() raises:
-    var profile = Profile("TrueColor")
+    var profile = Profile()
 
     print("\n\t",
         TerminalStyle.new().bold().render("bold"), 

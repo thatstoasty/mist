@@ -10,10 +10,10 @@ I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
 ## Colors
 
-It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TrueColor (24-bit RGB). At the moment, the Profile is not used, so you'll need to set the foreground or background colors directly with the Color objects. Eventually, calling p.Color and providing a hex code or ansi color will automatically convert it to the best matching color in the profile.
+It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TRUE_COLOR (24-bit RGB). At the moment, the Profile is not used, so you'll need to set the foreground or background colors directly with the Color objects. Eventually, calling p.Color and providing a hex code or ansi color will automatically convert it to the best matching color in the profile.
 
 Once we have type checking in Mojo, Colors will automatically be degraded to the best matching available color in the desired profile:
-`TrueColor` => `ANSI 256 Color`s => `ANSI 16 Colors` => `Ascii`
+`TRUE_COLOR` => `ANSI 256 Color`s => `ANSI 16 Colors` => `Ascii`
 
 ```python
 from mist import TerminalStyle, Profile
@@ -39,19 +39,19 @@ fn main() raises:
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    style = TerminalStyle.new(Profile("ASCII")).foreground("#c9a0dc")
+    style = TerminalStyle.new(Profile(ASCII)).foreground("#c9a0dc")
     print(style.render(a))
 
     # ANSI Color Support (0-15)
-    style = TerminalStyle.new(Profile("ANSI")).foreground("#c9a0dc")
+    style = TerminalStyle.new(Profile(ANSI)).foreground("#c9a0dc")
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = TerminalStyle.new(Profile("ANSI256")).foreground("#c9a0dc")
+    style = TerminalStyle.new(Profile(ANSI256)).foreground("#c9a0dc")
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = TerminalStyle.new(Profile("TrueColor")).foreground("#c9a0dc")
+    style = TerminalStyle.new(Profile(TRUE_COLOR)).foreground("#c9a0dc")
     print(style.render(a))
 
 ```

@@ -7,11 +7,12 @@ from mist.screen import (
     show_cursor,
 )
 from mist.profile import Profile
+from mist import TRUE_COLOR
 
 
 fn main() raises:
     var title = "Example Title"
-    var profile = Profile("TrueColor")
+    var profile = Profile(TRUE_COLOR)
     var color = profile.color("#c9a0dc")
 
     # set_window_title sets the terminal window title

@@ -110,7 +110,7 @@ fn LuvToLuvLCh(L: Float64, u: Float64, v: Float64) -> (Float64, Float64, Float64
     return l, c, h
 
 
-alias hSLuvD65 = List[Float64](0.95045592705167, 1.0, 1.089057750759878)
+alias hSLuvD65: List[Float64] = List[Float64](0.95045592705167, 1.0, 1.089057750759878)
 
 
 fn getBounds(l: Float64) -> List[List[Float64]]:

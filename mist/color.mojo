@@ -44,7 +44,7 @@ trait NotEqualable:
 
 
 trait Color(Movable, Copyable, Equalable, NotEqualable, CollectionElement):
-    fn sequence(self, is_background: Bool) raises -> String:
+    fn sequence(self, is_background: Bool) -> String:
         """Sequence returns the ANSI Sequence for the color."""
         ...
 
@@ -57,7 +57,7 @@ struct NoColor(Color, Stringable):
     fn __ne__(self, other: NoColor) -> Bool:
         return False
 
-    fn sequence(self, is_background: Bool) raises -> String:
+    fn sequence(self, is_background: Bool) -> String:
         return ""
 
     fn __str__(self) -> String:
@@ -77,7 +77,7 @@ struct ANSIColor(Color, Stringable):
     fn __ne__(self, other: ANSIColor) -> Bool:
         return self.value != other.value
 
-    fn sequence(self, is_background: Bool) raises -> String:
+    fn sequence(self, is_background: Bool) -> String:
         """Returns the ANSI Sequence for the color and the text.
 
         Args:
@@ -96,7 +96,7 @@ struct ANSIColor(Color, Stringable):
         """String returns the ANSI Sequence for the color and the text."""
         return ANSI_HEX_CODES[self.value]
 
-    fn convert_to_rgb(self) raises -> RGB:
+    fn convert_to_rgb(self) -> RGB:
         """Converts an ANSI color to RGB by looking up the hex value and converting it.
         """
         var hex: String = ANSI_HEX_CODES[self.value]
@@ -116,7 +116,7 @@ struct ANSI256Color(Color, Stringable):
     fn __ne__(self, other: ANSI256Color) -> Bool:
         return self.value != other.value
 
-    fn sequence(self, is_background: Bool) raises -> String:
+    fn sequence(self, is_background: Bool) -> String:
         """Returns the ANSI Sequence for the color and the text.
 
         Args:
@@ -132,7 +132,7 @@ struct ANSI256Color(Color, Stringable):
         """String returns the ANSI Sequence for the color and the text."""
         return ANSI_HEX_CODES[self.value]
 
-    fn convert_to_rgb(self) raises -> RGB:
+    fn convert_to_rgb(self) -> RGB:
         """Converts an ANSI color to RGB by looking up the hex value and converting it.
         """
         var hex: String = ANSI_HEX_CODES[self.value]
@@ -140,7 +140,7 @@ struct ANSI256Color(Color, Stringable):
         return hex_to_rgb(hex)
 
 
-# fn convert_base10_to_base16(value: Int) raises -> String:
+# fn convert_base10_to_base16(value: Int) -> String:
 #     """Converts a base 10 number to base 16."""
 #     var sum: Int = value
 #     while value > 1:
@@ -151,7 +151,7 @@ struct ANSI256Color(Color, Stringable):
 #         print(remainder * 16)
 
 
-fn convert_base16_to_base10(value: String) raises -> Int:
+fn convert_base16_to_base10(value: String) -> Int:
     """Converts a base 16 number to base 10.
     https://www.catalyst2.com/knowledgebase/dictionary/hexadecimal-base-16-numbers/#:~:text=To%20convert%20the%20hex%20number,16%20%2B%200%20%3D%2016).
 
@@ -179,16 +179,18 @@ fn convert_base16_to_base10(value: String) raises -> Int:
     mapping["e"] = 14
     mapping["f"] = 15
 
+    # We assume mapping.find always returns a value considering the value passed in is a valid hex value
+    # and the mapping has all the values.
     var length = len(value)
     var sum: Int = 0
     for i in range(length - 1, -1, -1):
         var exponent = length - 1 - i
-        sum += mapping[value[i]] * (16**exponent)
+        sum += mapping.find(value[i]).value() * (16**exponent)
 
     return sum
 
 
-fn hex_to_rgb(value: String) raises -> RGB:
+fn hex_to_rgb(value: String) -> RGB:
     """Converts a hex color to RGB.
 
     Args:
@@ -201,8 +203,7 @@ fn hex_to_rgb(value: String) raises -> RGB:
     var indices = List[Int](0, 2, 4)
     var results = List[Int]()
     for i in indices:
-        var base_10 = convert_base16_to_base10(hex[i[] : i[] + 2])
-        results.append(atol(base_10))
+        results.append(convert_base16_to_base10(hex[i[] : i[] + 2]))
 
     return RGB(results[0], results[1], results[2])
 
@@ -222,7 +223,7 @@ struct RGBColor(Color):
     fn __ne__(self, other: RGBColor) -> Bool:
         return self.value != other.value
 
-    fn sequence(self, is_background: Bool) raises -> String:
+    fn sequence(self, is_background: Bool) -> String:
         """Returns the ANSI Sequence for the color and the text.
 
         Args:
@@ -244,12 +245,12 @@ struct RGBColor(Color):
             + String(int(rgb.B))
         )
 
-    fn convert_to_rgb(self) raises -> RGB:
+    fn convert_to_rgb(self) -> RGB:
         """Converts the Hex code value to RGB."""
         return hex_to_rgb(self.value)
 
 
-fn ansi256_to_ansi(value: Int) raises -> ANSIColor:
+fn ansi256_to_ansi(value: Int) -> ANSIColor:
     """Converts an ANSI256 color to an ANSI color.
 
     Args:

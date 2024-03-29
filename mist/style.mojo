@@ -9,7 +9,7 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
 )
-from .profile import get_color_profile
+from .profile import get_color_profile, ASCII
 import time
 
 # Text formatting sequences
@@ -65,7 +65,7 @@ struct TerminalStyle:
         self.styles = styles
         self.profile = profile
 
-    fn __init__(inout self, *, styles: List[String] = List[String]()) raises:
+    fn __init__(inout self, *, styles: List[String] = List[String]()):
         """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
 
         Args:
@@ -85,7 +85,7 @@ struct TerminalStyle:
         return Self(profile, styles=styles)
 
     @staticmethod
-    fn new(styles: List[String] = List[String]()) raises -> Self:
+    fn new(styles: List[String] = List[String]()) -> Self:
         """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
 
         Args:
@@ -145,7 +145,7 @@ struct TerminalStyle:
         """Makes the text overlined when rendered."""
         return self._add_style(overline)
 
-    fn background(self, color_value: String) raises -> Self:
+    fn background(self, color_value: String) -> Self:
         """Set the background color of the text when it's rendered.
 
         Args:
@@ -167,7 +167,7 @@ struct TerminalStyle:
             sequence = c.sequence(True)
         return self._add_style(sequence)
 
-    fn foreground(self, color_value: String) raises -> Self:
+    fn foreground(self, color_value: String) -> Self:
         """Set the foreground color of the text.
 
         Args:
@@ -199,7 +199,7 @@ struct TerminalStyle:
             The text with the styles applied.
         """
         var start = time.now()
-        if self.profile.value == "ASCII":
+        if self.profile.value == ASCII:
             return text
 
         if len(self.styles) == 0:
