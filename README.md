@@ -10,7 +10,7 @@ I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
 ## Colors
 
-It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TRUE_COLOR (24-bit RGB). At the moment, the Profile is not used, so you'll need to set the foreground or background colors directly with the Color objects. Eventually, calling p.Color and providing a hex code or ansi color will automatically convert it to the best matching color in the profile.
+It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TRUE_COLOR (24-bit RGB). If profile is not explicitly provided, it will be automatically set based on the terminal's capabilities. And if a profile is set manually, it will also automatically degrade colors to the best matching color in the desired profile. For example, you provide a hex code but your profile is in ANSI. The library will automatically degrade the color to the best matching ANSI color.
 
 Once we have type checking in Mojo, Colors will automatically be degraded to the best matching available color in the desired profile:
 `TRUE_COLOR` => `ANSI 256 Color`s => `ANSI 16 Colors` => `Ascii`
