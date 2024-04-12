@@ -55,9 +55,7 @@ struct TerminalStyle:
     var styles: List[String]
     var profile: Profile
 
-    fn __init__(
-        inout self, profile: Profile, *, styles: List[String] = List[String]()
-    ):
+    fn __init__(inout self, profile: Profile, *, styles: List[String] = List[String]()):
         """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
 
         Args:
@@ -74,7 +72,7 @@ struct TerminalStyle:
             styles: A list of ANSI styles to apply to the text.
         """
         self.styles = styles
-        self.profile = get_color_profile()
+        self.profile = Profile()
 
     @staticmethod
     fn new(profile: Profile, *, styles: List[String] = List[String]()) -> Self:
@@ -93,7 +91,7 @@ struct TerminalStyle:
         Args:
             styles: A list of ANSI styles to apply to the text.
         """
-        return Self(get_color_profile(), styles=styles)
+        return Self(styles=styles)
 
     fn copy(self) -> Self:
         """Creates a deepcopy of Self and returns that. Immutability instead of mutating the object.
@@ -170,7 +168,7 @@ struct TerminalStyle:
             var c = color.get[RGBColor]()[]
             sequence = c.sequence(True)
         return self._add_style(sequence)
-    
+
     fn background(self, color_value: String) -> Self:
         """Shorthand for using the style profile to set the background color of the text.
 
@@ -181,7 +179,7 @@ struct TerminalStyle:
             A new TerminalStyle with the background color set.
         """
         return self.background(self.profile.color(color_value))
-    
+
     fn background(self, color_value: StringLiteral) -> Self:
         """Shorthand for using the style profile to set the background color of the text.
 
@@ -216,7 +214,7 @@ struct TerminalStyle:
             var c = color.get[RGBColor]()[]
             sequence = c.sequence(False)
         return self._add_style(sequence)
-    
+
     fn foreground(self, color_value: String) -> Self:
         """Shorthand for using the style profile to set the foreground color of the text.
 
@@ -227,7 +225,7 @@ struct TerminalStyle:
             A new TerminalStyle with the foreground color set.
         """
         return self.foreground(self.profile.color(color_value))
-    
+
     fn foreground(self, color_value: StringLiteral) -> Self:
         """Shorthand for using the style profile to set the foreground color of the text.
 

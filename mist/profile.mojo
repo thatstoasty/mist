@@ -31,7 +31,7 @@ fn get_color_profile() -> Profile:
     """
     # if not o.isTTY():
     # 	return Ascii
-    if os.getenv("GOOGLE_CLOUD_SHELL") == "true":
+    if os.getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
         return Profile(TRUE_COLOR)
 
     var term = os.getenv("TERM").lower()
@@ -80,13 +80,13 @@ struct Profile:
         Args:
             value: The setting to use for this profile. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII].
         """
-        var valid = List[Int](TRUE_COLOR, ANSI256, ANSI, ASCII)            
+        var valid = List[Int](TRUE_COLOR, ANSI256, ANSI, ASCII)
         if not contains(valid, value):
             self.value = TRUE_COLOR
             return
-        
+
         self.value = value
-    
+
     fn __init__(inout self) -> None:
         """
         Initialize a new profile with the given profile type.
@@ -148,12 +148,12 @@ struct Profile:
                 i = atol(value)
             except e:
                 return NoColor()
-            
+
             if i < 16:
                 var c = ANSIColor(i)
                 return self.convert(c)
             elif i < 256:
                 var c = ANSI256Color(i)
                 return self.convert(c)
-        
+
         return NoColor()
