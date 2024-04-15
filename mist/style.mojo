@@ -10,30 +10,36 @@ from .color import (
     ansi256_to_ansi,
 )
 from .profile import get_color_profile, ASCII
-import time
 
 # Text formatting sequences
-alias reset = "0"
-alias bold = "1"
-alias faint = "2"
-alias italic = "3"
-alias underline = "4"
-alias blink = "5"
-alias reverse = "7"
-alias crossout = "9"
-alias overline = "53"
+alias RESET = "0"
+alias BOLD = "1"
+alias FAINT = "2"
+alias ITALIC = "3"
+alias UNDERLINE = "4"
+alias BLINK = "5"
+alias REVERSE = "7"
+alias CROSSOUT = "9"
+alias OVERLINE = "53"
 
 # ANSI Operations
-alias escape = chr(27)  # Escape character
-alias bel = "\a"  # Bell
-alias csi = escape + "["  # Control Sequence Introducer
-alias osc = escape + "]"  # Operating System Command
-alias st = escape + chr(
-    92
-)  # String Terminator - Might not work, haven't tried. 92 should be a raw backslash
+alias ESC = chr(27)  # ESC character
+alias BEL = "\a"  # Bell
+alias CSI = ESC + "["  # Control Sequence Introducer
+alias OSC = ESC + "]"  # Operating System Command
+alias ST = ESC + chr(92)  # String Terminator
 
 # clear terminal and return cursor to top left
-alias clear = escape + "[2J" + escape + "[H"
+alias CLEAR = ESC + "[2J" + ESC + "[H"
+
+
+fn join(separator: String, iterable: List[String]) -> String:
+    var result: String = ""
+    for i in range(iterable.__len__()):
+        result += iterable[i]
+        if i != iterable.__len__() - 1:
+            result += separator
+    return result
 
 
 @value
@@ -114,36 +120,36 @@ struct TerminalStyle:
 
     fn bold(self) -> Self:
         """Makes the text bold when rendered."""
-        return self._add_style(bold)
+        return self._add_style(BOLD)
 
     fn faint(self) -> Self:
         """Makes the text faint when rendered."""
-        return self._add_style(faint)
+        return self._add_style(FAINT)
 
     fn italic(self) -> Self:
         """Makes the text italic when rendered."""
-        return self._add_style(italic)
+        return self._add_style(ITALIC)
 
     fn underline(self) -> Self:
         """Makes the text underlined when rendered."""
-        return self._add_style(underline)
+        return self._add_style(UNDERLINE)
 
     fn blink(self) -> Self:
         """Makes the text blink when rendered."""
-        return self._add_style(blink)
+        return self._add_style(BLINK)
 
     fn reverse(self) -> Self:
         """Makes the text have reversed background and foreground colors when rendered.
         """
-        return self._add_style(reverse)
+        return self._add_style(REVERSE)
 
     fn crossout(self) -> Self:
         """Makes the text crossed out when rendered."""
-        return self._add_style(crossout)
+        return self._add_style(CROSSOUT)
 
     fn overline(self) -> Self:
         """Makes the text overlined when rendered."""
-        return self._add_style(overline)
+        return self._add_style(OVERLINE)
 
     fn background(self, color: AnyColor) -> Self:
         """Set the background color of the text when it's rendered.
@@ -246,14 +252,14 @@ struct TerminalStyle:
         Returns:
             The text with the styles applied.
         """
-        var start = time.now()
         if self.profile.value == ASCII:
             return text
 
         if len(self.styles) == 0:
             return text
 
-        var seq: String = ""
-        for i in range(len(self.styles)):
-            seq = seq + ";" + self.styles[i]
-        return csi + seq + "m" + text + csi + reset + "m"
+        var seq = join(";", self.styles)
+        if seq == "":
+            return text
+        
+        return CSI + seq + "m" + text + CSI + RESET + "m"

@@ -1,4 +1,4 @@
-from .style import osc, st
+from .style import OSC, ST
 
 
 fn notify(title: String, body: String):
@@ -8,4 +8,4 @@ fn notify(title: String, body: String):
         title: The title of the notification.
         body: The body of the notification.
     """
-    print(osc + "777;notify;" + title + ";" + body + st, end="")
+    print(OSC + "777;notify;" + title + ";" + body + ST, end="")
