@@ -12,7 +12,7 @@ from mist import TRUE_COLOR
 
 fn main() raises:
     var title = "Example Title"
-    var profile = Profile(TRUE_COLOR)
+    var profile = Profile()
     var color = profile.color("#c9a0dc")
 
     # set_window_title sets the terminal window title

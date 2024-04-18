@@ -17,5 +17,3 @@ fn clamp01(v: Float64) -> Float64:
 
 alias pi: Float64 = 3.141592653589793238462643383279502884197169399375105820974944592307816406286
 alias max_float64: Float64 = max_finite[DType.float64]()
-
-
