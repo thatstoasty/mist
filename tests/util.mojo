@@ -1,4 +1,4 @@
-import testing
+from testing import testing
 
 
 @value
@@ -13,22 +13,25 @@ struct MojoTest:
         self.test_name = test_name
         print("# " + test_name)
 
-    fn assert_true(self, cond: Bool, message: String):
-        """
-        Wraps testing.assert_true.
-        """
+    fn assert_true(self, cond: Bool, message: String = ""):
         try:
-            testing.assert_true(cond, message)
+            if message == "":
+                testing.assert_true(cond)
+            else:
+                testing.assert_true(cond, message)
         except e:
             print(e)
 
-    fn assert_equal(self, left: Int, right: Int):
+    fn assert_false(self, cond: Bool, message: String = ""):
         try:
-            testing.assert_equal(left, right)
+            if message == "":
+                testing.assert_false(cond)
+            else:
+                testing.assert_false(cond, message)
         except e:
             print(e)
 
-    fn assert_equal(self, left: String, right: String):
+    fn assert_equal[T: testing.Testable](self, left: T, right: T):
         try:
             testing.assert_equal(left, right)
         except e:
