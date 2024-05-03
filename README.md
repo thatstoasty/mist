@@ -255,10 +255,11 @@ fn main() raises:
 
 ## Color Chart
 
-Color chart lifted from https:#github.com/muesli/termenv, give their projects a star if you like this!
+Color chart lifted from <https://github.com/muesli/termenv>, give their projects a star if you like this!
 ![ANSI color chart](https://github.com/thatstoasty/mist/blob/main/color-chart.png)
 
 ## TODO
 
 - Enable terminal querying for platforms other than UNIX based.
 - Switch to stdout writer
+- Add unicode format option like ":vampire:" to 🧛.
