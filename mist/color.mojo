@@ -195,7 +195,7 @@ fn hex_to_rgb(value: String) -> hue.Color:
         value: Hex color value.
 
     Returns:
-        hue.Color color.
+        Color.
     """
     var hex = value[1:]
     var indices = List[Int](0, 2, 4)
@@ -278,7 +278,7 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
     """Converts a hex code to a ANSI256 color.
 
     Args:
-        color: hue.Color hex code.
+        color: Hex code color from hue.Color.
     """
     # Calculate the nearest 0-based color index at 16..231
     # Originally had * 255 in each of these

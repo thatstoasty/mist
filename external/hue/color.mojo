@@ -195,7 +195,8 @@ struct Color(Stringable):
     # fn hex(self) -> String:
     #     """Hex returns the hex "html" representation of the color, as in #ff0080."""
     #     # Add 0.5 for rounding
-    #     return f"#{uint8(self.R * 255.0 + 0.5):02x}{uint8(self.G * 255.0 + 0.5):02x}{uint8(self.B * 255.0 + 0.5):02x}"
+    #     return "#" + {UInt8(self.R * 255.0 + 0.5):02x} + {UInt8(self.G * 255.0 + 0.5):02x} + {UInt8(self.B * 255.0 + 0.5):02x}
+    #     # return fmt.Sprintf("#%02x%02x%02x", uint8(col.R*255.0+0.5), uint8(col.G*255.0+0.5), uint8(col.B*255.0+0.5))
 
     fn fast_linear_rgb(self) -> (Float64, Float64, Float64):
         """Is much faster than and almost as accurate as LinearRgb.
@@ -691,7 +692,7 @@ fn hsl(h: Float64, s: Float64, l: Float64) -> Color:
 # 		factor = 1.0 / 15.0
 # 	}
 
-# 	var r, g, b uint8
+# 	var r, g, b UInt8
 # 	n, err := fmt.Sscanf(scol, format, &r, &g, &b)
 # 	if err != nil {
 # 		return Color{}, err
