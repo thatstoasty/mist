@@ -2,7 +2,7 @@ from mist import red, green, blue, bold, italic, crossout, red_background, green
 
 
 fn main() raises:
-    print(red("Hello, world!"))
+    print(red(String("Hello, world!")))
     print(green("Hello, world!"))
     print(blue("Hello, world!"))
     print(red_background("Hello, world!"))
