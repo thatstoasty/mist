@@ -1,6 +1,6 @@
 from collections.optional import Optional
 from random import random_si64
-from math.limit import inf
+from utils.numerics import inf
 import math
 from .math import sq
 from .color import lab

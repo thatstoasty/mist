@@ -54,9 +54,9 @@ struct ANSIColor(Color, Stringable):
             modifier += 10
 
         if self.value < 8:
-            return String(modifier + self.value + 30)
+            return str(modifier + self.value + 30)
         else:
-            return String(modifier + self.value - 8 + 90)
+            return str(modifier + self.value - 8 + 90)
 
     fn __str__(self) -> String:
         """String returns the ANSI Sequence for the color and the text."""
@@ -74,6 +74,9 @@ struct ANSI256Color(Color, Stringable):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
     var value: Int
+
+    fn __init__(inout self, value: Int):
+        self.value = value
 
     fn __eq__(self, other: ANSI256Color) -> Bool:
         return self.value == other.value

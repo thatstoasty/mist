@@ -1,4 +1,4 @@
-from math.limit import max_finite
+from utils.numerics import max_finite
 
 
 fn cube(v: Float64) -> Float64:

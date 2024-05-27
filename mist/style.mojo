@@ -252,3 +252,274 @@ struct TerminalStyle:
         for style in self.styles:
             seq = seq + String(";") + style[]
         return csi + seq + String("m") + text + csi + reset + String("m")
+
+
+########## Compile Time Style ##########
+
+
+fn color[value: String]() -> RGBColor:
+    """Color creates a Color from a string. Valid inputs are hex colors, as well as
+    ANSI color codes (0-15, 16-255). If an invalid input is passed in, NoColor() is returned which will not apply any coloring.
+
+    Params:
+        value: The string to convert to a color.
+    """
+    constrained[
+        value[0] == "#",
+        "Expected a hex color value, but got a string that didn't start with '#'.",
+    ]()
+
+    return RGBColor(value)
+
+
+fn ansi256_color[value: UInt8]() -> ANSI256Color:
+    """Color creates a Color from a string. Valid inputs are hex colors, as well as
+    ANSI color codes (0-15, 16-255). If an invalid input is passed in, NoColor() is returned which will not apply any coloring.
+
+    Params:
+        value: The int to convert to an ANSI color.
+    """
+    constrained[
+        value <= 255,
+        "Expected an ANSI color value from 0 to 255.",
+    ]()
+
+    return ANSI256Color(int(value))
+
+
+fn ansi_color[value: UInt8]() -> ANSIColor:
+    """Color creates a Color from a string. Valid inputs are hex colors, as well as
+    ANSI color codes (0-15, 16-255). If an invalid input is passed in, NoColor() is returned which will not apply any coloring.
+
+    Params:
+        value: The int to convert to an ANSI color.
+    """
+    constrained[
+        value <= 16,
+        "Expected an ANSI color value from 0 to 16.",
+    ]()
+
+    return ANSIColor(int(value))
+
+
+@value
+struct CompTimeStyle:
+    """TerminalStyle stores a list of styles to format text with. These styles are ANSI sequences which modify text (and control the terminal).
+    In reality, these styles are turning visual terminal features on and off around the text it's styling.
+
+    This struct should be considered immutable and each style added returns a new instance of itself rather than modifying the struct in place.
+    It's recommended to use the `new` static method to create a new instance of TerminalStyle so that you can chain style methods together.
+    Example:
+      ```
+      from mist import TerminalStyle
+
+      var style = TerminalStyle.new().foreground("#E88388").render("red")
+      print(style.render("Hello World"))
+      ```
+    """
+
+    var styles: List[String]
+
+    fn __init__(inout self, *, styles: List[String] = List[String]()):
+        """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls."""
+        self.styles = styles
+
+    @staticmethod
+    fn new(styles: List[String] = List[String]()) -> Self:
+        """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls."""
+        return Self(styles=styles)
+
+    fn copy(self) -> Self:
+        """Creates a deepcopy of Self and returns that. Immutability instead of mutating the object."""
+        return Self(styles=self.get_styles())
+
+    fn _add_style(self, style: String) -> Self:
+        """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that. Immutability instead of mutating the object.
+
+        Args:
+            style: The ANSI style to add to the list of styles.
+        """
+        var new_styles = self.get_styles()
+        new_styles.append(style)
+        return Self(styles=new_styles)
+
+    fn get_styles(self) -> List[String]:
+        """Return a deepcopy of the styles list."""
+        return List[String](self.styles)
+
+    fn bold(self) -> Self:
+        """Makes the text bold when rendered."""
+        return self._add_style(bold)
+
+    fn faint(self) -> Self:
+        """Makes the text faint when rendered."""
+        return self._add_style(faint)
+
+    fn italic(self) -> Self:
+        """Makes the text italic when rendered."""
+        return self._add_style(italic)
+
+    fn underline(self) -> Self:
+        """Makes the text underlined when rendered."""
+        return self._add_style(underline)
+
+    fn blink(self) -> Self:
+        """Makes the text blink when rendered."""
+        return self._add_style(blink)
+
+    fn reverse(self) -> Self:
+        """Makes the text have reversed background and foreground colors when rendered."""
+        return self._add_style(reverse)
+
+    fn crossout(self) -> Self:
+        """Makes the text crossed out when rendered."""
+        return self._add_style(crossout)
+
+    fn overline(self) -> Self:
+        """Makes the text overlined when rendered."""
+        return self._add_style(overline)
+
+    fn background(self, color: AnyColor) -> Self:
+        """Set the background color of the text when it's rendered.
+
+        Args:
+            color: The color value to set the background to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the background color set.
+        """
+        if color.isa[NoColor]():
+            return Self(styles=self.styles)
+
+        var sequence: String = ""
+        if color.isa[ANSIColor]():
+            var c = color[ANSIColor]
+            sequence = c.sequence(True)
+        elif color.isa[ANSI256Color]():
+            var c = color[ANSI256Color]
+            sequence = c.sequence(True)
+        elif color.isa[RGBColor]():
+            var c = color[RGBColor]
+            sequence = c.sequence(True)
+        return self._add_style(sequence)
+
+    fn background[color_value: StringLiteral](self) -> Self:
+        """Shorthand for using the style profile to set the background color of the text.
+
+        Params:
+            color_value: The color value to set the background to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the background color set.
+        """
+        return self.background(color[color_value]())
+
+    fn background[color_value: UInt8](self) -> Self:
+        """Shorthand for using the style profile to set the background color of the text.
+
+        Params:
+            color_value: The color value to set the background to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the background color set.
+        """
+        return self.background(color[color_value]())
+
+    # fn foreground[color: AnyColor](self) -> Self:
+    #     """Set the foreground color of the text.
+
+    #     Params:
+    #         color: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+
+    #     Returns:
+    #         A new TerminalStyle with the foreground color set.
+    #     """
+    #     if color.isa[NoColor]():
+    #         return Self(styles=self.styles)
+
+    #     var sequence: String = ""
+    #     if color.isa[ANSIColor]():
+    #         sequence = color[ANSIColor].sequence(False)
+    #     elif color.isa[ANSI256Color]():
+    #         var c = color[ANSI256Color]
+    #         sequence = c.sequence(False)
+    #     elif color.isa[RGBColor]():
+    #         var c = color[RGBColor]
+    #         sequence = c.sequence(False)
+    #     return self._add_style(sequence)
+
+    fn foreground[color: ANSIColor](self) -> Self:
+        """Set the foreground color of the text.
+
+        Params:
+            color: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the foreground color set.
+        """
+        return self._add_style(color.sequence(False))
+
+    fn foreground[color: ANSI256Color](self) -> Self:
+        """Set the foreground color of the text.
+
+        Params:
+            color: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the foreground color set.
+        """
+        return self._add_style(color.sequence(False))
+
+    fn foreground[color: RGBColor](self) -> Self:
+        """Set the foreground color of the text.
+
+        Params:
+            color: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the foreground color set.
+        """
+        return self._add_style(color.sequence(False))
+
+    fn foreground[color_value: StringLiteral](self) -> Self:
+        """Shorthand for using the style profile to set the foreground color of the text.
+
+        Params:
+            color_value: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the foreground color set.
+        """
+        return self.foreground[color[color_value]()]()
+
+    fn foreground[color_value: UInt8, color_string: StringLiteral](self) -> Self:
+        """Shorthand for using the style profile to set the foreground color of the text.
+
+        Params:
+            color_value: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the foreground color set.
+        """
+
+        @parameter
+        if color_value <= 16:
+            return self.foreground[ansi_color[color_value]()]()
+        return self.foreground[ansi256_color[color_value]()]()
+
+    fn render(self, text: String) -> String:
+        """Renders text with the styles applied to it.
+
+        Args:
+            text: The text to render with the styles applied.
+
+        Returns:
+            The text with the styles applied.
+        """
+        if len(self.styles) == 0:
+            return text
+
+        var seq: String = ""
+        for style in self.styles:
+            seq = seq + String(";") + style[]
+        return csi + seq + String("m") + text + csi + reset + String("m")
