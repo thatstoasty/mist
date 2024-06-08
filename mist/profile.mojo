@@ -11,13 +11,6 @@ from .color import (
 )
 
 
-fn contains(vector: List[Int], value: Int) -> Bool:
-    for i in range(vector.size):
-        if vector[i] == value:
-            return True
-    return False
-
-
 alias TRUE_COLOR: Int = 0
 alias ANSI256: Int = 1
 alias ANSI: Int = 2
@@ -81,7 +74,7 @@ struct Profile:
             value: The setting to use for this profile. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII].
         """
         var valid = List[Int](TRUE_COLOR, ANSI256, ANSI, ASCII)
-        if not contains(valid, value):
+        if not value in valid:
             self.value = ASCII
             return
 

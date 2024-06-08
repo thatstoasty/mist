@@ -1,5 +1,5 @@
 # RGB values of ANSI colors (0-255).
-alias ANSI_HEX_CODES = List[String](
+alias ANSI_HEX_CODES = InlineArray[String, 258](
     "#000000",
     "#000000",
     "#800000",

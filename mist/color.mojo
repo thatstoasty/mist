@@ -3,7 +3,6 @@ import external.hue
 from external.hue.math import max_float64
 from .ansi_colors import ANSI_HEX_CODES
 
-
 alias foreground = "38"
 alias background = "48"
 alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
@@ -54,9 +53,9 @@ struct ANSIColor(Color, Stringable):
             modifier += 10
 
         if self.value < 8:
+            return
             return str(modifier + self.value + 30)
-        else:
-            return str(modifier + self.value - 8 + 90)
+        return str(modifier + self.value - 8 + 90)
 
     fn __str__(self) -> String:
         """String returns the ANSI Sequence for the color and the text."""
@@ -162,6 +161,10 @@ fn hex_to_rgb(value: String) -> hue.Color:
         results.append(convert_base16_to_base10(hex[i[] : i[] + 2]))
 
     return hue.Color(results[0], results[1], results[2])
+
+
+fn hex_to_rgb(hex_val: UInt32) -> (UInt32, UInt32, UInt32):
+    return hex_val >> 16, hex_val >> 8 & 0xFF, hex_val & 0xFF
 
 
 @value

@@ -104,7 +104,7 @@ fn sprintf(text: String, *strs: String) -> String:
 fn sprintf(text: String, *ints: UInt16) -> String:
     var output: String = text
     for i in range(len(ints)):
-        output = replace(output, "%d", String(ints[i]), 1)
+        output = replace(output, "%d", str(ints[i]), 1)
 
     return output
 
@@ -112,7 +112,7 @@ fn sprintf(text: String, *ints: UInt16) -> String:
 fn sprintf(text: String, *floats: Float64) -> String:
     var output: String = text
     for i in range(len(floats)):
-        output = replace(output, "%d", String(floats[i]), 1)
+        output = replace(output, "%d", str(floats[i]), 1)
 
     return output
 

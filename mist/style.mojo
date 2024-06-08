@@ -423,7 +423,7 @@ struct CompTimeStyle:
         Returns:
             A new TerminalStyle with the background color set.
         """
-        return self.background(color[color_value]())
+        return self.background(color[str(color_value)]())
 
     # fn foreground[color: AnyColor](self) -> Self:
     #     """Set the foreground color of the text.

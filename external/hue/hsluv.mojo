@@ -225,6 +225,7 @@ fn get_bounds(l: Float64) -> List[List[Float64]]:
     else:
         sub2 = l / kappa
 
+    @parameter
     for i in range(len(m)):
         var k = 0
         while k < 2:
