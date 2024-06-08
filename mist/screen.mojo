@@ -66,7 +66,7 @@ alias show_cursor_seq = "?25h"
 alias hide_cursor_seq = "?25l"
 
 
-fn __string__mul__(input_string: String, n: UInt16) -> String:
+fn __string__mul__(input_string: String, n: Int) -> String:
     var result: String = ""
     for _ in range(n):
         result += input_string
@@ -160,7 +160,7 @@ fn clear_screen():
     move_cursor(1, 1)
 
 
-fn move_cursor(row: UInt16, column: UInt16):
+fn move_cursor(row: UInt16, column: Int):
     """Moves the cursor to a given position.
 
     Args:
@@ -190,7 +190,7 @@ fn restore_cursor_position():
     print(csi + restore_cursor_position_seq, end="")
 
 
-fn cursor_up(n: UInt16):
+fn cursor_up(n: Int):
     """Moves the cursor up a given number of lines.
 
     Args:
@@ -199,7 +199,7 @@ fn cursor_up(n: UInt16):
     print(sprintf(csi + cursor_up_seq, n), end="")
 
 
-fn cursor_down(n: UInt16):
+fn cursor_down(n: Int):
     """Moves the cursor down a given number of lines.
 
     Args:
@@ -208,7 +208,7 @@ fn cursor_down(n: UInt16):
     print(sprintf(csi + cursor_down_seq, n), end="")
 
 
-fn cursor_forward(n: UInt16):
+fn cursor_forward(n: Int):
     """Moves the cursor up a given number of lines.
 
     Args:
@@ -217,7 +217,7 @@ fn cursor_forward(n: UInt16):
     print(sprintf(csi + cursor_forward_seq, n), end="")
 
 
-fn cursor_back(n: UInt16):
+fn cursor_back(n: Int):
     """Moves the cursor backwards a given number of cells.
 
     Args:
@@ -226,7 +226,7 @@ fn cursor_back(n: UInt16):
     print(sprintf(csi + cursor_back_seq, n), end="")
 
 
-fn cursor_next_line(n: UInt16):
+fn cursor_next_line(n: Int):
     """Moves the cursor down a given number of lines and places it at the beginning of the line.
 
     Args:
@@ -235,7 +235,7 @@ fn cursor_next_line(n: UInt16):
     print(sprintf(csi + cursor_next_line_seq, n), end="")
 
 
-fn cursor_prev_line(n: UInt16):
+fn cursor_prev_line(n: Int):
     """Moves the cursor up a given number of lines and places it at the beginning of the line.
 
     Args:
@@ -259,7 +259,7 @@ fn clear_line_right():
     print(csi + erase_line_right_seq, end="")
 
 
-fn clear_lines(n: UInt16):
+fn clear_lines(n: Int):
     """Clears a given number of lines.
 
     Args:
@@ -281,7 +281,7 @@ fn change_scrolling_region(top: UInt16, bottom: UInt16):
     print(sprintf(csi + change_scrolling_region_seq, top, bottom), end="")
 
 
-fn insert_lines(n: UInt16):
+fn insert_lines(n: Int):
     """Inserts the given number of lines at the top of the scrollable
     region, pushing lines below down.
 
@@ -291,7 +291,7 @@ fn insert_lines(n: UInt16):
     print(sprintf(csi + insert_line_seq, n), end="")
 
 
-fn delete_lines(n: UInt16):
+fn delete_lines(n: Int):
     """Deletes the given number of lines, pulling any lines in
     the scrollable region below up.
 
