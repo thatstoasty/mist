@@ -1,5 +1,7 @@
 # mist
 
+![Mojo 24.4](https://img.shields.io/badge/Mojo%F0%9F%94%A5-24.3-purple)
+
 `mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions. This is a port/conversion of <https://github.com/muesli/termenv/tree/master>.
 
 ![Example](https://github.com/thatstoasty/mist/blob/main/examples/hello_world/hello_world.png)
