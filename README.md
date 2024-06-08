@@ -6,9 +6,15 @@
 
 ![Example](https://github.com/thatstoasty/mist/blob/main/examples/hello_world/hello_world.png)
 
+![HW](https://github.com/thatstoasty/mist/blob/main/demos/tapes/hello_world.gif)
+
 > NOTE: This is not a 1:1 port or stable due to missing features in Mojo and that I haven't ported everything over yet.
 
 I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
+
+You should be able to build the package by running `mojo package mist -I external`. For the easiest method, I recommend just copying the entire external folder into your repository, then copy the `mist` folder into the external folder as well.
+
+> NOTE: It seems like `.mojopkg` files don't like being part of another package, eg. sticking all of your external deps in an `external` or `vendor` package. The only way I've gotten mojopkg files to work is to be in the same directory as the file being executed, and that directory cannot be a mojo package.
 
 ## Colors
 
@@ -17,7 +23,7 @@ It also supports multiple color profiles: Ascii (black & white only), ANSI (16 c
 Once we have type checking in Mojo, Colors will automatically be degraded to the best matching available color in the desired profile:
 `TRUE_COLOR` => `ANSI 256 Color`s => `ANSI 16 Colors` => `Ascii`
 
-```python
+```mojo
 from mist import TerminalStyle, Profile
 from mist.color import ANSIColor, ANSI256Color, RGBColor
 
@@ -63,11 +69,13 @@ fn main() raises:
 
 ```
 
+![Profiles](https://github.com/thatstoasty/mist/blob/main/demos/tapes/profiles.gif)
+
 ## Styles
 
 You can apply text formatting effects to your text by setting the rules on the `TerminalStyle` object then using that object to render your text.
 
-```python
+```mojo
 from mist import TerminalStyle
 
 fn main() raises:
@@ -93,7 +101,7 @@ fn main() raises:
 
 ## Positioning
 
-```python
+```mojo
 from mist.screen import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
 
 fn main() raises:
@@ -129,7 +137,7 @@ fn main() raises:
 
 ## Screen
 
-```python
+```mojo
 from mist.screen import reset, restore_screen, save_screen, alt_screen, exit_alt_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
 
 fn main() raises:
@@ -171,24 +179,23 @@ fn main() raises:
 
 ## Example using cursor and screen operations
 
-```python
+```mojo
 from mist.screen import cursor_back, clear_line_right
 
-fn main() raises:
-    print_no_newline("hello")
+
+fn main():
+    print("hello", end="")
     cursor_back(2)
     clear_line_right()
 ```
 
 Output
 
-```txt
-hel
-```
+![Cursor](https://github.com/thatstoasty/mist/blob/main/demos/tapes/cursor.gif)
 
 ## Session
 
-```python
+```mojo
 from mist.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
 
 fn main() raises:
@@ -207,7 +214,7 @@ fn main() raises:
 
 ## Mouse
 
-```python
+```mojo
 from mist.screen import enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
 
 fn main() raises:
@@ -244,7 +251,7 @@ fn main() raises:
 
 ## Bracketed Paste
 
-```python
+```mojo
 from mist.screen import enable_bracketed_paste, disable_bracketed_paste
 
 fn main() raises:
