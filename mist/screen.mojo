@@ -1,3 +1,4 @@
+from external.gojo.fmt import sprintf
 from .style import bel, csi, reset, osc
 from .color import AnyColor, NoColor, ANSIColor, ANSI256Color, RGBColor
 
@@ -72,51 +73,6 @@ fn __string__mul__(input_string: String, n: UInt16) -> String:
     return result
 
 
-fn replace(input_string: String, old: String, new: String, count: Int = -1) -> String:
-    if count == 0:
-        return input_string
-
-    var output: String = ""
-    var start = 0
-    var split_count = 0
-
-    for end in range(len(input_string) - len(old) + 1):
-        if input_string[end : end + len(old)] == old:
-            output += input_string[start:end] + new
-            start = end + len(old)
-            split_count += 1
-
-            if count >= 0 and split_count >= count and count >= 0:
-                break
-
-    output += input_string[start:]
-    return output
-
-
-fn sprintf(text: String, *strs: String) -> String:
-    var output: String = text
-    for i in range(len(strs)):
-        output = replace(output, "%s", strs[i], 1)
-
-    return output
-
-
-fn sprintf(text: String, *ints: UInt16) -> String:
-    var output: String = text
-    for i in range(len(ints)):
-        output = replace(output, "%d", String(ints[i]), 1)
-
-    return output
-
-
-fn sprintf(text: String, *floats: Float64) -> String:
-    var output: String = text
-    for i in range(len(floats)):
-        output = replace(output, "%d", String(floats[i]), 1)
-
-    return output
-
-
 fn reset_terminal():
     """Reset the terminal to its default style, removing any active styles."""
     print(csi + reset + "m", end="")
@@ -131,11 +87,11 @@ fn set_foreground_color(color: AnyColor):
     var c: String = ""
 
     if color.isa[ANSIColor]():
-        c = color.get[ANSIColor]()[].sequence(False)
+        c = color[ANSIColor].sequence(False)
     elif color.isa[ANSI256Color]():
-        c = color.get[ANSI256Color]()[].sequence(False)
+        c = color[ANSI256Color].sequence(False)
     elif color.isa[RGBColor]():
-        c = color.get[RGBColor]()[].sequence(False)
+        c = color[RGBColor].sequence(False)
 
     print(osc + set_foreground_color_seq, c, end="")
 
@@ -150,11 +106,11 @@ fn set_background_color(color: AnyColor):
     if color.isa[NoColor]():
         pass
     elif color.isa[ANSIColor]():
-        c = color.get[ANSIColor]()[].sequence(True)
+        c = color[ANSIColor].sequence(True)
     elif color.isa[ANSI256Color]():
-        c = color.get[ANSI256Color]()[].sequence(True)
+        c = color[ANSI256Color].sequence(True)
     elif color.isa[RGBColor]():
-        c = color.get[RGBColor]()[].sequence(True)
+        c = color[RGBColor].sequence(True)
 
     print(osc + set_background_color_seq, c, end="")
 
@@ -169,11 +125,11 @@ fn set_cursor_color(color: AnyColor):
     if color.isa[NoColor]():
         pass
     elif color.isa[ANSIColor]():
-        c = color.get[ANSIColor]()[].sequence(True)
+        c = color[ANSIColor].sequence(True)
     elif color.isa[ANSI256Color]():
-        c = color.get[ANSI256Color]()[].sequence(True)
+        c = color[ANSI256Color].sequence(True)
     elif color.isa[RGBColor]():
-        c = color.get[RGBColor]()[].sequence(True)
+        c = color[RGBColor].sequence(True)
 
     print(osc + set_cursor_color_seq, c, end="")
 
@@ -189,8 +145,7 @@ fn save_screen():
 
 
 fn alt_screen():
-    """Switches to the alternate screen buffer. The former view can be restored with ExitAltScreen().
-    """
+    """Switches to the alternate screen buffer. The former view can be restored with ExitAltScreen()."""
     print(csi + alt_screen_seq, end="")
 
 
@@ -216,8 +171,7 @@ fn move_cursor(row: UInt16, column: UInt16):
 
 
 fn hide_cursor():
-    """TODO: Show and Hide cursor don't seem to work ATM. HideCursor hides the cursor.
-    """
+    """TODO: Show and Hide cursor don't seem to work ATM. HideCursor hides the cursor."""
     print(csi + hide_cursor_seq, end="")
 
 
