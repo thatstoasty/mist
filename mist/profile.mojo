@@ -15,6 +15,11 @@ alias ANSI256: Int = 1
 alias ANSI: Int = 2
 alias ASCII: Int = 3
 
+alias TRUE_COLOR_PROFILE = Profile(TRUE_COLOR)
+alias ANSI256_PROFILE = Profile(ANSI256)
+alias ANSI_PROFILE = Profile(ANSI)
+alias ASCII_PROFILE = Profile(ASCII)
+
 
 # TODO: UNIX systems only for now. Need to add Windows, POSIX, and SOLARIS support.
 fn get_color_profile() -> Profile:

@@ -281,3 +281,24 @@ struct TerminalStyle:
         _ = builder.write_string("m")
 
         return builder.render()
+
+
+fn new_style() -> TerminalStyle:
+    """Creates a new TerminalStyle with no styles applied.
+
+    Returns:
+        A new TerminalStyle with the given color profile.
+    """
+    return TerminalStyle.new()
+
+
+fn new_style(profile: Profile) -> TerminalStyle:
+    """Creates a new TerminalStyle with no styles applied.
+
+    Args:
+        profile: The color profile to use for color conversion.
+
+    Returns:
+        A new TerminalStyle with the given color profile.
+    """
+    return TerminalStyle.new(profile)
