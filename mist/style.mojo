@@ -44,9 +44,9 @@ struct TerminalStyle:
     It's recommended to use the `new` static method to create a new instance of TerminalStyle so that you can chain style methods together.
     Example:
       ```
-      from mist import TerminalStyle
+      import mist
 
-      var style = TerminalStyle.new().foreground("#E88388").render("red")
+      var style = mist.new_style().foreground("#E88388")
       print(style.render("Hello World"))
       ```
     """
@@ -56,7 +56,7 @@ struct TerminalStyle:
 
     @always_inline
     fn __init__(inout self, profile: Profile, *, styles: List[String] = List[String]()):
-        """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
+        """Constructs a TerminalStyle. Use new_style() instead of __init__ to chain function calls.
 
         Args:
             profile: The color profile to use for color conversion.
@@ -67,7 +67,7 @@ struct TerminalStyle:
 
     @always_inline
     fn __init__(inout self, *, styles: List[String] = List[String]()):
-        """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
+        """Constructs a TerminalStyle. Use new_style() instead of __init__ to chain function calls.
 
         Args:
             styles: A list of ANSI styles to apply to the text.

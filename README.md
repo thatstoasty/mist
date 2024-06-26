@@ -24,6 +24,7 @@ Once we have type checking in Mojo, Colors will automatically be degraded to the
 `TRUE_COLOR` => `ANSI 256 Color`s => `ANSI 16 Colors` => `Ascii`
 
 ```mojo
+import mist
 from mist import TerminalStyle, Profile
 from mist.color import ANSIColor, ANSI256Color, RGBColor
 
@@ -34,37 +35,37 @@ fn main() raises:
 
     # ) will automatically convert the color to the best matching color in the profile.
     # ANSI Color Support (0-15)
-    var style = TerminalStyle.new().foreground(profile.color("12"))
+    var style = mist.new_style().foreground(12)
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = TerminalStyle.new().foreground(profile.color("55"))
+    style = mist.new_style().foreground(55)
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = TerminalStyle.new().foreground(profile.color("#c9a0dc"))
+    style = mist.new_style().foreground("#c9a0dc")
     print(style.render(a))
 
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    style = TerminalStyle.new(Profile(ASCII)).foreground(profile.color("#c9a0dc"))
+    style = mist.new_style(mist.ASCII_PROFILE).foreground("#c9a0dc")
     print(style.render(a))
 
     # ANSI Color Support (0-15)
-    style = TerminalStyle.new(Profile(ANSI)).foreground(profile.color("#c9a0dc"))
+    style = mist.new_style(mist.ANSI_PROFILE).foreground("#c9a0dc")
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = TerminalStyle.new(Profile(ANSI256)).foreground(profile.color("#c9a0dc"))
+    style = mist.new_style(mist.ANSI256_PROFILE).foreground("#c9a0dc")
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = TerminalStyle.new(Profile(TRUE_COLOR)).foreground(profile.color("#c9a0dc"))
+    style = mist.new_style(mist.TRUE_COLOR_PROFILE).foreground("#c9a0dc")
     print(style.render(a))
 
     # It also supports using the Profile of the TerminalStyle to instead of passing Profile().color().
-    style = TerminalStyle.new(Profile(TRUE_COLOR)).foreground("#c9a0dc")
+    style = mist.new_style(Profile(TRUE_COLOR)).foreground("#c9a0dc")
     print(style.render(a))
 
 ```
@@ -80,7 +81,7 @@ from mist import TerminalStyle
 
 fn main() raises:
     var a: String = "Hello World!"
-    var style = TerminalStyle.new()
+    var style = mist.new_style()
 
     # Text styles
     style.bold()
@@ -97,6 +98,27 @@ fn main() raises:
     style = style.blink()
 
     print(style.render(a))
+```
+
+## Quick Styling
+
+You can also use quick styling methods to apply formatting and colors to your text.
+
+```mojo
+from mist import red, green, blue, bold, italic, crossout, red_background, green_background, blue_background, render_as_color, render_with_background_color
+
+fn main():
+    print(red("Hello, world!"))
+    print(green("Hello, world!"))
+    print(blue("Hello, world!"))
+    print(red_background("Hello, world!"))
+    print(green_background("Hello, world!"))
+    print(blue_background("Hello, world!"))
+    print(bold("Hello, world!"))
+    print(italic("Hello, world!"))
+    print(crossout("Hello, world!"))
+    print(render_as_color("Hello, world!", "#c9a0dc"))
+    print(render_with_background_color("Hello, world!", "#c9a0dc"))
 ```
 
 ## Positioning
