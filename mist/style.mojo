@@ -181,6 +181,18 @@ struct TerminalStyle:
         return self.background(self.profile.color(color_value))
 
     @always_inline
+    fn background(self, color_value: UInt8) -> Self:
+        """Shorthand for using the style profile to set the background color of the text.
+
+        Args:
+            color_value: The color value to set the background to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the background color set.
+        """
+        return self.background(self.profile.color(color_value))
+
+    @always_inline
     fn foreground(self, color: AnyColor) -> Self:
         """Set the foreground color of the text.
 
@@ -195,14 +207,11 @@ struct TerminalStyle:
 
         var sequence: String = ""
         if color.isa[ANSIColor]():
-            var c = color[ANSIColor]
-            sequence = c.sequence(False)
+            sequence = color[ANSIColor].sequence(False)
         elif color.isa[ANSI256Color]():
-            var c = color[ANSI256Color]
-            sequence = c.sequence(False)
+            sequence = color[ANSI256Color].sequence(False)
         elif color.isa[RGBColor]():
-            var c = color[RGBColor]
-            sequence = c.sequence(False)
+            sequence = color[RGBColor].sequence(False)
         return self._add_style(sequence)
 
     @always_inline
@@ -219,6 +228,18 @@ struct TerminalStyle:
 
     @always_inline
     fn foreground(self, color_value: StringLiteral) -> Self:
+        """Shorthand for using the style profile to set the foreground color of the text.
+
+        Args:
+            color_value: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the foreground color set.
+        """
+        return self.foreground(self.profile.color(color_value))
+
+    @always_inline
+    fn foreground(self, color_value: Int) -> Self:
         """Shorthand for using the style profile to set the foreground color of the text.
 
         Args:
