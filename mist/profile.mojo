@@ -8,6 +8,7 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
     hex_to_rgb,
+    int_to_str,
 )
 
 alias TRUE_COLOR: Int = 0
@@ -66,12 +67,12 @@ fn get_color_profile() -> Profile:
     return Profile(ASCII)
 
 
-@value
+@register_passable
 struct Profile:
     alias valid = InlineArray[Int, 4](TRUE_COLOR, ANSI256, ANSI, ASCII)
     var value: Int
 
-    fn __init__(inout self, value: Int) -> None:
+    fn __init__(inout self, value: Int):
         """
         Initialize a new profile with the given profile type.
 
@@ -84,11 +85,14 @@ struct Profile:
 
         self.value = value
 
-    fn __init__(inout self) -> None:
+    fn __init__(inout self):
         """
         Initialize a new profile with the given profile type.
         """
         self = get_color_profile()
+
+    fn __copyinit__(inout self, other: Profile):
+        self.value = other.value
 
     fn convert(self, color: AnyColor) -> AnyColor:
         """Degrades a color based on the terminal profile.
@@ -139,18 +143,19 @@ struct Profile:
         if value[0] == "#":
             var c = RGBColor(value)
             return self.convert(c)
-        else:
-            var i = 0
-            try:
-                i = atol(value)
-            except e:
-                return NoColor()
 
-            if i < 16:
-                var c = ANSIColor(i)
-                return self.convert(c)
-            elif i < 256:
-                var c = ANSI256Color(i)
-                return self.convert(c)
+        return NoColor()
+
+    fn color(self, value: UInt8) -> AnyColor:
+        """Color creates a Color from a string. Valid inputs are hex colors, as well as
+        ANSI color codes (0-15, 16-255). If an invalid input is passed in, NoColor() is returned which will not apply any coloring.
+
+        Args:
+            value: The int to convert to a color.
+        """
+        if value < 16:
+            return self.convert(ANSIColor(value))
+        elif value < 256:
+            return self.convert(ANSI256Color(value))
 
         return NoColor()

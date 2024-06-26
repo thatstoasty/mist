@@ -1,4 +1,4 @@
-from .style import TerminalStyle
+from .style import TerminalStyle, new_style
 from .profile import Profile
 
 
@@ -14,7 +14,7 @@ alias GRAY = "#B9BFCA"
 # Convenience functions for quick style application
 fn render_as_color(text: String, color: String) -> String:
     var profile = Profile()
-    return TerminalStyle.new().foreground(profile.color(color)).render(text)
+    return new_style(profile).foreground(profile.color(color)).render(text)
 
 
 fn red(text: String) -> String:
@@ -54,7 +54,7 @@ fn gray(text: String) -> String:
 
 fn render_with_background_color(text: String, color: String) -> String:
     var profile = Profile()
-    return TerminalStyle.new().background(profile.color(color)).render(text)
+    return new_style(profile).background(profile.color(color)).render(text)
 
 
 fn red_background(text: String) -> String:
@@ -93,24 +93,24 @@ fn gray_background(text: String) -> String:
 
 
 fn bold(text: String) -> String:
-    return TerminalStyle.new().bold().render(text)
+    return new_style().bold().render(text)
 
 
 fn faint(text: String) -> String:
-    return TerminalStyle.new().faint().render(text)
+    return new_style().faint().render(text)
 
 
 fn italic(text: String) -> String:
-    return TerminalStyle.new().italic().render(text)
+    return new_style().italic().render(text)
 
 
 fn underline(text: String) -> String:
-    return TerminalStyle.new().underline().render(text)
+    return new_style().underline().render(text)
 
 
 fn overline(text: String) -> String:
-    return TerminalStyle.new().overline().render(text)
+    return new_style().overline().render(text)
 
 
 fn crossout(text: String) -> String:
-    return TerminalStyle.new().crossout().render(text)
+    return new_style().crossout().render(text)
