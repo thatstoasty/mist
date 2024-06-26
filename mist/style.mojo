@@ -44,9 +44,9 @@ struct TerminalStyle:
     It's recommended to use the `new` static method to create a new instance of TerminalStyle so that you can chain style methods together.
     Example:
       ```
-      from mist import TerminalStyle
+      import mist
 
-      var style = TerminalStyle.new().foreground("#E88388").render("red")
+      var style = mist.new_style().foreground("#E88388")
       print(style.render("Hello World"))
       ```
     """
@@ -56,7 +56,7 @@ struct TerminalStyle:
 
     @always_inline
     fn __init__(inout self, profile: Profile, *, styles: List[String] = List[String]()):
-        """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
+        """Constructs a TerminalStyle. Use new_style() instead of __init__ to chain function calls.
 
         Args:
             profile: The color profile to use for color conversion.
@@ -67,37 +67,13 @@ struct TerminalStyle:
 
     @always_inline
     fn __init__(inout self, *, styles: List[String] = List[String]()):
-        """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
+        """Constructs a TerminalStyle. Use new_style() instead of __init__ to chain function calls.
 
         Args:
             styles: A list of ANSI styles to apply to the text.
         """
         self.styles = styles
         self.profile = Profile()
-
-    @staticmethod
-    fn new(profile: Profile, *, styles: List[String] = List[String]()) -> Self:
-        """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
-
-        Args:
-            profile: The color profile to use for color conversion.
-            styles: A list of ANSI styles to apply to the text.
-        """
-        return Self(profile, styles=styles)
-
-    @staticmethod
-    fn new(styles: List[String] = List[String]()) -> Self:
-        """Constructs a TerminalStyle. Use new instead of __init__ to chain function calls.
-
-        Args:
-            styles: A list of ANSI styles to apply to the text.
-        """
-        return Self(styles=styles)
-
-    @always_inline
-    fn copy(self) -> Self:
-        """Creates a deepcopy of Self and returns that. Immutability instead of mutating the object."""
-        return Self(self.profile, styles=self.get_styles())
 
     @always_inline
     fn _add_style(self, style: String) -> Self:
@@ -205,6 +181,18 @@ struct TerminalStyle:
         return self.background(self.profile.color(color_value))
 
     @always_inline
+    fn background(self, color_value: UInt8) -> Self:
+        """Shorthand for using the style profile to set the background color of the text.
+
+        Args:
+            color_value: The color value to set the background to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the background color set.
+        """
+        return self.background(self.profile.color(color_value))
+
+    @always_inline
     fn foreground(self, color: AnyColor) -> Self:
         """Set the foreground color of the text.
 
@@ -219,14 +207,11 @@ struct TerminalStyle:
 
         var sequence: String = ""
         if color.isa[ANSIColor]():
-            var c = color[ANSIColor]
-            sequence = c.sequence(False)
+            sequence = color[ANSIColor].sequence(False)
         elif color.isa[ANSI256Color]():
-            var c = color[ANSI256Color]
-            sequence = c.sequence(False)
+            sequence = color[ANSI256Color].sequence(False)
         elif color.isa[RGBColor]():
-            var c = color[RGBColor]
-            sequence = c.sequence(False)
+            sequence = color[RGBColor].sequence(False)
         return self._add_style(sequence)
 
     @always_inline
@@ -243,6 +228,18 @@ struct TerminalStyle:
 
     @always_inline
     fn foreground(self, color_value: StringLiteral) -> Self:
+        """Shorthand for using the style profile to set the foreground color of the text.
+
+        Args:
+            color_value: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+
+        Returns:
+            A new TerminalStyle with the foreground color set.
+        """
+        return self.foreground(self.profile.color(color_value))
+
+    @always_inline
+    fn foreground(self, color_value: Int) -> Self:
         """Shorthand for using the style profile to set the foreground color of the text.
 
         Args:
@@ -289,7 +286,7 @@ fn new_style() -> TerminalStyle:
     Returns:
         A new TerminalStyle with the given color profile.
     """
-    return TerminalStyle.new()
+    return TerminalStyle()
 
 
 fn new_style(profile: Profile) -> TerminalStyle:
@@ -301,4 +298,4 @@ fn new_style(profile: Profile) -> TerminalStyle:
     Returns:
         A new TerminalStyle with the given color profile.
     """
-    return TerminalStyle.new(profile)
+    return TerminalStyle(profile)
