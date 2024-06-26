@@ -67,14 +67,14 @@ fn main():
     report = benchmark.run[bench_comptime_rendering_with_profiles](max_iters=20)
     report.print(benchmark.Unit.ms)
 
-    # print("Running bench_render_as_color")
-    # report = benchmark.run[bench_render_as_color](max_iters=10)
-    # report.print(benchmark.Unit.ms)
+    print("Running bench_render_as_color")
+    report = benchmark.run[bench_render_as_color](max_iters=10)
+    report.print(benchmark.Unit.ms)
 
-    # print("Running bench_render_with_background_color")
-    # report = benchmark.run[bench_render_with_background_color](max_iters=10)
-    # report.print(benchmark.Unit.ms)
+    print("Running bench_render_with_background_color")
+    report = benchmark.run[bench_render_with_background_color](max_iters=10)
+    report.print(benchmark.Unit.ms)
 
-    # print("Running bench_render_big_file")
-    # report = benchmark.run[bench_render_big_file](max_iters=10)
-    # report.print(benchmark.Unit.ms)
+    print("Running bench_render_big_file")
+    report = benchmark.run[bench_render_big_file](max_iters=10)
+    report.print(benchmark.Unit.ms)
