@@ -1,4 +1,4 @@
-from mist import TerminalStyle, Profile, new_style, TRUE_COLOR
+from mist import Style, Profile, new_style, TRUE_COLOR
 from mist.color import ANSIColor, ANSI256Color, RGBColor
 
 
