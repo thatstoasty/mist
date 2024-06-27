@@ -63,7 +63,7 @@ fn test_render_profiles():
     # RGBColor Support (Hex Codes)
     print(new_style(mist.TRUE_COLOR_PROFILE).foreground(mist.TRUE_COLOR_PROFILE.color("#c9a0dc")).render(a))
 
-    # It also supports using the Profile of the TerminalStyle to instead of passing Profile().color().
+    # It also supports using the Profile of the Style to instead of passing Profile().color().
     print(new_style(mist.TRUE_COLOR_PROFILE).foreground("#c9a0dc").render(a))
 
     # With a second color

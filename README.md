@@ -25,7 +25,7 @@ Once we have type checking in Mojo, Colors will automatically be degraded to the
 
 ```mojo
 import mist
-from mist import TerminalStyle, Profile
+from mist import Style, Profile
 from mist.color import ANSIColor, ANSI256Color, RGBColor
 
 
@@ -64,7 +64,7 @@ fn main() raises:
     style = mist.new_style(mist.TRUE_COLOR_PROFILE).foreground("#c9a0dc")
     print(style.render(a))
 
-    # It also supports using the Profile of the TerminalStyle to instead of passing Profile().color().
+    # It also supports using the Profile of the Style to instead of passing Profile().color().
     style = mist.new_style(Profile(TRUE_COLOR)).foreground("#c9a0dc")
     print(style.render(a))
 
@@ -74,10 +74,10 @@ fn main() raises:
 
 ## Styles
 
-You can apply text formatting effects to your text by setting the rules on the `TerminalStyle` object then using that object to render your text.
+You can apply text formatting effects to your text by setting the rules on the `Style` object then using that object to render your text.
 
 ```mojo
-from mist import TerminalStyle
+from mist import Style
 
 fn main() raises:
     var a: String = "Hello World!"
