@@ -9,6 +9,7 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
     hex_to_rgb,
+    ansi_to_rgb,
     int_to_str,
 )
 
@@ -117,7 +118,9 @@ struct Profile:
             var h = hex_to_rgb(color[RGBColor].value)
 
             if self.value != TRUE_COLOR:
-                var ansi256 = hex_to_ansi256(hue.Color(Float64(h[0]), Float64(h[1]), Float64(h[2])))
+                var ansi256 = hex_to_ansi256(
+                    hue.Color(h[0].cast[DType.float64](), h[1].cast[DType.float64](), h[2].cast[DType.float64]())
+                )
                 if self.value == ANSI:
                     return ansi256_to_ansi(ansi256.value)
 
@@ -139,8 +142,8 @@ struct Profile:
             return NoColor()
 
         if value < 16:
-            return self.convert(ANSIColor(UInt8(value)))
+            return self.convert(ANSIColor(value))
         elif value < 256:
-            return self.convert(ANSI256Color(UInt8(value)))
+            return self.convert(ANSI256Color(value))
 
         return self.convert(RGBColor(value))

@@ -1,6 +1,4 @@
-# RGB values of ANSI colors (0-255).
 alias ANSI_HEX_CODES = List[UInt32](
-    0x000000,
     0x000000,
     0x800000,
     0x008000,
@@ -258,3 +256,4 @@ alias ANSI_HEX_CODES = List[UInt32](
     0xE4E4E4,
     0xEEEEEE,
 )
+"""RGB values of ANSI colors (0-255)."""

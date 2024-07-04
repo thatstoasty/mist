@@ -21,8 +21,8 @@ fn test_color_sequence():
     test.assert_equal(ANSI256Color(100).sequence(True), "48;5;100")
 
     test = MojoTest("Testing RGBColor.sequence")
-    test.assert_equal(RGBColor("#ffffff").sequence(False), "38;2;255;255;255")
-    test.assert_equal(RGBColor("#ffffff").sequence(True), "48;2;255;255;255")
+    test.assert_equal(RGBColor(0xFFFFFF).sequence(False), "38;2;255;255;255")
+    test.assert_equal(RGBColor(0xFFFFFF).sequence(True), "48;2;255;255;255")
 
 
 fn main():

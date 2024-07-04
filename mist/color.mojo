@@ -67,9 +67,9 @@ struct NoColor(Color, Stringable):
 struct ANSIColor(Color, Stringable):
     """ANSIColor is a color (0-15) as defined by the ANSI Standard."""
 
-    var value: UInt8
+    var value: UInt32
 
-    fn __init__(inout self, value: UInt8):
+    fn __init__(inout self, value: UInt32):
         self.value = value
 
     fn __eq__(self, other: ANSIColor) -> Bool:
@@ -101,9 +101,9 @@ struct ANSIColor(Color, Stringable):
 struct ANSI256Color(Color, Stringable):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
-    var value: UInt8
+    var value: UInt32
 
-    fn __init__(inout self, value: UInt8):
+    fn __init__(inout self, value: UInt32):
         self.value = value
 
     fn __eq__(self, other: ANSI256Color) -> Bool:
@@ -127,6 +127,80 @@ struct ANSI256Color(Color, Stringable):
     fn __str__(self) -> String:
         """String returns the ANSI Sequence for the color and the text."""
         return ANSI_HEX_CODES[int(self.value)]
+
+
+# // ansiToRGB converts an ANSI color to a 24-bit RGB color.
+# //
+# //	r, g, b := ansiToRGB(57)
+# func ansiToRGB(ansi uint32) (uint32, uint32, uint32) {
+# 	// For out-of-range values return black.
+# 	if ansi > 255 {
+# 		return 0, 0, 0
+# 	}
+
+# 	// Low ANSI.
+# 	if ansi < 16 {
+# 		h, ok := lowANSI[ansi]
+# 		if !ok {
+# 			return 0, 0, 0
+# 		}
+# 		r, g, b := hexToRGB(h)
+# 		return r, g, b
+# 	}
+
+# 	// Grays.
+# 	if ansi > 231 {
+# 		s := (ansi-232)*10 + 8
+# 		return s, s, s
+# 	}
+
+# 	// ANSI256.
+# 	n := ansi - 16
+# 	b := n % 6
+# 	g := (n - b) / 6 % 6
+# 	r := (n - b - g*6) / 36 % 6
+# 	for _, v := range []*uint32{&r, &g, &b} {
+# 		if *v > 0 {
+# 			c := *v*40 + 55
+# 			*v = c
+# 		}
+# 	}
+
+# 	return r, g, b
+# }
+
+
+fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
+    """Converts an ANSI color to a 24-bit RGB color."""
+    # For out-of-range values return black.
+    if ansi > 255:
+        return UInt32(0), UInt32(0), UInt32(0)
+
+    # Low ANSI.
+    if ansi < 16:
+        var h = ANSI_HEX_CODES[int(ansi)]
+        return hex_to_rgb(h)
+
+    # Grays.
+    if ansi > 231:
+        var s = (ansi - 232) * 10 + 8
+        return s, s, s
+
+    # ANSI256.
+    var n = ansi - 16
+    var b = n % 6
+    var g = (n - b) / 6 % 6
+    var r = (n - b - g * 6) / 36 % 6
+    var rgb = List[UInt32](r, g, b)
+    var v = rgb[0]
+    var i = 0
+    while i < 3:
+        if v > 0:
+            var c = v * 40 + 55
+            v = c
+        i += 1
+
+    return r, g, b
 
 
 fn hex_to_rgb(hex: UInt32) -> (UInt32, UInt32, UInt32):
@@ -175,22 +249,24 @@ struct RGBColor(Color):
         )
 
 
-fn ansi256_to_ansi(value: UInt8) -> ANSIColor:
+fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
     """Converts an ANSI256 color to an ANSI color.
 
     Args:
         value: ANSI256 color value.
     """
-    var r: UInt8 = 0
+    var r: Int = 0
     var md = hue.math.max_float64
 
     var h = hex_to_rgb(ANSI_HEX_CODES[int(value)])
 
-    var i: UInt8 = 0
+    var i: Int = 0
     while i <= 15:
         var hb = hex_to_rgb(ANSI_HEX_CODES[int(i)])
-        var d = hue.Color(Float64(h[0]), Float64(h[1]), Float64(h[2])).distance_HSLuv(
-            hue.Color(Float64(hb[0]), Float64(hb[1]), Float64(hb[2]))
+        var d = hue.Color(
+            h[0].cast[DType.float64](), h[1].cast[DType.float64](), h[2].cast[DType.float64]()
+        ).distance_HSLuv(
+            hue.Color(hb[0].cast[DType.float64](), hb[1].cast[DType.float64](), hb[2].cast[DType.float64]())
         )
 
         if d < md:
@@ -221,7 +297,7 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
     var r: Float64 = v2ci(color.R)  # 0..5 each
     var g: Float64 = v2ci(color.G)
     var b: Float64 = v2ci(color.B)
-    var ci: UInt8 = UInt8((36 * r) + (6 * g) + b)  # 0..215
+    var ci: Int = int((36 * r) + (6 * g) + b)  # 0..215
 
     # Calculate the represented colors back from the index
     alias i2cv = InlineArray[Int, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
