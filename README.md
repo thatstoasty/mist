@@ -43,29 +43,29 @@ fn main() raises:
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = mist.new_style().foreground("#c9a0dc")
+    style = mist.new_style().foreground(0xc9a0dc)
     print(style.render(a))
 
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    style = mist.new_style(mist.ASCII_PROFILE).foreground("#c9a0dc")
+    style = mist.new_style(mist.ASCII_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # ANSI Color Support (0-15)
-    style = mist.new_style(mist.ANSI_PROFILE).foreground("#c9a0dc")
+    style = mist.new_style(mist.ANSI_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = mist.new_style(mist.ANSI256_PROFILE).foreground("#c9a0dc")
+    style = mist.new_style(mist.ANSI256_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = mist.new_style(mist.TRUE_COLOR_PROFILE).foreground("#c9a0dc")
+    style = mist.new_style(mist.TRUE_COLOR_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # It also supports using the Profile of the Style to instead of passing Profile().color().
-    style = mist.new_style(Profile(TRUE_COLOR)).foreground("#c9a0dc")
+    style = mist.new_style(Profile(TRUE_COLOR)).foreground(0xc9a0dc)
     print(style.render(a))
 
 ```
@@ -117,8 +117,8 @@ fn main():
     print(bold("Hello, world!"))
     print(italic("Hello, world!"))
     print(crossout("Hello, world!"))
-    print(render_as_color("Hello, world!", "#c9a0dc"))
-    print(render_with_background_color("Hello, world!", "#c9a0dc"))
+    print(render_as_color("Hello, world!", 0xc9a0dc))
+    print(render_with_background_color("Hello, world!", 0xc9a0dc))
 ```
 
 ## Positioning
@@ -293,4 +293,3 @@ Color chart lifted from <https://github.com/muesli/termenv>, give their projects
 
 - Enable terminal querying for platforms other than UNIX based.
 - Switch to stdout writer
-- Add unicode format option like ":vampire:" to 🧛.
