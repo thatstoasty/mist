@@ -1,31 +1,30 @@
-from mist import Style, Profile, new_style, TRUE_COLOR
-from mist.color import ANSIColor, ANSI256Color, RGBColor
+import mist
 
 
-# Profile cannot query for the terminal profile at compile time. So it MUST be set.
-alias profile = Profile(TRUE_COLOR)
-alias true_color_style = new_style(profile)
+# Profile queries for the terminal profile at run time.
+alias true_color_style = mist.new_style(mist.TRUE_COLOR)
+
 alias bold = true_color_style.bold()
 alias faint = true_color_style.faint()
 alias italic = true_color_style.italic()
 alias underline = true_color_style.underline()
 alias crossout = true_color_style.crossout()
 
-alias red = true_color_style.foreground(profile.color("#E88388"))
-alias green = true_color_style.foreground(profile.color("#A8CC8C"))
-alias yellow = true_color_style.foreground(profile.color("#DBAB79"))
-alias blue = true_color_style.foreground(profile.color("#71BEF2"))
-alias magenta = true_color_style.foreground(profile.color("#D290E4"))
-alias cyan = true_color_style.foreground(profile.color("#66C2CD"))
-alias gray = true_color_style.foreground(profile.color("#B9BFCA"))
+alias red = true_color_style.foreground(0xE88388)
+alias green = true_color_style.foreground(0xA8CC8C)
+alias yellow = true_color_style.foreground(0xDBAB79)
+alias blue = true_color_style.foreground(0x71BEF2)
+alias magenta = true_color_style.foreground(0xD290E4)
+alias cyan = true_color_style.foreground(0x66C2CD)
+alias gray = true_color_style.foreground(0xB9BFCA)
 
-alias red_background = true_color_style.background(profile.color("#E88388"))
-alias green_background = true_color_style.background(profile.color("#A8CC8C"))
-alias yellow_background = true_color_style.background(profile.color("#DBAB79"))
-alias blue_background = true_color_style.background(profile.color("#71BEF2"))
-alias magenta_background = true_color_style.background(profile.color("#D290E4"))
-alias cyan_background = true_color_style.background(profile.color("#66C2CD"))
-alias gray_background = true_color_style.background(profile.color("#B9BFCA"))
+alias red_background = true_color_style.background(0xE88388)
+alias green_background = true_color_style.background(0xA8CC8C)
+alias yellow_background = true_color_style.background(0xDBAB79)
+alias blue_background = true_color_style.background(0x71BEF2)
+alias magenta_background = true_color_style.background(0xD290E4)
+alias cyan_background = true_color_style.background(0x66C2CD)
+alias gray_background = true_color_style.background(0xB9BFCA)
 
 
 fn main():

@@ -1,11 +1,9 @@
-from mist import Style, Profile, new_style
-from mist.color import ANSIColor, ANSI256Color, RGBColor
+import mist
 
 
 fn main():
     # Profile queries for the terminal profile at run time.
-    var profile = Profile()
-    var true_color_style = new_style(profile)
+    var true_color_style = mist.new_style()
 
     var bold = true_color_style.bold()
     var faint = true_color_style.faint()
@@ -13,21 +11,21 @@ fn main():
     var underline = true_color_style.underline()
     var crossout = true_color_style.crossout()
 
-    var red = true_color_style.foreground(profile.color("#E88388"))
-    var green = true_color_style.foreground(profile.color("#A8CC8C"))
-    var yellow = true_color_style.foreground(profile.color("#DBAB79"))
-    var blue = true_color_style.foreground(profile.color("#71BEF2"))
-    var magenta = true_color_style.foreground(profile.color("#D290E4"))
-    var cyan = true_color_style.foreground(profile.color("#66C2CD"))
-    var gray = true_color_style.foreground(profile.color("#B9BFCA"))
+    var red = true_color_style.foreground(0xE88388)
+    var green = true_color_style.foreground(0xA8CC8C)
+    var yellow = true_color_style.foreground(0xDBAB79)
+    var blue = true_color_style.foreground(0x71BEF2)
+    var magenta = true_color_style.foreground(0xD290E4)
+    var cyan = true_color_style.foreground(0x66C2CD)
+    var gray = true_color_style.foreground(0xB9BFCA)
 
-    var red_background = true_color_style.background(profile.color("#E88388"))
-    var green_background = true_color_style.background(profile.color("#A8CC8C"))
-    var yellow_background = true_color_style.background(profile.color("#DBAB79"))
-    var blue_background = true_color_style.background(profile.color("#71BEF2"))
-    var magenta_background = true_color_style.background(profile.color("#D290E4"))
-    var cyan_background = true_color_style.background(profile.color("#66C2CD"))
-    var gray_background = true_color_style.background(profile.color("#B9BFCA"))
+    var red_background = true_color_style.background(0xE88388)
+    var green_background = true_color_style.background(0xA8CC8C)
+    var yellow_background = true_color_style.background(0xDBAB79)
+    var blue_background = true_color_style.background(0x71BEF2)
+    var magenta_background = true_color_style.background(0xD290E4)
+    var cyan_background = true_color_style.background(0x66C2CD)
+    var gray_background = true_color_style.background(0xB9BFCA)
     print(
         "\n\t",
         bold.render("bold"),
