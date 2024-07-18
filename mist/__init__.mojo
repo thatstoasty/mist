@@ -1,5 +1,5 @@
 from .color import Color
-from .style import Style, new_style
+from .style import Style, Style
 from .profile import (
     Profile,
     ASCII,

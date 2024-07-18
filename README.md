@@ -35,37 +35,37 @@ fn main() raises:
 
     # ) will automatically convert the color to the best matching color in the profile.
     # ANSI Color Support (0-15)
-    var style = mist.new_style().foreground(12)
+    var style = mist.Style().foreground(12)
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = mist.new_style().foreground(55)
+    style = mist.Style().foreground(55)
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = mist.new_style().foreground(0xc9a0dc)
+    style = mist.Style().foreground(0xc9a0dc)
     print(style.render(a))
 
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    style = mist.new_style(mist.ASCII_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(mist.ASCII_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # ANSI Color Support (0-15)
-    style = mist.new_style(mist.ANSI_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(mist.ANSI_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = mist.new_style(mist.ANSI256_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(mist.ANSI256_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = mist.new_style(mist.TRUE_COLOR_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(mist.TRUE_COLOR_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # It also supports using the Profile of the Style to instead of passing Profile().color().
-    style = mist.new_style(Profile(TRUE_COLOR)).foreground(0xc9a0dc)
+    style = mist.Style(Profile(TRUE_COLOR)).foreground(0xc9a0dc)
     print(style.render(a))
 
 ```
@@ -81,7 +81,7 @@ from mist import Style
 
 fn main() raises:
     var a: String = "Hello World!"
-    var style = mist.new_style()
+    var style = mist.Style()
 
     # Text styles
     style.bold()

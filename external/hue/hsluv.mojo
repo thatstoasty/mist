@@ -197,7 +197,7 @@ fn DistanceHPLuv(self: Color, other: Color) -> Float64:
     return math.sqrt(sq((h1 - h2) / 100.0) + sq(s1 - s2) + sq(l1 - l2))
 
 
-alias m = List[List[Float64]](
+var m = List[List[Float64]](
     List[Float64](3.2409699419045214, -1.5373831775700935, -0.49861076029300328),
     List[Float64](-0.96924363628087983, 1.8759675015077207, 0.041555057407175613),
     List[Float64](0.055630079696993609, -0.20397695888897657, 1.0569715142428786),

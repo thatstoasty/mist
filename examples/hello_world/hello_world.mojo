@@ -3,7 +3,7 @@ import mist
 
 fn main():
     # Profile queries for the terminal profile at run time.
-    var true_color_style = mist.new_style()
+    var true_color_style = mist.Style()
 
     var bold = true_color_style.bold()
     var faint = true_color_style.faint()

@@ -40,21 +40,22 @@ struct Style:
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
 
     This struct should be considered immutable and each style added returns a new instance of itself rather than modifying the struct in place.
-    It's recommended to use `new_style()` function to create a new instance of Style so that you can chain style methods together.
+    It's recommended to use `Style()` function to create a new instance of Style so that you can chain style methods together.
     Example:
     ```mojo
     import mist
 
-    var style = mist.new_style().foreground(0xE88388)
+    var style = mist.Style().foreground(0xE88388)
     print(style.render("Hello World"))
     ```
+    .
     """
 
     var styles: List[String]
     var profile: Profile
 
     fn __init__(inout self, profile: Profile, *, styles: List[String] = List[String]()):
-        """Constructs a Style. Use new_style() instead of __init__ to chain function calls.
+        """Constructs a Style. Use Style() instead of __init__ to chain function calls.
 
         Args:
             profile: The color profile to use for color conversion.
@@ -64,7 +65,7 @@ struct Style:
         self.profile = profile
 
     fn __init__(inout self, *, styles: List[String] = List[String]()):
-        """Constructs a Style. Use new_style() instead of __init__ to chain function calls.
+        """Constructs a Style. Use Style() instead of __init__ to chain function calls.
 
         Args:
             styles: A list of ANSI styles to apply to the text.
@@ -212,17 +213,3 @@ struct Style:
         _ = builder.write_string("m")
 
         return builder.render()
-
-
-fn new_style(profile: Optional[Int] = None) -> Style:
-    """Creates a new Style with no styles applied.
-
-    Args:
-        profile: The color profile to use for color conversion.
-
-    Returns:
-        A new Style with the given color profile.
-    """
-    if profile:
-        return Style(profile.value()[])
-    return Style()

@@ -1,4 +1,4 @@
-from .style import Style, new_style
+from .style import Style, Style
 from .profile import Profile
 
 
@@ -14,7 +14,7 @@ alias GRAY = 0xB9BFCA
 # Convenience functions for quick style application
 fn render_as_color(text: String, color: UInt32) -> String:
     var profile = Profile()
-    return new_style(profile.value).foreground(color=profile.color(color)).render(text)
+    return Style(profile.value).foreground(color=profile.color(color)).render(text)
 
 
 fn red(text: String) -> String:
@@ -54,7 +54,7 @@ fn gray(text: String) -> String:
 
 fn render_with_background_color(text: String, color: UInt32) -> String:
     var profile = Profile()
-    return new_style().background(color=profile.color(color)).render(text)
+    return Style().background(color=profile.color(color)).render(text)
 
 
 fn red_background(text: String) -> String:
@@ -93,24 +93,24 @@ fn gray_background(text: String) -> String:
 
 
 fn bold(text: String) -> String:
-    return new_style().bold().render(text)
+    return Style().bold().render(text)
 
 
 fn faint(text: String) -> String:
-    return new_style().faint().render(text)
+    return Style().faint().render(text)
 
 
 fn italic(text: String) -> String:
-    return new_style().italic().render(text)
+    return Style().italic().render(text)
 
 
 fn underline(text: String) -> String:
-    return new_style().underline().render(text)
+    return Style().underline().render(text)
 
 
 fn overline(text: String) -> String:
-    return new_style().overline().render(text)
+    return Style().overline().render(text)
 
 
 fn crossout(text: String) -> String:
-    return new_style().crossout().render(text)
+    return Style().crossout().render(text)
