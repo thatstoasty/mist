@@ -9,8 +9,6 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
     hex_to_rgb,
-    ansi_to_rgb,
-    int_to_str,
 )
 
 alias TRUE_COLOR: Int = 0
