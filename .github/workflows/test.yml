@@ -11,8 +11,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Install dependencies
         run: |
-          curl https://get.modular.com | MODULAR_AUTH=${{ secrets.MODULAR_AUTH }} sh -
-          modular auth ${{ secrets.MODULAR_AUTH }}
+          curl https://get.modular.com | sh -
+          modular auth example
           modular install nightly/mojo
           pip install pytest
           pip install git+https://github.com/guidorice/mojo-pytest.git
