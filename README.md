@@ -12,9 +12,9 @@
 
 I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
-You should be able to build the package by running `mojo package mist -I external`. For the easiest method, I recommend just copying the entire external folder into your repository, then copy the `mist` folder into the external folder as well.
+You should be able to build the package by running `mojo package mist`. But, if you want to build the dependencies and then the package, you can run `bash scripts/build.sh package` from the root of the project.
 
-> NOTE: It seems like `.mojopkg` files don't like being part of another package, eg. sticking all of your external deps in an `external` or `vendor` package. The only way I've gotten mojopkg files to work is to be in the same directory as the file being executed, and that directory cannot be a mojo package.
+> NOTE: It seems like `.mojopkg` files don't like being part of another package, eg. sticking all of your external deps in an `external` or `vendor` package. The only way I've gotten mojopkg files to work is to be in the same directory as the file being executed, or in the root directory like you can see in this project.
 
 ## Colors
 
