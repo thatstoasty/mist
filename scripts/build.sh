@@ -34,20 +34,18 @@ check_out_remote_module() (
         module_name=${module_names[$i]}
         path=${paths[$i]}
         cp -R ./$path ../../$module_name
-        echo $current_date_time > ../../$module_name/.checkoutinfo
-        echo "URL: $rurl" >> ../../$module_name/.checkoutinfo
-        echo "Path: $path" >> ../../$module_name/.checkoutinfo
     done
     cd ../
 )
 
 checkout_dependencies()(
+    echo -e "\n[INFO] Checking out dependencies"
     check_out_remote_module "-b nightly https://github.com/thatstoasty/gojo" "gojo"
     check_out_remote_module "-b nightly https://github.com/thatstoasty/hue" "hue"
 )
 
 build_dependencies() {
-    echo "[INFO] Building dependencies..."
+    echo -e "\n[INFO] Building dependencies"
     dirs_to_remove=("bufio" "bytes" "net" "syscall" "unicode")
     for dir in "${dirs_to_remove[@]}"; do
         rm -R "gojo/${dir}"
@@ -68,7 +66,6 @@ if [ "$1" == "package" ]; then
 
     rm -rf "_deps"
     build_dependencies
-
     mojo package mist
 elif [ "$1" == "dependencies" ]; then
     mkdir -p "_deps"
