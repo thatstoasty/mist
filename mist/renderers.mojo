@@ -1,4 +1,4 @@
-from .style import Style, Style
+from .style import Style
 from .profile import Profile
 
 

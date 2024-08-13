@@ -1,4 +1,6 @@
-import external.hue
+from utils import Variant
+from collections import InlineArray
+import hue
 from .ansi_colors import ANSI_HEX_CODES
 
 
@@ -38,15 +40,18 @@ alias BACKGROUND = "48"
 alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
 
 
-trait Color(EqualityComparable, CollectionElement):
+trait Color(EqualityComparable, CollectionElement, ExplicitlyCopyable):
     fn sequence(self, is_background: Bool) -> String:
         """Sequence returns the ANSI Sequence for the color."""
         ...
 
 
 @register_passable("trivial")
-struct NoColor(Color, Stringable):
+struct NoColor(Color):
     fn __init__(inout self):
+        pass
+
+    fn __init__(inout self, other: Self):
         pass
 
     fn __eq__(self, other: NoColor) -> Bool:
@@ -58,19 +63,19 @@ struct NoColor(Color, Stringable):
     fn sequence(self, is_background: Bool) -> String:
         return ""
 
-    fn __str__(self) -> String:
-        """String returns the ANSI Sequence for the color and the text."""
-        return ""
-
 
 @register_passable("trivial")
-struct ANSIColor(Color, Stringable):
+struct ANSIColor(Color):
     """ANSIColor is a color (0-15) as defined by the ANSI Standard."""
 
     var value: UInt32
+    """The ANSI color value."""
 
     fn __init__(inout self, value: UInt32):
         self.value = value
+
+    fn __init__(inout self, other: Self):
+        self.value = other.value
 
     fn __eq__(self, other: ANSIColor) -> Bool:
         return self.value == other.value
@@ -92,19 +97,19 @@ struct ANSIColor(Color, Stringable):
             return int_to_str(modifier + int(self.value) + 30)
         return int_to_str(modifier + int(self.value) - 8 + 90)
 
-    fn __str__(self) -> String:
-        """String returns the ANSI Sequence for the color and the text."""
-        return ANSI_HEX_CODES[int(self.value)]
-
 
 @register_passable("trivial")
-struct ANSI256Color(Color, Stringable):
+struct ANSI256Color(Color):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
     var value: UInt32
+    """The ANSI256 color value."""
 
     fn __init__(inout self, value: UInt32):
         self.value = value
+
+    fn __init__(inout self, other: Self):
+        self.value = other.value
 
     fn __eq__(self, other: ANSI256Color) -> Bool:
         return self.value == other.value
@@ -123,10 +128,6 @@ struct ANSI256Color(Color, Stringable):
             prefix = BACKGROUND
 
         return prefix + ";5;" + int_to_str(int(self.value))
-
-    fn __str__(self) -> String:
-        """String returns the ANSI Sequence for the color and the text."""
-        return ANSI_HEX_CODES[int(self.value)]
 
 
 fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
@@ -171,12 +172,16 @@ fn hex_to_rgb(hex: UInt32) -> (UInt32, UInt32, UInt32):
 
 @register_passable("trivial")
 struct RGBColor(Color):
-    """RGBColor is a hex-encoded color, e.g. '#abcdef'."""
+    """RGBColor is a hex-encoded color, e.g. '0xabcdef'."""
 
     var value: UInt32
+    """The hex-encoded color value."""
 
     fn __init__(inout self, value: UInt32):
         self.value = value
+
+    fn __init__(inout self, other: Self):
+        self.value = other.value
 
     fn __eq__(self, other: RGBColor) -> Bool:
         return self.value == other.value

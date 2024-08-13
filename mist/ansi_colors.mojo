@@ -1,4 +1,6 @@
-var ANSI_HEX_CODES = InlineArray[UInt32, 255](
+from collections import InlineArray
+
+alias ANSI_HEX_CODES = InlineArray[UInt32, 255](
     0x000000,
     0x800000,
     0x008000,

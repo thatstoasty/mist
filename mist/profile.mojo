@@ -1,5 +1,8 @@
 import os
-import external.hue
+from collections import InlineArray
+
+# import external.hue
+import hue
 from .color import (
     NoColor,
     ANSIColor,
@@ -67,7 +70,7 @@ fn get_color_profile() -> Int:
     return ASCII
 
 
-@register_passable
+@register_passable("trivial")
 struct Profile:
     alias valid = InlineArray[Int, 4](TRUE_COLOR, ANSI256, ANSI, ASCII)
     var value: Int
@@ -86,12 +89,11 @@ struct Profile:
         self.value = value
 
     fn __init__(inout self):
-        """
-        Initialize a new profile with the given profile type.
-        """
+        """Initialize a new profile with the given profile type."""
         self.value = get_color_profile()
 
-    fn __copyinit__(inout self, other: Profile):
+    fn __init__(inout self, other: Self):
+        """Initialize a new profile using the value of an existing profile."""
         self.value = other.value
 
     fn convert(self, color: AnyColor) -> AnyColor:
