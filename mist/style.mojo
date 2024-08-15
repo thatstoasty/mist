@@ -1,4 +1,3 @@
-# from external.gojo.strings import StringBuilder
 from gojo.strings import StringBuilder
 from .color import (
     Color,
