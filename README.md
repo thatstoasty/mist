@@ -19,7 +19,7 @@ You should be able to build the package by running `bash scripts/build.sh packag
 - `gojo.mojopkg`
 - `hue.mojopkg`
 
-You can drop the mojo packages in the root of your project, or in a directory of your choosing. If you put them in a directory, you'll need to add `-I path/to/directory` to your `mojo run` or `mojo build` command that you use to run your code. This will tell Mojo what directory to import from to import the `mist` package and it's dependencies.
+You can drop the mojo packages in the root of your project, or in a directory of your choosing. If you put them in a directory, you'll need to add `-I path/to/directory` to the `mojo run` or `mojo build` command that you use to run your code. This will tell Mojo what directory to import from to import the `mist` package and it's dependencies.
 
 > NOTE: It seems like `.mojopkg` files don't like being part of another package, eg. sticking all of your external deps in an `external` or `vendor` package. The only way I've gotten mojopkg files to work is to be in the same directory as the file being executed, or in the root directory like you can see in this project.
 
