@@ -35,6 +35,20 @@ fn int_to_str(owned value: Int, base: Int = 10) -> String:
     return result
 
 
+fn to_hue_color(r: UInt32, g: UInt32, b: UInt32) -> hue.Color:
+    """Converts rgb to a hue.Color.
+
+    Args:
+        r: The red value.
+        g: The green value.
+        b: The blue value.
+
+    Returns:
+        The hue.Color.
+    """
+    return hue.Color(r.cast[DType.float64](), g.cast[DType.float64](), b.cast[DType.float64]())
+
+
 alias FOREGROUND = "38"
 alias BACKGROUND = "48"
 alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
@@ -221,14 +235,12 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
     var r = 0
     var md = hue.math.max_float64
     var h = hex_to_rgb(ANSI_HEX_CODES[int(value)])
-    var h_color = hue.Color(h[0].cast[DType.float64](), h[1].cast[DType.float64](), h[2].cast[DType.float64]())
+    var h_color = to_hue_color(h[0], h[1], h[2])
 
     var i = 0
     while i <= 15:
         var hb = hex_to_rgb(ANSI_HEX_CODES[int(i)])
-        var d = h_color.distance_HSLuv(
-            hue.Color(hb[0].cast[DType.float64](), hb[1].cast[DType.float64](), hb[2].cast[DType.float64]())
-        )
+        var d = h_color.distance_HSLuv(to_hue_color(hb[0], hb[1], hb[2]))
 
         if d < md:
             md = d

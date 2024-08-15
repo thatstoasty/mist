@@ -1,7 +1,5 @@
 import os
 from collections import InlineArray
-
-# import external.hue
 import hue
 from .color import (
     NoColor,
@@ -12,6 +10,7 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
     hex_to_rgb,
+    to_hue_color,
 )
 
 alias TRUE_COLOR: Int = 0
@@ -118,9 +117,7 @@ struct Profile:
             var h = hex_to_rgb(color[RGBColor].value)
 
             if self.value != TRUE_COLOR:
-                var ansi256 = hex_to_ansi256(
-                    hue.Color(h[0].cast[DType.float64](), h[1].cast[DType.float64](), h[2].cast[DType.float64]())
-                )
+                var ansi256 = hex_to_ansi256(to_hue_color(h[0], h[1], h[2]))
                 if self.value == ANSI:
                     return ansi256_to_ansi(ansi256.value)
 
