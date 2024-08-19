@@ -7,8 +7,6 @@ mkdir -p $TEMP_DIR
 echo -e "Building mist package and copying tests."
 ./scripts/build.sh package
 mv mist.mojopkg $TEMP_DIR
-mv gojo.mojopkg $TEMP_DIR
-mv hue.mojopkg $TEMP_DIR
 cp -R tests/ $TEMP_DIR/tests/
 
 echo -e "\nBuilding binaries for all examples."

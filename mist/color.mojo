@@ -1,6 +1,6 @@
 from utils import Variant
 from collections import InlineArray
-import hue
+import .hue
 from .ansi_colors import ANSI_HEX_CODES
 
 
@@ -263,7 +263,7 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
     """Converts a hex code to a ANSI256 color.
 
     Args:
-        color: Hex code color from hue.Color.
+        color: Hex code color from .hue.Color.
     """
     # Calculate the nearest 0-based color index at 16..231
     # Originally had * 255 in each of these

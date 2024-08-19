@@ -1,4 +1,4 @@
-from gojo.fmt import sprintf
+from .gojo.fmt import sprintf
 from .style import bel, csi, reset, osc
 from .color import AnyColor, NoColor, ANSIColor, ANSI256Color, RGBColor
 
