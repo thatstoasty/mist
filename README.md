@@ -14,12 +14,9 @@ I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
 ## Installation
 
-You should be able to build the package by running `bash scripts/build.sh package` from the root of the project. This will create a `mist.mojopkg` file that you can import into your project. You also need the following dependencies that it creates:
+You should be able to build the package by running `mojo package mist` or if you'd like to pull in the dependencies again, you can run `bash scripts/build.sh package` from the root of the project. This will create a `mist.mojopkg` file that you can import into your project.
 
-- `gojo.mojopkg`
-- `hue.mojopkg`
-
-You can drop the mojo packages in the root of your project, or in a directory of your choosing. If you put them in a directory, you'll need to add `-I path/to/directory` to the `mojo run` or `mojo build` command that you use to run your code. This will tell Mojo what directory to import from to import the `mist` package and it's dependencies.
+You can drop the mojo package in the root of your project, or in a directory of your choosing. If you put them in a directory, you'll need to add `-I path/to/directory` to the `mojo run` or `mojo build` command that you use to run your code. This will tell Mojo what directory to import from to import the `mist` package and it's dependencies.
 
 > NOTE: It seems like `.mojopkg` files don't like being part of another package, eg. sticking all of your external deps in an `external` or `vendor` package. The only way I've gotten mojopkg files to work is to be in the same directory as the file being executed, or in the root directory like you can see in this project.
 
