@@ -1,4 +1,4 @@
-from .style import osc, st
+from .style import OSC, ST
 
 
 fn hyperlink(link: String, name: String) -> String:
@@ -11,4 +11,4 @@ fn hyperlink(link: String, name: String) -> String:
     Returns:
         The hyperlink text.
     """
-    return osc + "8;;" + link + st + name + osc + "8;;" + st
+    return OSC + "8;;" + link + ST + name + OSC + "8;;" + ST

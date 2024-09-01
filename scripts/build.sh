@@ -43,7 +43,7 @@ check_out_remote_module() (
 
 checkout_dependencies()(
     echo -e "\n[INFO] Checking out dependencies"
-    check_out_remote_module "-b nightly https://github.com/thatstoasty/gojo" "gojo"
+    check_out_remote_module "-b nightly https://github.com/thatstoasty/gojo" "src"
     check_out_remote_module "-b nightly https://github.com/thatstoasty/hue" "hue"
 )
 
@@ -51,10 +51,10 @@ build_dependencies() {
     echo -e "\n[INFO] Building dependencies"
     dirs_to_remove=("bufio" "bytes" "net" "syscall" "unicode")
     for dir in "${dirs_to_remove[@]}"; do
-        rm -R "gojo/${dir}"
+        rm -R "src/gojo/${dir}"
     done
     rm -R mist/gojo
-    mv gojo mist
+    mv src/gojo mist
     rm -R mist/hue
     mv hue mist
 }

@@ -100,6 +100,9 @@ struct Profile:
 
         Args:
             color: The color to convert to the current profile.
+        
+        Returns:
+            An `AnyColor` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
         if self.value == ASCII:
             return NoColor()
@@ -129,11 +132,15 @@ struct Profile:
         return color[NoColor]
 
     fn color(self, value: UInt32) -> AnyColor:
-        """Color creates a Color from a string. Valid inputs are hex colors, as well as
-        ANSI color codes (0-15, 16-255). If an invalid input is passed in, NoColor() is returned which will not apply any coloring.
+        """Creates a `Color` from a number. Valid inputs are hex colors, as well as
+        ANSI color codes (0-15, 16-255). If an invalid input is passed in, 
+        `NoColor` is returned which will not apply any coloring.
 
         Args:
             value: The string to convert to a color.
+        
+        Returns:
+            An `AnyColor` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
         if self.value == ASCII:
             return NoColor()

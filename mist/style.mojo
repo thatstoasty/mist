@@ -13,29 +13,29 @@ from .color import (
 from .profile import get_color_profile, ASCII
 
 # Text formatting sequences
-alias reset = "0"
-alias bold = "1"
-alias faint = "2"
-alias italic = "3"
-alias underline = "4"
-alias blink = "5"
-alias reverse = "7"
-alias crossout = "9"
-alias overline = "53"
+alias RESET = "0"
+alias BOLD = "1"
+alias FAINT = "2"
+alias ITALIC = "3"
+alias UNDERLINE = "4"
+alias BLINK = "5"
+alias REVERSE = "7"
+alias CROSSOUT = "9"
+alias OVERLINE = "53"
 
 # ANSI Operations
-alias escape = chr(27)  # Escape character
-alias bel = "\a"  # Bell
-alias csi = escape + "["  # Control Sequence Introducer
-alias osc = escape + "]"  # Operating System Command
-alias st = escape + chr(92)  # String Terminator
+alias ESCAPE = "^["  # Escape character
+alias BEL = "\a"  # Bell
+alias CSI = ESCAPE + "["  # Control Sequence Introducer
+alias OSC = ESCAPE + "]"  # Operating System Command
+alias ST = ESCAPE + chr(92)  # String Terminator
 
-# clear terminal and return cursor to top left
-alias clear = escape + "[2J" + escape + "[H"
+# CLEAR terminal and return cursor to top left
+alias CLEAR = ESCAPE + "[2J" + ESCAPE + "[H"
 
 
 @value
-struct Style:
+struct Style(Movable, Copyable, ExplicitlyCopyable):
     """Style stores a list of styles to format text with. These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
 
@@ -52,23 +52,20 @@ struct Style:
     var styles: List[String]
     var profile: Profile
 
-    fn __init__(inout self, profile: Profile, *, styles: List[String] = List[String]()):
+    fn __init__(inout self, profile: Profile):
         """Constructs a Style.
 
         Args:
             profile: The color profile to use for color conversion.
-            styles: A list of ANSI styles to apply to the text.
         """
-        self.styles = styles
+        self.styles = List[String]()
         self.profile = profile
 
-    fn __init__(inout self, *, styles: List[String] = List[String]()):
-        """Constructs a Style.
-
-        Args:
-            styles: A list of ANSI styles to apply to the text.
+    fn __init__(inout self):
+        """Constructs a Style. This constructor is not compile time friendly, because
+        the default constructor for a Profile checks the terminal color profile.
         """
-        self.styles = styles
+        self.styles = List[String]()
         self.profile = Profile()
 
     fn __init__(inout self, other: Style):
@@ -81,7 +78,7 @@ struct Style:
         self.profile = other.profile
 
     fn _add_style(self, style: String) -> Self:
-        """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that. Immutability instead of mutating the object.
+        """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that. 
 
         Args:
             style: The ANSI style to add to the list of styles.
@@ -90,41 +87,37 @@ struct Style:
         new.styles.append(style)
         return new
 
-    fn get_styles(self) -> List[String]:
-        """Return a deepcopy of the styles list."""
-        return List[String](self.styles)
-
     fn bold(self) -> Self:
         """Makes the text bold when rendered."""
-        return self._add_style(bold)
+        return self._add_style(BOLD)
 
     fn faint(self) -> Self:
         """Makes the text faint when rendered."""
-        return self._add_style(faint)
+        return self._add_style(FAINT)
 
     fn italic(self) -> Self:
         """Makes the text italic when rendered."""
-        return self._add_style(italic)
+        return self._add_style(ITALIC)
 
     fn underline(self) -> Self:
         """Makes the text underlined when rendered."""
-        return self._add_style(underline)
+        return self._add_style(UNDERLINE)
 
     fn blink(self) -> Self:
         """Makes the text blink when rendered."""
-        return self._add_style(blink)
+        return self._add_style(BLINK)
 
     fn reverse(self) -> Self:
         """Makes the text have reversed background and foreground colors when rendered."""
-        return self._add_style(reverse)
+        return self._add_style(REVERSE)
 
     fn crossout(self) -> Self:
         """Makes the text crossed out when rendered."""
-        return self._add_style(crossout)
+        return self._add_style(CROSSOUT)
 
     fn overline(self) -> Self:
         """Makes the text overlined when rendered."""
-        return self._add_style(overline)
+        return self._add_style(OVERLINE)
 
     fn background(self, *, color: AnyColor) -> Self:
         """Set the background color of the text when it's rendered.
@@ -136,7 +129,7 @@ struct Style:
             A new Style with the background color set.
         """
         if color.isa[NoColor]():
-            return Self(self.profile, styles=self.styles)
+            return self
 
         var sequence: String = ""
         if color.isa[ANSIColor]():
@@ -171,7 +164,7 @@ struct Style:
             A new Style with the foreground color set.
         """
         if color.isa[NoColor]():
-            return Self(self.profile, styles=self.styles)
+            return self
 
         var sequence: String = ""
         if color.isa[ANSIColor]():
@@ -209,14 +202,14 @@ struct Style:
             return text
 
         var builder = StringBuilder()
-        _ = builder.write_string(csi)
+        _ = builder.write_string(CSI)
         for i in range(len(self.styles)):
             _ = builder.write_string(";")
             _ = builder.write_string(self.styles[i])
         _ = builder.write_string("m")
         _ = builder.write_string(text)
-        _ = builder.write_string(csi)
-        _ = builder.write_string(reset)
+        _ = builder.write_string(CSI)
+        _ = builder.write_string(RESET)
         _ = builder.write_string("m")
 
         return str(builder)

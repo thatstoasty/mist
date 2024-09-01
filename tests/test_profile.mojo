@@ -82,7 +82,17 @@ fn test_render_profiles():
     )
 
 
-fn main():
+fn test_unicode_handling() raises:
+    var test = MojoTest("Testing unicode handling")
+    alias a: String = "Hello──World!"
+    print(mist.Style().underline().foreground(12).render(a).split("\n").__str__())
+
+    test.assert_equal(mist.Style().underline().foreground(12).render(a), '\x1b[;4;94mHello\xe2\x94\x80\xe2\x94\x80World!\x1b[0m')
+
+
+
+fn main() raises:
     test_profile_convert()
     test_profile_color()
     test_render_profiles()
+    test_unicode_handling()
