@@ -7,11 +7,11 @@ mkdir -p $TEMP_DIR
 echo -e "Building mist package and copying tests."
 ./scripts/build.sh package
 mv mist.mojopkg $TEMP_DIR
-cp -R tests/ $TEMP_DIR/tests/
+cp -R test/ $TEMP_DIR
 
 echo -e "\nBuilding binaries for all examples."
 cd $TEMP_DIR
-pytest tests
+mojo test .
 cd $CURRENT_DIR
 
 echo -e "Cleaning up the test directory."

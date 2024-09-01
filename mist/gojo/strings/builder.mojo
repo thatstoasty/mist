@@ -100,18 +100,6 @@ struct StringBuilder[growth_factor: Float32 = 2](
             The string representation of the string builder. Returns an empty string if the string builder is empty.
         """
         return self.as_string_slice()
-    
-    fn consume(inout self) -> String:
-        """Steals the data from the string builder and returns it as a String.
-
-        Returns:
-            The string representation of the string builder. Returns an empty string if the string builder is empty.
-        """
-        var result = String(ptr=self._data, len=self._size)
-        self._data = UnsafePointer[UInt8]()
-        self._size = 0
-        self._capacity = 0
-        return result
 
     fn _resize(inout self, capacity: Int) -> None:
         """Resizes the string builder buffer.

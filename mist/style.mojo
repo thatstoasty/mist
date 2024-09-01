@@ -24,7 +24,7 @@ alias CROSSOUT = "9"
 alias OVERLINE = "53"
 
 # ANSI Operations
-alias ESCAPE = "^["  # Escape character
+alias ESCAPE = chr(27)  # Escape character
 alias BEL = "\a"  # Bell
 alias CSI = ESCAPE + "["  # Control Sequence Introducer
 alias OSC = ESCAPE + "]"  # Operating System Command

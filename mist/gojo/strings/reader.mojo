@@ -264,7 +264,7 @@ struct Reader(
 
     #     return Int(bytes_written)
 
-    fn RESET(inout self, string: String):
+    fn reset(inout self, string: String):
         """Resets the [Reader] to be reading from the beginning of the provided string.
 
         Args:
