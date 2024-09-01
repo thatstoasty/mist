@@ -54,9 +54,9 @@ build_dependencies() {
         rm -R "gojo/${dir}"
     done
     rm -R mist/gojo
-    mv gojo mist
+    mv gojo src/mist
     rm -R mist/hue
-    mv hue mist
+    mv hue src/mist
 }
 
 if [ "$1" == "package" ]; then

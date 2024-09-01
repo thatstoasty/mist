@@ -18,6 +18,11 @@ build:
     - mkdir -p ${PREFIX}/lib/mojo
     - mojo package mist -o ${PREFIX}/lib/mojo/mist.mojopkg
 
+requirements:
+  run:
+    - max >= 24.5.0.dev2024083105
+    - gojo == 0.1.1
+
 # tests:
 #   - script:
 #       # commands to run to test the package. If any of the commands
