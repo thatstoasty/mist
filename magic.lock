@@ -5,12 +5,14 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     - url: https://conda.modular.com/max-nightly/
     - url: https://repo.prefix.dev/mojo/
+    - url: file:///Users/mikhailtavarez/Git/mojo/hue/output/
     packages:
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-h99b78c6_7.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ca-certificates-2024.8.30-hf0a4a13_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/click-8.1.7-unix_pyh707e725_0.conda
       - conda: https://repo.prefix.dev/mojo/osx-arm64/gojo-0.1.1-h60d57d3_0.conda
+      - conda: file:///Users/mikhailtavarez/Git/mojo/hue/output/osx-arm64/hue-0.1.0-h60d57d3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib-metadata-8.4.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib_metadata-8.4.0-hd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyter_client-8.6.2-pyhd8ed1ab_0.conda
@@ -110,6 +112,21 @@ packages:
   license: MIT
   size: 922579
   timestamp: 1725160308285
+- kind: conda
+  name: hue
+  version: 0.1.0
+  build: h60d57d3_0
+  subdir: osx-arm64
+  url: file:///Users/mikhailtavarez/Git/mojo/hue/output/osx-arm64/hue-0.1.0-h60d57d3_0.conda
+  sha256: 1f9c8491aad32d2388d13ed011084f267bdc5d0af0b856ba8edb31cd262beebc
+  md5: e055de1b1734638922043d346ca06d0c
+  depends:
+  - max >=24.5.0.dev2024083105
+  arch: arm64
+  platform: osx
+  license: MIT
+  size: 465088
+  timestamp: 1725301940105
 - kind: conda
   name: importlib-metadata
   version: 8.4.0

@@ -53,22 +53,22 @@ build_dependencies() {
     for dir in "${dirs_to_remove[@]}"; do
         rm -R "gojo/${dir}"
     done
-    rm -R mist/gojo
+    rm -R src/mist/gojo
     mv gojo src/mist
-    rm -R mist/hue
+    rm -R src/mist/hue
     mv hue src/mist
 }
 
 if [ "$1" == "package" ]; then
-    mkdir -p "_deps"
-    cd "_deps"
+    # mkdir -p "_deps"
+    # cd "_deps"
 
-    checkout_dependencies
-    cd ..
+    # checkout_dependencies
+    # cd ..
 
-    rm -rf "_deps"
-    build_dependencies
-    mojo package mist
+    # rm -rf "_deps"
+    # build_dependencies
+    mojo package src/mist
 elif [ "$1" == "dependencies" ]; then
     mkdir -p "_deps"
     cd "_deps"

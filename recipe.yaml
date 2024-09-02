@@ -22,6 +22,7 @@ requirements:
   run:
     - max >= 24.5.0.dev2024083105
     - gojo == 0.1.1
+    - hue == 0.1.0
 
 # tests:
 #   - script:

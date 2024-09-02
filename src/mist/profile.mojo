@@ -1,6 +1,6 @@
 import os
 from collections import InlineArray
-import .hue
+import hue
 from .color import (
     NoColor,
     ANSIColor,
