@@ -20,7 +20,7 @@ fn render_as_color(text: String, color: UInt32, profile: Int = -1) -> String:
 
 fn red(text: String, profile: Int = -1) -> String:
     """Apply red color to the text."""
-    return render_as_color(text, RED)
+    return render_as_color(text, RED, profile)
 
 
 fn green(text: String, profile: Int = -1) -> String:
