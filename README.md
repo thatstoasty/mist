@@ -14,16 +14,10 @@ I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
 ## Installation
 
-WIP: I'm in the process of transitioning this to being installed via `magic`, which is Mojo's package manager.
+1. First, you'll need to configure your `mojoproject.toml` file to include my Conda channel. Add `"https://repo.prefix.dev/mojo-community"` to the list of channels.
+2. Next, add `mist` to your project's dependencies by running `magic add mist`.
+3. Finally, run `magic install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
 
-1. First, you'll need to configure your `mojoproject.toml` file to include my Conda channel.
-2. Add `"https://repo.prefix.dev/mojo"` to the list of channels.
-3. Next, add `mist` to your project's dependencies by running `magic add mist`.
-4. Finally, run `magic install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
-
-It doesn't seem like VSCode is able to use the magic mojo environment yet for intellisense, so you can copy `gojo.mojopkg`, `mist.mojopkg`, and `hue.mojopkg` from `$CONDA_PREFIX/lib/mojo/` to your project's root directory. This will enable intellisense to pick up those packages. Note that even though intellisense cannot pickup those packages, you can still run your code and import from them without any issues in a `magic shell` environment or using `magic run mojo <file.mojo>`.
-
-> NOTE: It seems like `.mojopkg` files don't like being part of another package, eg. sticking all of your external deps in an `external` or `vendor` package. The only way I've gotten mojopkg files to work is to be in the same directory as the file being executed, or in the root directory like you can see in this project.
 
 ## Colors
 
