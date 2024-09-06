@@ -38,13 +38,13 @@ def test_render_profiles():
 
     # ) will automatically convert the color to the best matching color in the profile.
     # ANSI Color Support (0-15)
-    testing.assert_equal(mist.Style().foreground(12).render(a), "\x1B[;94mHello World!\x1B[0m")
+    testing.assert_equal(mist.Style(mist.TRUE_COLOR).foreground(12).render(a), "\x1B[;94mHello World!\x1B[0m")
 
     # ANSI256 Color Support (16-255)
-    testing.assert_equal(mist.Style().foreground(55).render(a), "\x1B[;38;5;55mHello World!\x1B[0m")
+    testing.assert_equal(mist.Style(mist.TRUE_COLOR).foreground(55).render(a), "\x1B[;38;5;55mHello World!\x1B[0m")
 
     # RGBColor Support (Hex Codes)
-    testing.assert_equal(mist.Style().foreground(0xC9A0DC).render(a), "\x1B[;38;2;201;160;220mHello World!\x1B[0m")
+    testing.assert_equal(mist.Style(mist.TRUE_COLOR).foreground(0xC9A0DC).render(a), "\x1B[;38;2;201;160;220mHello World!\x1B[0m")
 
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
@@ -79,4 +79,4 @@ def test_render_profiles():
 
 def test_unicode_handling():
     alias a: String = "Hello──World!"
-    testing.assert_equal(mist.Style().underline().foreground(12).render(a), '\x1b[;4;94mHello\xe2\x94\x80\xe2\x94\x80World!\x1b[0m')
+    testing.assert_equal(mist.Style(mist.TRUE_COLOR).underline().foreground(12).render(a), '\x1b[;4;94mHello\xe2\x94\x80\xe2\x94\x80World!\x1b[0m')
