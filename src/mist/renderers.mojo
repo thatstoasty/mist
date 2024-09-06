@@ -12,105 +12,119 @@ alias GRAY = 0xB9BFCA
 
 
 # Convenience functions for quick style application
-fn render_as_color(text: String, color: UInt32) -> String:
-    var profile = Profile()
-    return Style(profile.value).foreground(color=profile.color(color)).render(text)
+fn render_as_color(text: String, color: UInt32, profile: Int = -1) -> String:
+    if profile == -1:
+        return Style().foreground(color).render(text)
+    return Style(profile).foreground(color).render(text)
 
 
-fn red(text: String) -> String:
+fn red(text: String, profile: Int = -1) -> String:
     """Apply red color to the text."""
     return render_as_color(text, RED)
 
 
-fn green(text: String) -> String:
+fn green(text: String, profile: Int = -1) -> String:
     """Apply green color to the text."""
-    return render_as_color(text, GREEN)
+    return render_as_color(text, GREEN, profile)
 
 
-fn yellow(text: String) -> String:
+fn yellow(text: String, profile: Int = -1) -> String:
     """Apply yellow color to the text."""
-    return render_as_color(text, YELLOW)
+    return render_as_color(text, YELLOW, profile)
 
 
-fn blue(text: String) -> String:
+fn blue(text: String, profile: Int = -1) -> String:
     """Apply blue color to the text."""
-    return render_as_color(text, BLUE)
+    return render_as_color(text, BLUE, profile)
 
 
-fn magenta(text: String) -> String:
+fn magenta(text: String, profile: Int = -1) -> String:
     """Apply magenta color to the text."""
-    return render_as_color(text, MAGENTA)
+    return render_as_color(text, MAGENTA, profile)
 
 
-fn cyan(text: String) -> String:
+fn cyan(text: String, profile: Int = -1) -> String:
     """Apply cyan color to the text."""
-    return render_as_color(text, CYAN)
+    return render_as_color(text, CYAN, profile)
 
 
-fn gray(text: String) -> String:
+fn gray(text: String, profile: Int = -1) -> String:
     """Apply gray color to the text."""
-    return render_as_color(text, GRAY)
+    return render_as_color(text, GRAY, profile)
 
 
-fn render_with_background_color(text: String, color: UInt32) -> String:
-    var profile = Profile()
-    return Style().background(color=profile.color(color)).render(text)
+fn render_with_background_color(text: String, color: UInt32, profile: Int = -1) -> String:
+    if profile == -1:
+        return Style().background(color).render(text)
+    return Style(profile).background(color).render(text)
 
 
-fn red_background(text: String) -> String:
+fn red_background(text: String, profile: Int = -1) -> String:
     """Apply red background color to the text."""
-    return render_with_background_color(text, RED)
+    return render_with_background_color(text, RED, profile)
 
 
-fn green_background(text: String) -> String:
+fn green_background(text: String, profile: Int = -1) -> String:
     """Apply green background color to the text."""
-    return render_with_background_color(text, GREEN)
+    return render_with_background_color(text, GREEN, profile)
 
 
-fn yellow_background(text: String) -> String:
+fn yellow_background(text: String, profile: Int = -1) -> String:
     """Apply yellow background color to the text."""
-    return render_with_background_color(text, YELLOW)
+    return render_with_background_color(text, YELLOW, profile)
 
 
-fn blue_background(text: String) -> String:
+fn blue_background(text: String, profile: Int = -1) -> String:
     """Apply blue background color to the text."""
-    return render_with_background_color(text, BLUE)
+    return render_with_background_color(text, BLUE, profile)
 
 
-fn magenta_background(text: String) -> String:
+fn magenta_background(text: String, profile: Int = -1) -> String:
     """Apply magenta background color to the text."""
-    return render_with_background_color(text, MAGENTA)
+    return render_with_background_color(text, MAGENTA, profile)
 
 
-fn cyan_background(text: String) -> String:
+fn cyan_background(text: String, profile: Int = -1) -> String:
     """Apply cyan background color to the text."""
-    return render_with_background_color(text, CYAN)
+    return render_with_background_color(text, CYAN, profile)
 
 
-fn gray_background(text: String) -> String:
+fn gray_background(text: String, profile: Int = -1) -> String:
     """Apply gray background color to the text."""
-    return render_with_background_color(text, GRAY)
+    return render_with_background_color(text, GRAY, profile)
 
 
-fn bold(text: String) -> String:
-    return Style().bold().render(text)
+fn bold(text: String, profile: Int = -1) -> String:
+    if profile == -1:
+        return Style().bold().render(text)
+    return Style(profile).bold().render(text)
 
 
-fn faint(text: String) -> String:
-    return Style().faint().render(text)
+fn faint(text: String, profile: Int = -1) -> String:
+    if profile == -1:
+        return Style().faint().render(text)
+    return Style(profile).faint().render(text)
 
 
-fn italic(text: String) -> String:
-    return Style().italic().render(text)
+fn italic(text: String, profile: Int = -1) -> String:
+    if profile == -1:
+        return Style().italic().render(text)
+    return Style(profile).italic().render(text)
 
 
-fn underline(text: String) -> String:
-    return Style().underline().render(text)
+fn underline(text: String, profile: Int = -1) -> String:
+    if profile == -1:
+        return Style().underline().render(text)
+    return Style(profile).underline().render(text)
 
 
-fn overline(text: String) -> String:
-    return Style().overline().render(text)
+fn overline(text: String, profile: Int = -1) -> String:
+    if profile == -1:
+        return Style().overline().render(text)
+    return Style(profile).overline().render(text)
 
 
-fn crossout(text: String) -> String:
-    return Style().crossout().render(text)
+fn crossout(text: String, profile: Int = -1) -> String:
+    if profile == -1:
+        return Style().crossout().render(text)
+    return Style(profile).crossout().render(text)
