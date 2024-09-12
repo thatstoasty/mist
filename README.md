@@ -18,7 +18,6 @@ I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 2. Next, add `mist` to your project's dependencies by running `magic add mist`.
 3. Finally, run `magic install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
 
-
 ## Colors
 
 It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TRUE_COLOR (24-bit RGB). If profile is not explicitly provided, it will be automatically set based on the terminal's capabilities. And if a profile is set manually, it will also automatically degrade colors to the best matching color in the desired profile. For example, you provide a hex code but your profile is in ANSI. The library will automatically degrade the color to the best matching ANSI color.
