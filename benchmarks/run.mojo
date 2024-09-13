@@ -1,5 +1,4 @@
 import benchmark
-from benchmark.compiler import keep
 import mist
 from mist.color import ANSIColor, ANSI256Color, RGBColor
 
@@ -8,43 +7,42 @@ fn bench_rendering_with_profiles():
     alias a: String = "Hello World!"
     var profile = mist.Profile()
 
-    var style = mist.new_style().foreground(color=profile.color(12))
+    var style = mist.Style().foreground(color=profile.color(12))
     var output = style.render(a)
     output = style.foreground(color=profile.color(55)).render(a)
     output = style.foreground(color=profile.color(0xC9A0DC)).render(a)
-    output = mist.new_style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.new_style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.new_style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.new_style(mist.TRUE_COLOR).foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.new_style(mist.TRUE_COLOR).foreground(0xC9A0DC).render(a)
-
-    keep(output)
+    output = mist.Style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(a)
+    output = mist.Style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(a)
+    output = mist.Style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(a)
+    output = mist.Style(mist.TRUE_COLOR).foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(a)
+    output = mist.Style(mist.TRUE_COLOR).foreground(0xC9A0DC).render(a)
+    _ = output
 
 
 fn bench_comptime_rendering_with_profiles():
     alias a: String = "Hello World!"
     alias profile = mist.TRUE_COLOR_PROFILE
-    alias style = mist.new_style(profile.value).foreground(color=profile.color(12))
+    alias style = mist.Style(profile.value).foreground(color=profile.color(12))
     var output = style.render(a)
 
     output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(55)).render(a)
     output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.new_style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.new_style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.new_style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(a)
+    output = mist.Style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(a)
+    output = mist.Style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(a)
+    output = mist.Style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(a)
     output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(a)
     output = style.foreground(0xC9A0DC).render(a)
-    keep(output)
+    _ = output
 
 
 fn bench_render_as_color():
     var output = mist.render_as_color("Hello, world!", 0xC9A0DC)
-    keep(output)
+    _ = output
 
 
 fn bench_render_with_background_color():
     var output = mist.render_with_background_color("Hello, world!", 0xC9A0DC)
-    keep(output)
+    _ = output
 
 
 fn bench_render_big_file():
@@ -53,7 +51,7 @@ fn bench_render_big_file():
         with open("./benchmarks/data/big.txt", "r") as file:
             content = file.read()
             var output = mist.render_as_color(content, 0xC9A0DC)
-            keep(output)
+            _ = output
     except e:
         print(e)
 

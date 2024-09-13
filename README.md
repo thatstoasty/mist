@@ -12,9 +12,11 @@
 
 I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
-You should be able to build the package by running `mojo package mist -I external`. For the easiest method, I recommend just copying the entire external folder into your repository, then copy the `mist` folder into the external folder as well.
+## Installation
 
-> NOTE: It seems like `.mojopkg` files don't like being part of another package, eg. sticking all of your external deps in an `external` or `vendor` package. The only way I've gotten mojopkg files to work is to be in the same directory as the file being executed, and that directory cannot be a mojo package.
+1. First, you'll need to configure your `mojoproject.toml` file to include my Conda channel. Add `"https://repo.prefix.dev/mojo-community"` to the list of channels.
+2. Next, add `mist` to your project's dependencies by running `magic add mist`.
+3. Finally, run `magic install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
 
 ## Colors
 
@@ -35,37 +37,37 @@ fn main() raises:
 
     # ) will automatically convert the color to the best matching color in the profile.
     # ANSI Color Support (0-15)
-    var style = mist.new_style().foreground(12)
+    var style = mist.Style().foreground(12)
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = mist.new_style().foreground(55)
+    style = mist.Style().foreground(55)
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = mist.new_style().foreground(0xc9a0dc)
+    style = mist.Style().foreground(0xc9a0dc)
     print(style.render(a))
 
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    style = mist.new_style(mist.ASCII_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(mist.ASCII_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # ANSI Color Support (0-15)
-    style = mist.new_style(mist.ANSI_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(mist.ANSI_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # ANSI256 Color Support (16-255)
-    style = mist.new_style(mist.ANSI256_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(mist.ANSI256_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # RGBColor Support (Hex Codes)
-    style = mist.new_style(mist.TRUE_COLOR_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(mist.TRUE_COLOR_PROFILE).foreground(0xc9a0dc)
     print(style.render(a))
 
     # It also supports using the Profile of the Style to instead of passing Profile().color().
-    style = mist.new_style(Profile(TRUE_COLOR)).foreground(0xc9a0dc)
+    style = mist.Style(Profile(TRUE_COLOR)).foreground(0xc9a0dc)
     print(style.render(a))
 
 ```
@@ -81,7 +83,7 @@ from mist import Style
 
 fn main() raises:
     var a: String = "Hello World!"
-    var style = mist.new_style()
+    var style = mist.Style()
 
     # Text styles
     style.bold()

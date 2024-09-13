@@ -1,0 +1,19 @@
+[project]
+authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
+channels = ["https://repo.prefix.dev/mojo-community", "conda-forge", "https://conda.modular.com/max"]
+description = "Mist lets you safely use advanced styling options on the terminal."
+name = "mist"
+platforms = ["osx-arm64", "linux-64"]
+version = "0.1.4"
+
+[tasks]
+tests = "bash scripts/tests.sh"
+examples = "bash scripts/examples.sh"
+benchmarks = "bash scripts/benchmarks.sh"
+build = "rattler-build build -r src -c https://repo.prefix.dev/mojo-community -c https://conda.modular.com/max -c conda-forge --skip-existing=all"
+publish = { cmd = "bash scripts/publish.sh", env = { PREFIX_API_KEY = "$PREFIX_API_KEY" } }
+
+[dependencies]
+max = ">=24.5.0,<25"
+gojo = ">=0.1.8,<0.2"
+hue = ">=0.1.4,<0.2"
