@@ -5,7 +5,7 @@ context:
 
 package:
   name: "mist"
-  version: 0.1.3.nightly
+  version: 0.1.4
 
 source:
   - path: .
@@ -20,9 +20,9 @@ build:
 
 requirements:
   run:
-    - gojo >= 0.1.6.nightly
-    - hue >= 0.1.3.nightly
-    - max >= 24.6.0.dev2024091205
+    - gojo >= 0.1.8,<0.2
+    - hue >= 0.1.4,<0.2
+    - max >= 24.5.0,<25
 
 tests:
   - script:
