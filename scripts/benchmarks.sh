@@ -9,7 +9,6 @@ cp -a benchmarks/. $TEMP_DIR
 magic run mojo package src/$PACKAGE_NAME -o $TEMP_DIR/$PACKAGE_NAME.mojopkg
 
 echo "[INFO] Running benchmarks..."
-ls -la $TEMP_DIR
 magic run mojo $TEMP_DIR/run.mojo
 
 echo "[INFO] Cleaning up the benchmarks directory."

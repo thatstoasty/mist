@@ -9,7 +9,6 @@ cp -a examples/. $TEMP_DIR
 magic run mojo package src/$PACKAGE_NAME -o $TEMP_DIR/$PACKAGE_NAME.mojopkg
 magic run mojo build $TEMP_DIR/hello_world.mojo -o $TEMP_DIR/hello_world
 magic run mojo build $TEMP_DIR/profiles.mojo -o $TEMP_DIR/profiles
-ls -la $TEMP_DIR
 
 echo "[INFO] Running examples..."
 $TEMP_DIR/hello_world
