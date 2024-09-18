@@ -13,7 +13,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ca-certificates-2024.8.30-hbcca054_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/click-8.1.7-unix_pyh707e725_0.conda
       - conda: https://repo.prefix.dev/mojo-community/linux-64/gojo-0.1.9-hb0f4dca_0.conda
-      - conda: https://repo.prefix.dev/mojo-community/linux-64/hue-0.1.5-hb0f4dca_0.conda
+      - conda: https://repo.prefix.dev/mojo-community/linux-64/hue-0.1.6-hb0f4dca_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib-metadata-8.5.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyter_client-8.6.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/jupyter_core-5.7.2-py312h7900ff3_0.conda
@@ -71,7 +71,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ca-certificates-2024.8.30-hf0a4a13_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/click-8.1.7-unix_pyh707e725_0.conda
       - conda: https://repo.prefix.dev/mojo-community/osx-arm64/gojo-0.1.9-h60d57d3_0.conda
-      - conda: https://repo.prefix.dev/mojo-community/osx-arm64/hue-0.1.5-h60d57d3_0.conda
+      - conda: https://repo.prefix.dev/mojo-community/osx-arm64/hue-0.1.6-h60d57d3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib-metadata-8.5.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyter_client-8.6.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/jupyter_core-5.7.2-py312h81bd7bf_0.conda
@@ -244,32 +244,32 @@ packages:
   timestamp: 1726268249824
 - kind: conda
   name: hue
-  version: 0.1.5
+  version: 0.1.6
   build: h60d57d3_0
   subdir: osx-arm64
-  url: https://repo.prefix.dev/mojo-community/osx-arm64/hue-0.1.5-h60d57d3_0.conda
-  sha256: fa46f9d8927a0b5f92c2a1cbbf9e1375728b043c9c17eba45e3f4f0345a3f481
+  url: https://repo.prefix.dev/mojo-community/osx-arm64/hue-0.1.6-h60d57d3_0.conda
+  sha256: 51c94dd89dd859f705be4da9c825b63dd953898ab61d7089a1160fadaf2b1dff
   depends:
   - max >=24.5.0,<25
   arch: arm64
   platform: osx
   license: MIT
-  size: 486736
-  timestamp: 1726618426490
+  size: 486980
+  timestamp: 1726620535591
 - kind: conda
   name: hue
-  version: 0.1.5
+  version: 0.1.6
   build: hb0f4dca_0
   subdir: linux-64
-  url: https://repo.prefix.dev/mojo-community/linux-64/hue-0.1.5-hb0f4dca_0.conda
-  sha256: 205193288c2fa7d7ce9e364ff675e9f39f350656d9ab60eef40c19af877cc2c1
+  url: https://repo.prefix.dev/mojo-community/linux-64/hue-0.1.6-hb0f4dca_0.conda
+  sha256: 25b1a8573d431c2f1077b6322ef77eeeec1f1a0c9d868829a3734f3072a384f8
   depends:
   - max >=24.5.0,<25
   arch: x86_64
   platform: linux
   license: MIT
-  size: 486663
-  timestamp: 1726618424676
+  size: 486916
+  timestamp: 1726620530331
 - kind: conda
   name: importlib-metadata
   version: 8.5.0
