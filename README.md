@@ -1,12 +1,12 @@
 # mist
 
-![Mojo 24.4](https://img.shields.io/badge/Mojo%F0%9F%94%A5-24.4-purple)
+![Mojo 24.5](https://img.shields.io/badge/Mojo%F0%9F%94%A5-24.5-purple)
 
 `mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions. This is a port/conversion of <https://github.com/muesli/termenv/tree/master>.
 
-![Example](https://github.com/thatstoasty/mist/blob/main/examples/hello_world/hello_world.png)
+![Example](https://github.com/thatstoasty/mist/blob/main/doc/images/hello_world.png)
 
-![HW](https://github.com/thatstoasty/mist/blob/main/demos/tapes/hello_world.gif)
+![HW](https://github.com/thatstoasty/mist/blob/main/doc/tapes/hello_world.gif)
 
 > NOTE: This is not a 1:1 port or stable due to missing features in Mojo and that I haven't ported everything over yet.
 
@@ -72,7 +72,7 @@ fn main() raises:
 
 ```
 
-![Profiles](https://github.com/thatstoasty/mist/blob/main/demos/tapes/profiles.gif)
+![Profiles](https://github.com/thatstoasty/mist/blob/main/doc/tapes/profiles.gif)
 
 ## Styles
 
@@ -215,7 +215,7 @@ fn main():
 
 Output
 
-![Cursor](https://github.com/thatstoasty/mist/blob/main/demos/tapes/cursor.gif)
+![Cursor](https://github.com/thatstoasty/mist/blob/main/doc/tapes/cursor.gif)
 
 ## Session
 
