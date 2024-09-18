@@ -10,7 +10,6 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
     hex_to_rgb,
-    to_hue_color,
 )
 
 alias TRUE_COLOR: Int = 0
@@ -100,7 +99,7 @@ struct Profile:
 
         Args:
             color: The color to convert to the current profile.
-        
+
         Returns:
             An `AnyColor` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
@@ -120,7 +119,7 @@ struct Profile:
             var h = hex_to_rgb(color[RGBColor].value)
 
             if self.value != TRUE_COLOR:
-                var ansi256 = hex_to_ansi256(to_hue_color(h[0], h[1], h[2]))
+                var ansi256 = hex_to_ansi256(hue.Color(h[0], h[1], h[2]))
                 if self.value == ANSI:
                     return ansi256_to_ansi(ansi256.value)
 
@@ -133,12 +132,12 @@ struct Profile:
 
     fn color(self, value: UInt32) -> AnyColor:
         """Creates a `Color` from a number. Valid inputs are hex colors, as well as
-        ANSI color codes (0-15, 16-255). If an invalid input is passed in, 
+        ANSI color codes (0-15, 16-255). If an invalid input is passed in,
         `NoColor` is returned which will not apply any coloring.
 
         Args:
             value: The string to convert to a color.
-        
+
         Returns:
             An `AnyColor` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """

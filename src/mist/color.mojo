@@ -19,34 +19,19 @@ fn int_to_str(owned value: Int, base: Int = 10) -> String:
     if value == 0:
         return "0"
 
-    var temp = List[UInt8]()
+    var temp = List[UInt8](capacity=3)
     var i = 0
     while value > 0:
         temp.append(ord(String("0123456789abcdef")[value % base]))
         i += 1
         value /= 10
 
-    var buffer = List[UInt8]()
+    var buffer = List[UInt8](capacity=3)
     for i in range(len(temp) - 1, -1, -1):
         buffer.append(temp[i])
 
     buffer.append(0)
-    var result = String(buffer^)
-    return result
-
-
-fn to_hue_color(r: UInt32, g: UInt32, b: UInt32) -> hue.Color:
-    """Converts rgb to a hue.Color.
-
-    Args:
-        r: The red value.
-        g: The green value.
-        b: The blue value.
-
-    Returns:
-        The hue.Color.
-    """
-    return hue.Color(r.cast[DType.float64](), g.cast[DType.float64](), b.cast[DType.float64]())
+    return String(buffer^)
 
 
 alias FOREGROUND = "38"
@@ -91,11 +76,23 @@ struct ANSIColor(Color):
     fn __init__(inout self, other: Self):
         self.value = other.value
 
+    fn __init__(inout self, color: hue.Color):
+        self.value = color.hex()
+
+    fn __str__(self) -> String:
+        return "RGB(" + str(self.value) + ")"
+
+    fn __repr__(self) -> String:
+        return "ANSIColor(" + str(self.value) + ")"
+
     fn __eq__(self, other: ANSIColor) -> Bool:
         return self.value == other.value
 
     fn __ne__(self, other: ANSIColor) -> Bool:
         return self.value != other.value
+
+    fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+        return ansi_to_rgb(self.value)
 
     fn sequence(self, is_background: Bool) -> String:
         """Returns the ANSI Sequence for the color and the text.
@@ -125,11 +122,23 @@ struct ANSI256Color(Color):
     fn __init__(inout self, other: Self):
         self.value = other.value
 
+    fn __init__(inout self, color: hue.Color):
+        self.value = color.hex()
+
+    fn __str__(self) -> String:
+        return "RGB(" + str(self.value) + ")"
+
+    fn __repr__(self) -> String:
+        return "ANSI256Color(" + str(self.value) + ")"
+
     fn __eq__(self, other: ANSI256Color) -> Bool:
         return self.value == other.value
 
     fn __ne__(self, other: ANSI256Color) -> Bool:
         return self.value != other.value
+
+    fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+        return ansi_to_rgb(self.value)
 
     fn sequence(self, is_background: Bool) -> String:
         """Returns the ANSI Sequence for the color and the text.
@@ -178,10 +187,30 @@ fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
 
 fn hex_to_rgb(hex: UInt32) -> (UInt32, UInt32, UInt32):
     """Converts a number in hexadecimal format to red, green, and blue values.
+    `r, g, b = hex_to_rgb(0x0000FF) # (0, 0, 255)`.
 
-    `r, g, b = hex_to_rgb(0x0000FF)`.
+    Args:
+        hex: The hex value.
+
+    Returns:
+        The red, green, and blue values.
     """
     return hex >> 16, hex >> 8 & 0xFF, hex & 0xFF
+
+
+fn rgb_to_hex(r: UInt32, g: UInt32, b: UInt32) -> UInt32:
+    """Converts red, green, and blue values to a number in hexadecimal format.
+    `hex = rgb_to_hex(0, 0, 255) # 0x0000FF`.
+
+    Args:
+        r: The red value.
+        g: The green value.
+        b: The blue value.
+
+    Returns:
+        The hex value.
+    """
+    return (r << 16) | (g << 8) | b
 
 
 @register_passable("trivial")
@@ -194,14 +223,26 @@ struct RGBColor(Color):
     fn __init__(inout self, value: UInt32):
         self.value = value
 
+    fn __init__(inout self, color: hue.Color):
+        self.value = color.hex()
+
     fn __init__(inout self, other: Self):
         self.value = other.value
+
+    fn __str__(self) -> String:
+        return "RGB(" + str(self.value) + ")"
+
+    fn __repr__(self) -> String:
+        return "RGBColor(" + str(self.value) + ")"
 
     fn __eq__(self, other: RGBColor) -> Bool:
         return self.value == other.value
 
     fn __ne__(self, other: RGBColor) -> Bool:
         return self.value != other.value
+
+    fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+        return ansi_to_rgb(self.value)
 
     fn sequence(self, is_background: Bool) -> String:
         """Returns the ANSI Sequence for the color and the text.
@@ -235,12 +276,12 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
     var r = 0
     var md = hue.math.max_float64
     var h = hex_to_rgb(ANSI_HEX_CODES[int(value)])
-    var h_color = to_hue_color(h[0], h[1], h[2])
+    var h_color = hue.Color(h[0], h[1], h[2])
 
     var i = 0
     while i <= 15:
         var hb = hex_to_rgb(ANSI_HEX_CODES[int(i)])
-        var d = h_color.distance_HSLuv(to_hue_color(hb[0], hb[1], hb[2]))
+        var d = h_color.distance_HSLuv(hue.Color(hb[0], hb[1], hb[2]))
 
         if d < md:
             md = d
@@ -273,13 +314,13 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
     var ci: Int = int((36 * r) + (6 * g) + b)  # 0..215
 
     # Calculate the represented colors back from the index
-    alias i2cv = InlineArray[Int, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
+    alias i2cv = InlineArray[UInt32, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
     var cr = i2cv[int(r)]  # r/g/b, 0..255 each
     var cg = i2cv[int(g)]
     var cb = i2cv[int(b)]
 
     # Calculate the nearest 0-based gray index at 232..255
-    var gray_index: Int
+    var gray_index: UInt32
     var average = (r + g + b) / 3
     if average > 238:
         gray_index = 23
