@@ -22,7 +22,7 @@ This is a port/conversion of: <https://github.com/muesli/termenv/tree/master>.
 It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TRUE_COLOR (24-bit RGB). If profile is not explicitly provided, it will be automatically set based on the terminal's capabilities. And if a profile is set manually, it will also automatically degrade colors to the best matching color in the desired profile. For example, you provide a hex code but your profile is in ANSI. The library will automatically degrade the color to the best matching ANSI color.
 
 Once we have type checking in Mojo, Colors will automatically be degraded to the best matching available color in the desired profile:
-`TRUE_COLOR` => `ANSI 256 Color`s => `ANSI 16 Colors` => `Ascii`
+`TRUE_COLOR` => `ANSI 256 Colors` => `ANSI 16 Colors` => `Ascii`
 
 ```mojo
 import mist
@@ -297,7 +297,7 @@ fn main() raises:
 ## Color Chart
 
 Color chart lifted from <https://github.com/muesli/termenv>, give their projects a star if you like this!
-![ANSI color chart](https://github.com/thatstoasty/mist/blob/main/color-chart.png)
+![ANSI color chart](https://github.com/thatstoasty/mist/blob/main/doc/images/color-chart.png)
 
 ## TODO
 
