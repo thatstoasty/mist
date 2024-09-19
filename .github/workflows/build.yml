@@ -1,9 +1,11 @@
-name: Build all packages
+name: build
 
 on:
   push:
     branches:
       - main
+    paths:
+      - src/**
 # on: ["push"]
 
 jobs:

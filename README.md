@@ -1,16 +1,15 @@
 # mist
 
-![Mojo 24.5](https://img.shields.io/badge/Mojo%F0%9F%94%A5-24.5-purple)
+`mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions.
 
-`mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions. This is a port/conversion of <https://github.com/muesli/termenv/tree/master>.
+This is a port/conversion of: <https://github.com/muesli/termenv/tree/master>.
+
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-24.5-orange)
+![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
+![Test Status](https://github.com/thatstoasty/mist/actions/workflows/test.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![Example](https://github.com/thatstoasty/mist/blob/main/doc/images/hello_world.png)
-
-![HW](https://github.com/thatstoasty/mist/blob/main/doc/tapes/hello_world.gif)
-
-> NOTE: This is not a 1:1 port or stable due to missing features in Mojo and that I haven't ported everything over yet.
-
-I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
 ## Installation
 
@@ -27,15 +26,12 @@ Once we have type checking in Mojo, Colors will automatically be degraded to the
 
 ```mojo
 import mist
-from mist import Style, Profile
-from mist.color import ANSIColor, ANSI256Color, RGBColor
-
 
 fn main() raises:
     var a: String = "Hello World!"
-    var profile = Profile()
+    var profile = mist.Profile()
 
-    # ) will automatically convert the color to the best matching color in the profile.
+    # will automatically convert the color to the best matching color in the profile.
     # ANSI Color Support (0-15)
     var style = mist.Style().foreground(12)
     print(style.render(a))
@@ -79,27 +75,40 @@ fn main() raises:
 You can apply text formatting effects to your text by setting the rules on the `Style` object then using that object to render your text.
 
 ```mojo
-from mist import Style
+import mist
 
 fn main() raises:
     var a: String = "Hello World!"
     var style = mist.Style()
 
     # Text styles
-    style.bold()
-    style.faint()
-    style.italic()
-    style.crossout()
-    style.underline()
-    style.overline()
+    _ = style.bold()
+    _ = style.faint()
+    _ = style.italic()
+    _ = style.crossout()
+    _ = style.underline()
+    _ = style.overline()
 
     # Swaps current foreground and background colors
-    style.reverse()
+    _ = style.reverse()
 
     # Blinking text
     style = style.blink()
 
     print(style.render(a))
+```
+
+## Compile Time Styles
+
+`mist` Styles can be built at compile time and used as constants in your code. This can be useful if you have a set of styles that you want to reuse throughout your code as Mojo currently does not support file-scope variables. This can be done by specifying the color profile of the style. Without specifying it, the style will attempt to query the terminal for its color capabilities, which cannot run at compile time.
+
+```mojo
+import mist
+
+alias style = mist.Style(mist.TRUE_COLOR_PROFILE)
+
+fn main():
+    print(style.render("Hello, world!"))
 ```
 
 ## Quick Styling
@@ -205,7 +214,6 @@ fn main() raises:
 
 ```mojo
 from mist.screen import cursor_back, clear_line_right
-
 
 fn main():
     print("hello", end="")
