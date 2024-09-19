@@ -1,16 +1,15 @@
 # mist
 
-![Mojo 24.5](https://img.shields.io/badge/Mojo%F0%9F%94%A5-24.5-purple)
+`mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions.
 
-`mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions. This is a port/conversion of <https://github.com/muesli/termenv/tree/master>.
+This is a port/conversion of: <https://github.com/muesli/termenv/tree/master>.
+
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-24.5-orange)
+![Build Status](https://github.com/thatstoasty/mog/actions/workflows/build.yml/badge.svg)
+![Test Status](https://github.com/thatstoasty/mog/actions/workflows/test.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![Example](https://github.com/thatstoasty/mist/blob/main/doc/images/hello_world.png)
-
-![HW](https://github.com/thatstoasty/mist/blob/main/doc/tapes/hello_world.gif)
-
-> NOTE: This is not a 1:1 port or stable due to missing features in Mojo and that I haven't ported everything over yet.
-
-I've only tested this on MacOS VSCode terminal so far, so your mileage may vary!
 
 ## Installation
 
