@@ -308,10 +308,10 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
     """
     # Calculate the nearest 0-based color index at 16..231
     # Originally had * 255 in each of these
-    var r: Float64 = v2ci(color.R)  # 0..5 each
-    var g: Float64 = v2ci(color.G)
-    var b: Float64 = v2ci(color.B)
-    var ci: Int = int((36 * r) + (6 * g) + b)  # 0..215
+    var r = v2ci(color.R)  # 0..5 each
+    var g = v2ci(color.G)
+    var b = v2ci(color.B)
+    var ci = int((36 * r) + (6 * g) + b)  # 0..215
 
     # Calculate the represented colors back from the index
     alias i2cv = InlineArray[UInt32, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)

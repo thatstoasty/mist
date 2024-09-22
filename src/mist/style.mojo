@@ -78,7 +78,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         self.profile = other.profile
 
     fn _add_style(self, style: String) -> Self:
-        """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that. 
+        """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that.
 
         Args:
             style: The ANSI style to add to the list of styles.
@@ -201,7 +201,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         if len(self.styles) == 0:
             return text
 
-        var builder = StringBuilder()
+        var builder = StringBuilder(capacity=len(text) + (len(self.styles) * 3))
         _ = builder.write_string(CSI)
         for i in range(len(self.styles)):
             _ = builder.write_string(";")
@@ -212,4 +212,4 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         _ = builder.write_string(RESET)
         _ = builder.write_string("m")
 
-        return str(builder)
+        return builder.consume()
