@@ -20,7 +20,7 @@ build:
 
 requirements:
   run:
-    - gojo >= 0.1.11,<0.2
+    - gojo >= 0.1.12,<0.2
     - hue >= 0.1.6,<0.2
     - max >= 24.5.0,<25
 
