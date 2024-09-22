@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.1.7] - 2024-09-21
+
+- Switch to using `StringBuilder.consume()` to avoid copying data.
+
 ## [0.1.6] - 2024-09-17
 
 - Pull in compability changes from `hue` library to minimize boilerplate conversion code.
