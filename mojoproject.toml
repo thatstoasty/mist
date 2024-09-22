@@ -4,7 +4,7 @@ channels = ["https://repo.prefix.dev/mojo-community", "conda-forge", "https://co
 description = "Mist lets you safely use advanced styling options on the terminal."
 name = "mist"
 platforms = ["osx-arm64", "linux-64"]
-version = "0.1.7"
+version = "0.1.8"
 
 [tasks]
 tests = "bash scripts/tests.sh"
@@ -15,5 +15,5 @@ publish = { cmd = "bash scripts/publish.sh", env = { PREFIX_API_KEY = "$PREFIX_A
 
 [dependencies]
 max = ">=24.5.0,<25"
-gojo = ">=0.1.10,<0.2"
+gojo = ">=0.1.11,<0.2"
 hue = ">=0.1.6,<0.2"
