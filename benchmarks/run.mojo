@@ -56,7 +56,7 @@ fn bench_render_big_file():
         print(e)
 
 
-fn main():
+def main():
     print("Running bench_rendering_with_profiles")
     var report = benchmark.run[bench_rendering_with_profiles](max_iters=20)
     report.print(benchmark.Unit.ms)

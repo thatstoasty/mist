@@ -13,3 +13,9 @@ repos:
         language: system
         files: '\.(mojo|🔥)$'
         stages: [commit]
+      # - id: mojo-docs
+      #   name: mojo-docs
+      #   entry: magic run mojo doc --diagnose-missing-doc-strings -o /dev/null src/mist
+      #   language: system
+      #   files: '\.(mojo|🔥)$'
+      #   stages: [commit]

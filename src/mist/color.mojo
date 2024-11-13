@@ -19,14 +19,14 @@ fn int_to_str(owned value: Int, base: Int = 10) -> String:
     if value == 0:
         return "0"
 
-    var temp = List[UInt8](capacity=3)
+    var temp = List[Byte](capacity=3)
     var i = 0
     while value > 0:
         temp.append(ord(String("0123456789abcdef")[value % base]))
         i += 1
         value /= 10
 
-    var buffer = List[UInt8](capacity=3)
+    var buffer = List[Byte](capacity=3)
     for i in range(len(temp) - 1, -1, -1):
         buffer.append(temp[i])
 

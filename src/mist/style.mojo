@@ -1,4 +1,3 @@
-from gojo.strings import StringBuilder
 from .color import (
     Color,
     NoColor,
@@ -201,15 +200,10 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         if len(self.styles) == 0:
             return text
 
-        var builder = StringBuilder(capacity=len(text) + (len(self.styles) * 3))
-        _ = builder.write_string(CSI)
+        var result = String(capacity=len(text) + (len(self.styles) * 3))
+        result.write(CSI)
         for i in range(len(self.styles)):
-            _ = builder.write_string(";")
-            _ = builder.write_string(self.styles[i])
-        _ = builder.write_string("m")
-        _ = builder.write_string(text)
-        _ = builder.write_string(CSI)
-        _ = builder.write_string(RESET)
-        _ = builder.write_string("m")
+            result.write(";", self.styles[i])
+        result.write("m", text, CSI, RESET, "m")
 
-        return builder.consume()
+        return result
