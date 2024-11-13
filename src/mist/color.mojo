@@ -5,7 +5,7 @@ from .ansi_colors import ANSI_HEX_CODES
 
 
 # Workaround for str() not working at compile time due to using an external_call to c.
-fn int_to_str(owned value: Int, base: Int = 10) -> String:
+fn int_to_str(owned value: UInt32, base: Int = 10) -> String:
     """Converts an integer to a string.
 
     Args:
@@ -19,10 +19,12 @@ fn int_to_str(owned value: Int, base: Int = 10) -> String:
     if value == 0:
         return "0"
 
+    alias valid = "0123456789abcdef"
     var temp = List[Byte](capacity=3)
     var i = 0
     while value > 0:
-        temp.append(ord(String("0123456789abcdef")[value % base]))
+        byte = ord(valid[int(value) % base])
+        temp.append(byte)
         i += 1
         value /= 10
 
@@ -60,6 +62,14 @@ struct NoColor(Color):
         return False
 
     fn sequence(self, is_background: Bool) -> String:
+        """Returns an empty string. This function is used to implement the Color trait.
+
+        Args:
+            is_background: Whether the color is a background color.
+
+        Returns:
+            An empty string.
+        """
         return ""
 
 
@@ -71,19 +81,47 @@ struct ANSIColor(Color):
     """The ANSI color value."""
 
     fn __init__(inout self, value: UInt32):
+        """Initializes the ANSIColor with a value.
+
+        Args:
+            value: The ANSI color value.
+        """
         self.value = value
 
     fn __init__(inout self, other: Self):
+        """Initializes the ANSIColor with another ANSIColor.
+
+        Args:
+            other: The ANSIColor to copy.
+        """
         self.value = other.value
 
     fn __init__(inout self, color: hue.Color):
+        """Initializes the ANSIColor with a `hue.Color`.
+
+        Args:
+            color: The `hue.Color` to convert to an ANSIColor.
+        """
         self.value = color.hex()
 
     fn __str__(self) -> String:
-        return "RGB(" + str(self.value) + ")"
+        """Converts the ANSIColor to a string.
+
+        Returns:
+            The string representation of the ANSIColor.
+        """
+        return str(self.value)
 
     fn __repr__(self) -> String:
-        return "ANSIColor(" + str(self.value) + ")"
+        """Converts the ANSIColor to a string.
+
+        Returns:
+            The string representation of the ANSIColor.
+        """
+        value = str(self.value)
+        output = String(capacity=11 + len(value))
+        output.write("ANSIColor(", value, ")")
+        return output
 
     fn __eq__(self, other: ANSIColor) -> Bool:
         return self.value == other.value
@@ -92,21 +130,29 @@ struct ANSIColor(Color):
         return self.value != other.value
 
     fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+        """Converts the ANSI256 Color to an RGB Tuple.
+
+        Returns:
+            The RGB Tuple.
+        """
         return ansi_to_rgb(self.value)
 
     fn sequence(self, is_background: Bool) -> String:
-        """Returns the ANSI Sequence for the color and the text.
+        """Converts the ANSI Color to an ANSI Sequence.
 
         Args:
             is_background: Whether the color is a background color.
+
+        Returns:
+            The ANSI Sequence for the color and the text.
         """
-        var modifier: Int = 0
+        var modifier = 0
         if is_background:
             modifier += 10
 
         if self.value < 8:
-            return int_to_str(modifier + int(self.value) + 30)
-        return int_to_str(modifier + int(self.value) - 8 + 90)
+            return int_to_str(modifier + self.value + 30)
+        return int_to_str(modifier + self.value - 8 + 90)
 
 
 @register_passable("trivial")
@@ -126,10 +172,13 @@ struct ANSI256Color(Color):
         self.value = color.hex()
 
     fn __str__(self) -> String:
-        return "RGB(" + str(self.value) + ")"
+        return str(self)
 
     fn __repr__(self) -> String:
-        return "ANSI256Color(" + str(self.value) + ")"
+        value = str(self.value)
+        output = String(capacity=11 + len(value))
+        output.write("ANSI256Color(", value, ")")
+        return output
 
     fn __eq__(self, other: ANSI256Color) -> Bool:
         return self.value == other.value
@@ -138,23 +187,41 @@ struct ANSI256Color(Color):
         return self.value != other.value
 
     fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+        """Converts the ANSI256 Color to an RGB Tuple.
+
+        Returns:
+            The RGB Tuple.
+        """
         return ansi_to_rgb(self.value)
 
     fn sequence(self, is_background: Bool) -> String:
-        """Returns the ANSI Sequence for the color and the text.
+        """Converts the ANSI256 Color to an ANSI Sequence.
 
         Args:
             is_background: Whether the color is a background color.
-        """
-        var prefix: String = FOREGROUND
-        if is_background:
-            prefix = BACKGROUND
 
-        return prefix + ";5;" + int_to_str(int(self.value))
+        Returns:
+            The ANSI Sequence for the color and the text.
+        """
+        var output = String(capacity=8)
+        if is_background:
+            output.write(BACKGROUND)
+        else:
+            output.write(FOREGROUND)
+        output.write(";5;", int_to_str(self.value))
+
+        return output
 
 
 fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
-    """Converts an ANSI color to a 24-bit RGB color."""
+    """Converts an ANSI color to a 24-bit RGB color.
+
+    Args:
+        ansi: The ANSI color value.
+
+    Returns:
+        The RGB color tuple.
+    """
     # For out-of-range values return black.
     if ansi > 255:
         return UInt32(0), UInt32(0), UInt32(0)
@@ -230,10 +297,13 @@ struct RGBColor(Color):
         self.value = other.value
 
     fn __str__(self) -> String:
-        return "RGB(" + str(self.value) + ")"
+        return str(self)
 
     fn __repr__(self) -> String:
-        return "RGBColor(" + str(self.value) + ")"
+        value = str(self.value)
+        output = String(capacity=11 + len(value))
+        output.write("RGBColor(", value, ")")
+        return output
 
     fn __eq__(self, other: RGBColor) -> Bool:
         return self.value == other.value
@@ -242,29 +312,31 @@ struct RGBColor(Color):
         return self.value != other.value
 
     fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+        """Converts the RGB Color to an RGB Tuple.
+
+        Returns:
+            The RGB Tuple.
+        """
         return ansi_to_rgb(self.value)
 
     fn sequence(self, is_background: Bool) -> String:
-        """Returns the ANSI Sequence for the color and the text.
+        """Converts the RGB Color to an ANSI Sequence.
 
         Args:
             is_background: Whether the color is a background color.
+
+        Returns:
+            The ANSI Sequence for the color and the text.
         """
         var rgb = hex_to_rgb(self.value)
-
-        var prefix = FOREGROUND
+        var output = String(capacity=8)
         if is_background:
-            prefix = BACKGROUND
+            output.write(BACKGROUND)
+        else:
+            output.write(FOREGROUND)
+        output.write(";2;", int_to_str(rgb[0]), ";", int_to_str(rgb[1]), ";", int_to_str(rgb[2]))
 
-        return (
-            prefix
-            + String(";2;")
-            + int_to_str(int(rgb[0]))
-            + ";"
-            + int_to_str(int(rgb[1]))
-            + ";"
-            + int_to_str(int(rgb[2]))
-        )
+        return output
 
 
 fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
@@ -272,6 +344,9 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
 
     Args:
         value: ANSI256 color value.
+
+    Returns:
+        The ANSI color value.
     """
     var r = 0
     var md = hue.math.max_float64

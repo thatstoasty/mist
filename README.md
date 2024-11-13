@@ -177,10 +177,10 @@ fn main() raises:
     # Reset the terminal to its default style, removing any active styles
     reset()
 
-    # RestoreScreen restores a previously saved screen state
+    # Restores a previously saved screen state
     restore_screen()
 
-    # SaveScreen saves the screen state
+    # Saves the screen state
     save_screen()
 
     # Switch to the altscreen. The former view can be restored with ExitAltScreen()
@@ -231,16 +231,16 @@ Output
 from mist.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
 
 fn main() raises:
-    # set_window_title sets the terminal window title
+    # Sets the terminal window title
     set_window_title(title)
 
-    # set_foreground_color sets the default foreground color
+    # Sets the default foreground color
     set_foreground_color(color)
 
-    # set_background_color sets the default background color
+    # Sets the default background color
     set_background_color(color)
 
-    # set_cursor_color sets the cursor color
+    # Sets the cursor color
     set_cursor_color(color)
 ```
 
@@ -302,4 +302,3 @@ Color chart lifted from <https://github.com/muesli/termenv>, give their projects
 ## TODO
 
 - Enable terminal querying for platforms other than UNIX based.
-- Switch to stdout writer
