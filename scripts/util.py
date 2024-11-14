@@ -25,7 +25,7 @@ def build_dependency_list(dependencies: dict[str, str]) -> list[str]:
                 operator = version[:2]
                 start = 2
 
-        deps.append(f"- {name} {operator} {version[start:]}")
+        deps.append(f"    - {name} {operator} {version[start:]}")
 
     return deps
 
@@ -82,7 +82,7 @@ def publish_to_prefix(args: Any) -> None:
     for file in glob.glob(f'{conda_build_path}/**/*.conda'):
         try:
             subprocess.run(
-                ["magic", "run", "rattler-build", "upload", "prefix", "-c", args.channel, file],
+                ["rattler-build", "upload", "prefix", "-c", args.channel, file],
                 check=True,
             )
         except subprocess.CalledProcessError:
@@ -124,14 +124,19 @@ def execute_package_tests(args: Any) -> None:
 
 def execute_package_examples(args: Any) -> None:
     """Executes the examples for the package."""
-    EXAMPLE_DIR = "./examples"
+    EXAMPLE_DIR = "examples"
 
     print("Building package and copying examples.")
     prepare_temp_directory()
     shutil.copytree(EXAMPLE_DIR, TEMP_DIR, dirs_exist_ok=True)
 
     print("Running examples...")
-    subprocess.run(["mojo", "run", TEMP_DIR], check=True)
+    for file in glob.glob(f'{EXAMPLE_DIR}/*.mojo'):
+        file_name = os.path.basename(file)
+        name, _ = os.path.splitext(file_name)
+        shutil.copyfile(file, f"{TEMP_DIR}/{file_name}")
+        subprocess.run(["mojo", "build", f"{TEMP_DIR}/{file_name}", "-o", f"{TEMP_DIR}/{name}"], check=True)
+        subprocess.run([f"{TEMP_DIR}/{name}"], check=True)
 
     remove_temp_directory()
 
@@ -166,7 +171,7 @@ def build_conda_package(args: Any) -> None:
 
     generate_recipe(args)
     subprocess.run(
-        ["magic", "run", "rattler-build", "build", "-r", RECIPE_DIR, "--skip-existing=all", *options],
+        ["rattler-build", "build", "-r", RECIPE_DIR, "--skip-existing=all", *options],
         check=True,
     )
     os.remove(f"{RECIPE_DIR}/recipe.yaml")

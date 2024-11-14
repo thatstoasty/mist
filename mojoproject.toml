@@ -27,8 +27,8 @@ hue = ">=0.1.6,<0.2"
 channels = ["https://repo.prefix.dev/mojo-community-nightly", "conda-forge", "https://conda.modular.com/max-nightly"]
 
 [feature.nightly.dependencies]
-max = "*"
-hue = "*"
+max = ">=24.6.0.dev2024111205"
+hue = ">=0.1.6"
 
 [environments]
 nightly = ["nightly"]
