@@ -13,6 +13,7 @@ alias GRAY = 0xB9BFCA
 
 # Convenience functions for quick style application
 fn render_as_color(text: String, color: UInt32, profile: Int = -1) -> String:
+    """Render the text with the given color."""
     if profile == -1:
         return Style().foreground(color).render(text)
     return Style(profile).foreground(color).render(text)

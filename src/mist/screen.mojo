@@ -70,14 +70,13 @@ fn reset_terminal():
     print(CSI + RESET + "m", end="")
 
 
-fn set_foreground_color(color: AnyColor):
+fn set_foreground_color(color: AnyColor) raises:
     """Sets the default foreground color.
 
     Args:
         color: The color to set.
     """
     var c: String = ""
-
     if color.isa[ANSIColor]():
         c = color[ANSIColor].sequence(False)
     elif color.isa[ANSI256Color]():
@@ -85,45 +84,41 @@ fn set_foreground_color(color: AnyColor):
     elif color.isa[RGBColor]():
         c = color[RGBColor].sequence(False)
 
-    print(OSC + SET_FOREGROUND_COLOR_SEQ, c, end="")
+    print(OSC + SET_FOREGROUND_COLOR_SEQ.format(c), end="")
 
 
-fn set_background_color(color: AnyColor):
+fn set_background_color(color: AnyColor) raises:
     """Sets the default background color.
 
     Args:
         color: The color to set.
     """
     var c: String = ""
-    if color.isa[NoColor]():
-        pass
-    elif color.isa[ANSIColor]():
+    if color.isa[ANSIColor]():
         c = color[ANSIColor].sequence(True)
     elif color.isa[ANSI256Color]():
         c = color[ANSI256Color].sequence(True)
     elif color.isa[RGBColor]():
         c = color[RGBColor].sequence(True)
 
-    print(OSC + SET_BACKGROUND_COLOR_SEQ, c, end="")
+    print(OSC + SET_BACKGROUND_COLOR_SEQ.format(c), end="")
 
 
-fn set_cursor_color(color: AnyColor):
+fn set_cursor_color(color: AnyColor) raises:
     """Sets the cursor color.
 
     Args:
         color: The color to set.
     """
     var c: String = ""
-    if color.isa[NoColor]():
-        pass
-    elif color.isa[ANSIColor]():
+    if color.isa[ANSIColor]():
         c = color[ANSIColor].sequence(True)
     elif color.isa[ANSI256Color]():
         c = color[ANSI256Color].sequence(True)
     elif color.isa[RGBColor]():
         c = color[RGBColor].sequence(True)
 
-    print(OSC + SET_CURSOR_COLOR_SEQ, c, end="")
+    print(OSC + SET_CURSOR_COLOR_SEQ.format(c), end="")
 
 
 fn restore_screen():

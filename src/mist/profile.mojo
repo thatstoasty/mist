@@ -27,9 +27,10 @@ alias ASCII_PROFILE = Profile(ASCII)
 fn get_color_profile() -> Int:
     """Queries the terminal to determine the color profile it supports.
     ASCII, ANSI, ANSI256, or TRUE_COLOR.
+
+    Returns:
+        The color profile the terminal supports.
     """
-    # if not o.isTTY():
-    # 	return Ascii
     if os.getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
         return TRUE_COLOR
 

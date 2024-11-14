@@ -11,4 +11,6 @@ fn hyperlink(link: String, name: String) -> String:
     Returns:
         The hyperlink text.
     """
-    return OSC + "8;;" + link + ST + name + OSC + "8;;" + ST
+    var output = String(capacity=14 + len(link) + len(name))
+    output.write(OSC, "8;;", link, ST, name, OSC, "8;;", ST)
+    return output
