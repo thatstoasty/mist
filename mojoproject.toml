@@ -26,7 +26,7 @@ max = ">=24.5.0,<25"
 channels = ["conda-forge", "https://conda.modular.com/max-nightly"]
 
 [feature.nightly.dependencies]
-max = ">=24.6.0.dev2024111205"
+max = ">=24.6.0.dev2024120105"
 
 [environments]
 nightly = ["nightly"]
