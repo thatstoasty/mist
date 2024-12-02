@@ -1,13 +1,13 @@
 name: Build all packages
 
-# on:
-#   push:
-#     branches:
-#       - nightly
-#     paths:
-#         - src/**
+on:
+  push:
+    branches:
+      - nightly
+    paths:
+        - src/**
 
-on: ["push"]
+# on: ["push"]
 
 jobs:
   build:
