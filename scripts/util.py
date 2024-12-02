@@ -181,11 +181,14 @@ def build_conda_package(args: Any) -> None:
     # Build the conda package for the project.
     config = load_project_config()
     channels: list[str]
+    rattler_command: list[str]
     match args.mode:
         case "default":
             channels = config["project"]["channels"]
+            rattler_command = ["magic", "run", "rattler-build", "build"]
         case _:
             channels = config["feature"][args.mode]["channels"]
+            rattler_command = ["magic", "run", "-e", args.mode, "rattler-build", "build"]
 
     options: list[str] = []
     for channel in channels:
@@ -193,7 +196,7 @@ def build_conda_package(args: Any) -> None:
 
     generate_recipe(args)
     subprocess.run(
-        ["rattler-build", "build", "-r", RECIPE_DIR, "--skip-existing=all", *options],
+        [*rattler_command, "-r", RECIPE_DIR, "--skip-existing=all", *options],
         check=True,
     )
     os.remove(f"{RECIPE_DIR}/recipe.yaml")
