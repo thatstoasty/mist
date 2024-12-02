@@ -116,8 +116,11 @@ def execute_package_tests(args: Any) -> None:
     prepare_temp_directory()
     shutil.copytree(TEST_DIR, TEMP_DIR, dirs_exist_ok=True)
 
-    print("Running tests...")
-    subprocess.run(["mojo", "test", TEMP_DIR], check=True)
+    target = TEMP_DIR
+    if args.path:
+        target = f"{target}/{args.path}"
+    print(f"Running tests at {target}...")
+    subprocess.run(["mojo", "test", target], check=True)
 
     remove_temp_directory()
 
@@ -125,13 +128,20 @@ def execute_package_tests(args: Any) -> None:
 def execute_package_examples(args: Any) -> None:
     """Executes the examples for the package."""
     EXAMPLE_DIR = "examples"
+    if not os.path.exists("examples"):
+        print(f"Path does not exist: {EXAMPLE_DIR}.")
+        return
 
     print("Building package and copying examples.")
     prepare_temp_directory()
     shutil.copytree(EXAMPLE_DIR, TEMP_DIR, dirs_exist_ok=True)
 
-    print("Running examples...")
-    for file in glob.glob(f'{EXAMPLE_DIR}/*.mojo'):
+    example_files = f'{EXAMPLE_DIR}/*.mojo'
+    if args.path:
+        example_files = f"{EXAMPLE_DIR}/{args.path}"
+
+    print(f"Running examples in {example_files}...")
+    for file in glob.glob(example_files):
         file_name = os.path.basename(file)
         name, _ = os.path.splitext(file_name)
         shutil.copyfile(file, f"{TEMP_DIR}/{file_name}")
@@ -143,13 +153,25 @@ def execute_package_examples(args: Any) -> None:
 
 def execute_package_benchmarks(args: Any) -> None:
     BENCHMARK_DIR = "./benchmarks"
+    if not os.path.exists("benchmarks"):
+        print(f"Path does not exist: {BENCHMARK_DIR}.")
+        return
 
     print("Building package and copying benchmarks.")
     prepare_temp_directory()
     shutil.copytree(BENCHMARK_DIR, TEMP_DIR, dirs_exist_ok=True)
 
-    print("Running benchmarks...")
-    subprocess.run(["mojo", "run", f"{TEMP_DIR}/run.mojo"], check=True)
+    benchmark_files = f'{BENCHMARK_DIR}/*.mojo'
+    if args.path:
+        benchmark_files = f"{BENCHMARK_DIR}/{args.path}"
+
+    print(f"Running benchmarks in {benchmark_files}...")
+    for file in glob.glob(benchmark_files):
+        file_name = os.path.basename(file)
+        name, _ = os.path.splitext(file_name)
+        shutil.copyfile(file, f"{TEMP_DIR}/{file_name}")
+        subprocess.run(["mojo", "build", f"{TEMP_DIR}/{file_name}", "-o", f"{TEMP_DIR}/{name}"], check=True)
+        subprocess.run([f"{TEMP_DIR}/{name}"], check=True)
 
     remove_temp_directory()
 
@@ -171,7 +193,7 @@ def build_conda_package(args: Any) -> None:
 
     generate_recipe(args)
     subprocess.run(
-        ["rattler-build", "build", "-r", RECIPE_DIR, "--skip-existing=all", *options],
+        ["magic", "run", "rattler-build", "build", "-r", RECIPE_DIR, "--skip-existing=all", *options],
         check=True,
     )
     os.remove(f"{RECIPE_DIR}/recipe.yaml")
@@ -224,14 +246,35 @@ def main():
 
     # create the parser for the "run tests" command
     run_tests = run_subcommands.add_parser("tests", help="tests help")
+    run_tests.add_argument(
+        "-p",
+        "--path",
+        type=str,
+        default=None,
+        help="Optional path to test file or test directory to run tests for.",
+    )
     run_tests.set_defaults(func=execute_package_tests)
 
     # create the parser for the "run benchmarks" command
     run_benchmarks = run_subcommands.add_parser("benchmarks", help="benchmarks help")
+    run_benchmarks.add_argument(
+        "-p",
+        "--path",
+        type=str,
+        default=None,
+        help="Optional path to benchmark file or test directory to run tests for.",
+    )
     run_benchmarks.set_defaults(func=execute_package_benchmarks)
 
     # create the parser for the "run examples" command
     run_examples = run_subcommands.add_parser("examples", help="examples help")
+    run_examples.add_argument(
+        "-p",
+        "--path",
+        type=str,
+        default=None,
+        help="Optional path to example file or test directory to run tests for.",
+    )
     run_examples.set_defaults(func=execute_package_examples)
 
     args = parser.parse_args()

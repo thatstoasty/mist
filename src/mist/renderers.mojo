@@ -1,4 +1,4 @@
-from .style import Style
+from .style import Style, SizedWritable
 from .profile import Profile
 
 
@@ -12,120 +12,371 @@ alias GRAY = 0xB9BFCA
 
 
 # Convenience functions for quick style application
-fn render_as_color(text: String, color: UInt32, profile: Int = -1) -> String:
-    """Render the text with the given color."""
+fn render_as_color[T: SizedWritable, //](text: T, color: UInt32, profile: Int = -1) -> String:
+    """Render the text with the given color.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        color: The color to apply.
+        profile: The profile to use.
+
+    Returns:
+        The text with the color applied.
+    """
     if profile == -1:
         return Style().foreground(color).render(text)
     return Style(profile).foreground(color).render(text)
 
 
-fn red(text: String, profile: Int = -1) -> String:
-    """Apply red color to the text."""
+fn red[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply red color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the red color applied.
+    """
     return render_as_color(text, RED, profile)
 
 
-fn green(text: String, profile: Int = -1) -> String:
-    """Apply green color to the text."""
+fn green[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply green color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the green color applied.
+    """
     return render_as_color(text, GREEN, profile)
 
 
-fn yellow(text: String, profile: Int = -1) -> String:
-    """Apply yellow color to the text."""
+fn yellow[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply yellow color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the yellow color applied.
+    """
     return render_as_color(text, YELLOW, profile)
 
 
-fn blue(text: String, profile: Int = -1) -> String:
-    """Apply blue color to the text."""
+fn blue[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply blue color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the blue color applied.
+    """
     return render_as_color(text, BLUE, profile)
 
 
-fn magenta(text: String, profile: Int = -1) -> String:
-    """Apply magenta color to the text."""
+fn magenta[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply magenta color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the magenta color applied.
+    """
     return render_as_color(text, MAGENTA, profile)
 
 
-fn cyan(text: String, profile: Int = -1) -> String:
-    """Apply cyan color to the text."""
+fn cyan[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply cyan color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the cyan color applied.
+    """
     return render_as_color(text, CYAN, profile)
 
 
-fn gray(text: String, profile: Int = -1) -> String:
-    """Apply gray color to the text."""
+fn gray[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply gray color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the gray color applied.
+    """
     return render_as_color(text, GRAY, profile)
 
 
-fn render_with_background_color(text: String, color: UInt32, profile: Int = -1) -> String:
+fn render_with_background_color[T: SizedWritable, //](text: T, color: UInt32, profile: Int = -1) -> String:
+    """Render the text with the given background color.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        color: The color to apply.
+        profile: The profile to use.
+
+    Returns:
+        The text with the background color applied.
+    """
     if profile == -1:
         return Style().background(color).render(text)
     return Style(profile).background(color).render(text)
 
 
-fn red_background(text: String, profile: Int = -1) -> String:
-    """Apply red background color to the text."""
+fn red_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply red background color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the red background color applied.
+    """
     return render_with_background_color(text, RED, profile)
 
 
-fn green_background(text: String, profile: Int = -1) -> String:
-    """Apply green background color to the text."""
+fn green_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply green background color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the green background color applied.
+    """
     return render_with_background_color(text, GREEN, profile)
 
 
-fn yellow_background(text: String, profile: Int = -1) -> String:
-    """Apply yellow background color to the text."""
+fn yellow_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply yellow background color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the yellow background color applied.
+    """
     return render_with_background_color(text, YELLOW, profile)
 
 
-fn blue_background(text: String, profile: Int = -1) -> String:
-    """Apply blue background color to the text."""
+fn blue_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply blue background color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the blue background color applied.
+    """
     return render_with_background_color(text, BLUE, profile)
 
 
-fn magenta_background(text: String, profile: Int = -1) -> String:
-    """Apply magenta background color to the text."""
+fn magenta_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply magenta background color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the magenta background color applied.
+    """
     return render_with_background_color(text, MAGENTA, profile)
 
 
-fn cyan_background(text: String, profile: Int = -1) -> String:
-    """Apply cyan background color to the text."""
+fn cyan_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply cyan background color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the cyan background color applied.
+    """
     return render_with_background_color(text, CYAN, profile)
 
 
-fn gray_background(text: String, profile: Int = -1) -> String:
-    """Apply gray background color to the text."""
+fn gray_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Apply gray background color to the text.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The text with the gray background color applied.
+    """
     return render_with_background_color(text, GRAY, profile)
 
 
-fn bold(text: String, profile: Int = -1) -> String:
+fn bold[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Render the text with the bold style applied.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The bolded text.
+    """
     if profile == -1:
         return Style().bold().render(text)
     return Style(profile).bold().render(text)
 
 
-fn faint(text: String, profile: Int = -1) -> String:
+fn faint[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Render the text with the faint style applied.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The faint text.
+    """
     if profile == -1:
         return Style().faint().render(text)
     return Style(profile).faint().render(text)
 
 
-fn italic(text: String, profile: Int = -1) -> String:
+fn italic[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Render the text with the italic style applied.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The italicized text.
+    """
     if profile == -1:
         return Style().italic().render(text)
     return Style(profile).italic().render(text)
 
 
-fn underline(text: String, profile: Int = -1) -> String:
+fn underline[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Render the text with the underline style applied.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The underlined text.
+    """
     if profile == -1:
         return Style().underline().render(text)
     return Style(profile).underline().render(text)
 
 
-fn overline(text: String, profile: Int = -1) -> String:
+fn overline[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Render the text with the overline style applied.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The overlined text.
+    """
     if profile == -1:
         return Style().overline().render(text)
     return Style(profile).overline().render(text)
 
 
-fn crossout(text: String, profile: Int = -1) -> String:
+fn crossout[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Render the text with the crossout style applied.
+
+    Parameters:
+        T: The type of the text object.
+
+    Args:
+        text: The text to render.
+        profile: The profile to use.
+
+    Returns:
+        The crossed out text.
+    """
     if profile == -1:
         return Style().crossout().render(text)
     return Style(profile).crossout().render(text)

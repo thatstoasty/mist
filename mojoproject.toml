@@ -1,10 +1,10 @@
 [project]
 authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
-channels = ["https://repo.prefix.dev/mojo-community", "conda-forge", "https://conda.modular.com/max"]
+channels = ["conda-forge", "https://conda.modular.com/max"]
 description = "Mist lets you safely use advanced styling options on the terminal."
 name = "mist"
 platforms = ["osx-arm64", "linux-64"]
-version = "0.1.8"
+version = "0.1.9.nightly1"
 license = "MIT"
 license-file = "LICENSE"
 homepage = "https://github.com/thatstoasty/mist"
@@ -21,14 +21,12 @@ bp = { depends_on=["build", "publish"] }
 
 [dependencies]
 max = ">=24.5.0,<25"
-hue = ">=0.1.6,<0.2"
 
 [feature.nightly]
-channels = ["https://repo.prefix.dev/mojo-community-nightly", "conda-forge", "https://conda.modular.com/max-nightly"]
+channels = ["conda-forge", "https://conda.modular.com/max-nightly"]
 
 [feature.nightly.dependencies]
 max = ">=24.6.0.dev2024111205"
-hue = ">=0.1.6"
 
 [environments]
 nightly = ["nightly"]

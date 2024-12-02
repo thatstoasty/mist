@@ -1,6 +1,6 @@
 from utils import Variant
 from collections import InlineArray
-import hue
+import .hue
 from .ansi_colors import ANSI_HEX_CODES
 
 
@@ -42,23 +42,56 @@ alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
 
 
 trait Color(EqualityComparable, CollectionElement, ExplicitlyCopyable):
+    """Represents colors that can be displayed in the terminal."""
+
     fn sequence(self, is_background: Bool) -> String:
-        """Sequence returns the ANSI Sequence for the color."""
+        """Sequence returns the ANSI Sequence for the color.
+
+        Args:
+            is_background: Whether the color is a background color.
+
+        Returns:
+            The ANSI Sequence for the color.
+        """
         ...
 
 
 @register_passable("trivial")
 struct NoColor(Color):
-    fn __init__(inout self):
+    """NoColor represents an ASCII color which is binary black or white."""
+
+    fn __init__(out self):
+        """Initializes a `NoColor` color."""
         pass
 
-    fn __init__(inout self, other: Self):
+    fn __init__(out self, other: Self):
+        """Initializes a `NoColor` color with another `NoColor` color.
+
+        Args:
+            other: The `NoColor` color to copy.
+        """
         pass
 
     fn __eq__(self, other: NoColor) -> Bool:
+        """Compares two colors for equality.
+
+        Args:
+            other: The `NoColor` color to compare to.
+
+        Returns:
+            True if the colors are equal, False otherwise.
+        """
         return True
 
     fn __ne__(self, other: NoColor) -> Bool:
+        """Compares two colors for unequality.
+
+        Args:
+            other: The `NoColor` color to compare to.
+
+        Returns:
+            True if the colors are not equal, False otherwise.
+        """
         return False
 
     fn sequence(self, is_background: Bool) -> String:
@@ -124,9 +157,25 @@ struct ANSIColor(Color):
         return output
 
     fn __eq__(self, other: ANSIColor) -> Bool:
+        """Compares two colors for equality.
+
+        Args:
+            other: The ANSIColor to compare to.
+
+        Returns:
+            True if the colors are equal, False otherwise.
+        """
         return self.value == other.value
 
     fn __ne__(self, other: ANSIColor) -> Bool:
+        """Compares two colors for unequality.
+
+        Args:
+            other: The ANSIColor to compare to.
+
+        Returns:
+            True if the colors are not equal, False otherwise.
+        """
         return self.value != other.value
 
     fn to_rgb(self) -> (UInt32, UInt32, UInt32):
@@ -162,28 +211,69 @@ struct ANSI256Color(Color):
     var value: UInt32
     """The ANSI256 color value."""
 
-    fn __init__(inout self, value: UInt32):
+    fn __init__(out self, value: UInt32):
+        """Initializes the ANSI256Color with a value.
+
+        Args:
+            value: The ANSI256 color value.
+        """
         self.value = value
 
-    fn __init__(inout self, other: Self):
+    fn __init__(out self, other: Self):
+        """Initializes the ANSI256Color with another ANSI256Color.
+
+        Args:
+            other: The ANSI256Color to copy.
+        """
         self.value = other.value
 
-    fn __init__(inout self, color: hue.Color):
+    fn __init__(out self, color: hue.Color):
+        """Initializes the ANSI256Color with a `hue.Color`.
+
+        Args:
+            color: The `hue.Color` to convert to an ANSI256Color.
+        """
         self.value = color.hex()
 
     fn __str__(self) -> String:
+        """Converts the color to a string.
+
+        Returns:
+            The string representation of the color value.
+        """
         return str(self)
 
     fn __repr__(self) -> String:
+        """Converts the ANSI256Color to a string.
+
+        Returns:
+            The string representation of the ANSI256Color.
+        """
         value = str(self.value)
         output = String(capacity=11 + len(value))
         output.write("ANSI256Color(", value, ")")
         return output
 
     fn __eq__(self, other: ANSI256Color) -> Bool:
+        """Compares two colors for equality.
+
+        Args:
+            other: The ANSI256Color to compare to.
+
+        Returns:
+            True if the colors are equal, False otherwise.
+        """
         return self.value == other.value
 
     fn __ne__(self, other: ANSI256Color) -> Bool:
+        """Compares two colors for unequality.
+
+        Args:
+            other: The ANSI256Color to compare to.
+
+        Returns:
+            True if the colors are not equal, False otherwise.
+        """
         return self.value != other.value
 
     fn to_rgb(self) -> (UInt32, UInt32, UInt32):
@@ -228,8 +318,7 @@ fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
 
     # Low ANSI.
     if ansi < 16:
-        var h = ANSI_HEX_CODES[int(ansi)]
-        return hex_to_rgb(h)
+        return hex_to_rgb(ANSI_HEX_CODES[int(ansi)])
 
     # Grays.
     if ansi > 231:
@@ -242,12 +331,9 @@ fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
     var g = (n - b) / 6 % 6
     var r = (n - b - g * 6) / 36 % 6
     var v = r
-    var i = 0
-    while i < 3:
+    for _ in range(3):
         if v > 0:
-            var c = v * 40 + 55
-            v = c
-        i += 1
+            v = v * 40 + 55
 
     return r, g, b
 
@@ -287,28 +373,69 @@ struct RGBColor(Color):
     var value: UInt32
     """The hex-encoded color value."""
 
-    fn __init__(inout self, value: UInt32):
+    fn __init__(out self, value: UInt32):
+        """Initializes the RGBColor with a value.
+
+        Args:
+            value: The hex-encoded color value.
+        """
         self.value = value
 
-    fn __init__(inout self, color: hue.Color):
+    fn __init__(out self, color: hue.Color):
+        """Initializes the RGBColor with a `hue.Color`.
+
+        Args:
+            color: The `hue.Color` to convert to an RGBColor.
+        """
         self.value = color.hex()
 
-    fn __init__(inout self, other: Self):
+    fn __init__(out self, other: Self):
+        """Initializes the RGBColor with another RGBColor.
+
+        Args:
+            other: The RGBColor to copy.
+        """
         self.value = other.value
 
     fn __str__(self) -> String:
+        """Converts the RGBColor to a string.
+
+        Returns:
+            The string representation of the RGBColor.
+        """
         return str(self)
 
     fn __repr__(self) -> String:
+        """Converts the RGBColor to a string.
+
+        Returns:
+            The string representation of the RGBColor.
+        """
         value = str(self.value)
         output = String(capacity=11 + len(value))
         output.write("RGBColor(", value, ")")
         return output
 
     fn __eq__(self, other: RGBColor) -> Bool:
+        """Compares two colors for equality.
+
+        Args:
+            other: The RGBColor to compare to.
+
+        Returns:
+            True if the colors are equal, False otherwise.
+        """
         return self.value == other.value
 
     fn __ne__(self, other: RGBColor) -> Bool:
+        """Compares two colors for unequality.
+
+        Args:
+            other: The RGBColor to compare to.
+
+        Returns:
+            True if the colors are not equal, False otherwise.
+        """
         return self.value != other.value
 
     fn to_rgb(self) -> (UInt32, UInt32, UInt32):
@@ -349,12 +476,11 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
         The ANSI color value.
     """
     var r = 0
-    var md = hue.math.max_float64
+    var md = hue.MAX_FLOAT64
     var h = hex_to_rgb(ANSI_HEX_CODES[int(value)])
     var h_color = hue.Color(h[0], h[1], h[2])
 
-    var i = 0
-    while i <= 15:
+    for i in range(16):
         var hb = hex_to_rgb(ANSI_HEX_CODES[int(i)])
         var d = h_color.distance_HSLuv(hue.Color(hb[0], hb[1], hb[2]))
 
@@ -362,12 +488,18 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
             md = d
             r = i
 
-        i += 1
-
     return ANSIColor(r)
 
 
 fn v2ci(value: Float64) -> Int:
+    """Converts a value to a color index.
+
+    Args:
+        value: The value to convert to a color index.
+
+    Returns:
+        The color index.
+    """
     if value < 48:
         return 0
     elif value < 115:
@@ -380,19 +512,21 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
 
     Args:
         color: Hex code color from hue.Color.
+
+    Returns:
+        The ANSI256 color.
     """
     # Calculate the nearest 0-based color index at 16..231
     # Originally had * 255 in each of these
     var r = v2ci(color.R)  # 0..5 each
     var g = v2ci(color.G)
     var b = v2ci(color.B)
-    var ci = int((36 * r) + (6 * g) + b)  # 0..215
 
     # Calculate the represented colors back from the index
     alias i2cv = InlineArray[UInt32, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
-    var cr = i2cv[int(r)]  # r/g/b, 0..255 each
-    var cg = i2cv[int(g)]
-    var cb = i2cv[int(b)]
+    var cr = i2cv[r]  # r/g/b, 0..255 each
+    var cg = i2cv[g]
+    var cb = i2cv[b]
 
     # Calculate the nearest 0-based gray index at 232..255
     var gray_index: UInt32
@@ -405,11 +539,10 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
 
     # Return the one which is nearer to the original input rgb value
     # Originall had / 255.0 for r, g, and b in each of these
-    var c2 = hue.Color(cr, cg, cb)
-    var g2 = hue.Color(gv, gv, gv)
-    var color_dist = color.distance_HSLuv(c2)
-    var gray_dist = color.distance_HSLuv(g2)
+    var color_dist = color.distance_HSLuv(hue.Color(cr, cg, cb))
+    var gray_dist = color.distance_HSLuv(hue.Color(gv, gv, gv))
 
     if color_dist <= gray_dist:
+        var ci = int((36 * r) + (6 * g) + b)  # 0..215
         return ANSI256Color(16 + ci)
     return ANSI256Color(232 + gray_index)
