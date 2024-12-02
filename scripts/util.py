@@ -55,6 +55,9 @@ def generate_recipe(args: Any) -> None:
         .replace("{{VERSION}}", config["project"]["version"])
     )
 
+    if args.mode != "default":
+        recipe.replace("{{ENVIRONMENT_FLAG}}", f"-e {args.mode}")
+
     # Dependencies are the only notable field that changes between environments.
     dependencies: dict[str, str]
     match args.mode:
