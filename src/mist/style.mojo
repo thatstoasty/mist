@@ -23,14 +23,19 @@ alias CROSSOUT = "9"
 alias OVERLINE = "53"
 
 # ANSI Operations
-alias ESCAPE = chr(27)  # Escape character
-alias BEL = "\a"  # Bell
-alias CSI = ESCAPE + "["  # Control Sequence Introducer
-alias OSC = ESCAPE + "]"  # Operating System Command
-alias ST = ESCAPE + chr(92)  # String Terminator
+alias ESCAPE = chr(27)
+"""Escape character."""
+alias BEL = "\a"
+"""Bell character."""
+alias CSI = ESCAPE + "["
+"""Control Sequence Introducer."""
+alias OSC = ESCAPE + "]"
+"""Operating System Command."""
+alias ST = ESCAPE + chr(92)
+"""String Terminator."""
 
-# CLEAR terminal and return cursor to top left
 alias CLEAR = ESCAPE + "[2J" + ESCAPE + "[H"
+"""Clear terminal and return cursor to top left."""
 
 
 trait SizedWritable(Sized, Writable):
