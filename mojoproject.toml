@@ -4,7 +4,7 @@ channels = ["conda-forge", "https://conda.modular.com/max"]
 description = "Mist lets you safely use advanced styling options on the terminal."
 name = "mist"
 platforms = ["osx-arm64", "linux-64"]
-version = "0.1.9.nightly2"
+version = "0.1.9.nightly3"
 license = "MIT"
 license-file = "LICENSE"
 homepage = "https://github.com/thatstoasty/mist"
@@ -26,7 +26,7 @@ max = ">=24.5.0,<25"
 channels = ["conda-forge", "https://conda.modular.com/max-nightly"]
 
 [feature.nightly.dependencies]
-max = ">=24.6.0.dev2024120416"
+max = ">=24.6.0.dev2024121016"
 
 [environments]
 nightly = ["nightly"]
