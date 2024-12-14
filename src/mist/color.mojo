@@ -41,7 +41,7 @@ alias BACKGROUND = "48"
 alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
 
 
-trait Color(EqualityComparable, CollectionElement, ExplicitlyCopyable):
+trait Color(EqualityComparable, RepresentableCollectionElement, ExplicitlyCopyable, Writable, Stringable):
     """Represents colors that can be displayed in the terminal."""
 
     fn sequence(self, is_background: Bool) -> String:
@@ -94,6 +94,33 @@ struct NoColor(Color):
         """
         return False
 
+    fn write_to[W: Writer, //](self, mut writer: W):
+        """Writes the representation to the writer.
+
+        Parameters:
+            W: The type of writer.
+
+        Args:
+            writer: The writer to write the data to.
+        """
+        writer.write("NoColor()")
+
+    fn __str__(self) -> String:
+        """Returns the string representation of the NoColor.
+
+        Returns:
+            The string representation of the NoColor.
+        """
+        return String.write(self)
+
+    fn __repr__(self) -> String:
+        """Returns the string representation of the NoColor.
+
+        Returns:
+            The string representation of the NoColor.
+        """
+        return str(self)
+
     fn sequence(self, is_background: Bool) -> String:
         """Returns an empty string. This function is used to implement the Color trait.
 
@@ -113,7 +140,7 @@ struct ANSIColor(Color):
     var value: UInt32
     """The ANSI color value."""
 
-    fn __init__(inout self, value: UInt32):
+    fn __init__(out self, value: UInt32):
         """Initializes the ANSIColor with a value.
 
         Args:
@@ -121,7 +148,7 @@ struct ANSIColor(Color):
         """
         self.value = value
 
-    fn __init__(inout self, other: Self):
+    fn __init__(out self, other: Self):
         """Initializes the ANSIColor with another ANSIColor.
 
         Args:
@@ -129,7 +156,7 @@ struct ANSIColor(Color):
         """
         self.value = other.value
 
-    fn __init__(inout self, color: hue.Color):
+    fn __init__(out self, color: hue.Color):
         """Initializes the ANSIColor with a `hue.Color`.
 
         Args:
@@ -137,13 +164,24 @@ struct ANSIColor(Color):
         """
         self.value = color.hex()
 
+    fn write_to[W: Writer, //](self, mut writer: W):
+        """Writes the representation to the writer.
+
+        Parameters:
+            W: The type of writer.
+
+        Args:
+            writer: The writer to write the data to.
+        """
+        writer.write("ANSIColor(", str(self.value), ")")
+
     fn __str__(self) -> String:
         """Converts the ANSIColor to a string.
 
         Returns:
             The string representation of the ANSIColor.
         """
-        return str(self.value)
+        return String.write(self)
 
     fn __repr__(self) -> String:
         """Converts the ANSIColor to a string.
@@ -151,10 +189,7 @@ struct ANSIColor(Color):
         Returns:
             The string representation of the ANSIColor.
         """
-        value = str(self.value)
-        output = String(capacity=11 + len(value))
-        output.write("ANSIColor(", value, ")")
-        return output
+        return str(self)
 
     fn __eq__(self, other: ANSIColor) -> Bool:
         """Compares two colors for equality.
@@ -235,13 +270,24 @@ struct ANSI256Color(Color):
         """
         self.value = color.hex()
 
+    fn write_to[W: Writer, //](self, mut writer: W):
+        """Writes the representation to the writer.
+
+        Parameters:
+            W: The type of writer.
+
+        Args:
+            writer: The writer to write the data to.
+        """
+        writer.write("ANSI256Color(", str(self.value), ")")
+
     fn __str__(self) -> String:
         """Converts the color to a string.
 
         Returns:
             The string representation of the color value.
         """
-        return str(self)
+        return String.write(self)
 
     fn __repr__(self) -> String:
         """Converts the ANSI256Color to a string.
@@ -249,10 +295,7 @@ struct ANSI256Color(Color):
         Returns:
             The string representation of the ANSI256Color.
         """
-        value = str(self.value)
-        output = String(capacity=11 + len(value))
-        output.write("ANSI256Color(", value, ")")
-        return output
+        return str(self)
 
     fn __eq__(self, other: ANSI256Color) -> Bool:
         """Compares two colors for equality.
@@ -397,13 +440,24 @@ struct RGBColor(Color):
         """
         self.value = other.value
 
+    fn write_to[W: Writer, //](self, mut writer: W):
+        """Writes the representation to the writer.
+
+        Parameters:
+            W: The type of writer.
+
+        Args:
+            writer: The writer to write the data to.
+        """
+        writer.write("RGBColor(", str(self.value), ")")
+
     fn __str__(self) -> String:
         """Converts the RGBColor to a string.
 
         Returns:
             The string representation of the RGBColor.
         """
-        return str(self)
+        return String.write(self)
 
     fn __repr__(self) -> String:
         """Converts the RGBColor to a string.
@@ -411,10 +465,7 @@ struct RGBColor(Color):
         Returns:
             The string representation of the RGBColor.
         """
-        value = str(self.value)
-        output = String(capacity=11 + len(value))
-        output.write("RGBColor(", value, ")")
-        return output
+        return String.write(self)
 
     fn __eq__(self, other: RGBColor) -> Bool:
         """Compares two colors for equality.
@@ -444,7 +495,7 @@ struct RGBColor(Color):
         Returns:
             The RGB Tuple.
         """
-        return ansi_to_rgb(self.value)
+        return hex_to_rgb(self.value)
 
     fn sequence(self, is_background: Bool) -> String:
         """Converts the RGB Color to an ANSI Sequence.
@@ -478,11 +529,11 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
     var r = 0
     var md = hue.MAX_FLOAT64
     var h = hex_to_rgb(ANSI_HEX_CODES[int(value)])
-    var h_color = hue.Color(h[0], h[1], h[2])
+    var h_color = hue.Color(R=h[0], G=h[1], B=h[2])
 
     for i in range(16):
         var hb = hex_to_rgb(ANSI_HEX_CODES[int(i)])
-        var d = h_color.distance_HSLuv(hue.Color(hb[0], hb[1], hb[2]))
+        var d = h_color.distance_HSLuv(hue.Color(R=hb[0], G=hb[1], B=hb[2]))
 
         if d < md:
             md = d
@@ -491,7 +542,7 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
     return ANSIColor(r)
 
 
-fn v2ci(value: Float64) -> Int:
+fn _v2ci(value: Float64) -> Int:
     """Converts a value to a color index.
 
     Args:
@@ -518,9 +569,9 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
     """
     # Calculate the nearest 0-based color index at 16..231
     # Originally had * 255 in each of these
-    var r = v2ci(color.R)  # 0..5 each
-    var g = v2ci(color.G)
-    var b = v2ci(color.B)
+    var r = _v2ci(color.R)  # 0..5 each
+    var g = _v2ci(color.G)
+    var b = _v2ci(color.B)
 
     # Calculate the represented colors back from the index
     alias i2cv = InlineArray[UInt32, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
@@ -539,8 +590,8 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
 
     # Return the one which is nearer to the original input rgb value
     # Originall had / 255.0 for r, g, and b in each of these
-    var color_dist = color.distance_HSLuv(hue.Color(cr, cg, cb))
-    var gray_dist = color.distance_HSLuv(hue.Color(gv, gv, gv))
+    var color_dist = color.distance_HSLuv(hue.Color(R=cr, G=cg, B=cb))
+    var gray_dist = color.distance_HSLuv(hue.Color(R=gv, G=gv, B=gv))
 
     if color_dist <= gray_dist:
         var ci = int((36 * r) + (6 * g) + b)  # 0..215
