@@ -260,6 +260,16 @@ struct Color(Stringable, Representable, CollectionElementNew):
         self.G = G.cast[DType.float64]()
         self.B = B.cast[DType.float64]()
 
+    fn __init__(out self, rgb: Tuple[UInt32, UInt32, UInt32]):
+        """Initializes a new `Color` with the given red, green, and blue values.
+
+        Args:
+            rgb: The red, green, and blue values.
+        """
+        self.R = rgb[0].cast[DType.float64]()
+        self.G = rgb[1].cast[DType.float64]()
+        self.B = rgb[2].cast[DType.float64]()
+
     fn __init__(out self, hex: UInt32):
         """Initializes a new `Color` with the given hex value.
 

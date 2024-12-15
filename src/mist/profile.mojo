@@ -74,19 +74,23 @@ struct Profile:
     """The color profile for the terminal."""
 
     alias valid = InlineArray[Int, 4](TRUE_COLOR, ANSI256, ANSI, ASCII)
+    """Valid color profiles."""
     var value: Int
     """The color profile to use. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII]."""
 
     @implicit
     fn __init__(out self, value: Int):
-        """
-        Initialize a new profile with the given profile type.
+        """Initialize a new profile with the given profile type.
 
         Args:
             value: The setting to use for this profile. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII].
+
+        Notes:
+            If an invalid value is passed in, the profile will default to ASCII.
+            This is to workaround the virtality of raising functions.
         """
         if value not in Self.valid:
-            self.value = TRUE_COLOR
+            self.value = ASCII
             return
 
         self.value = value
@@ -125,10 +129,8 @@ struct Profile:
 
             return color[ANSI256Color]
         elif color.isa[RGBColor]():
-            var h = hex_to_rgb(color[RGBColor].value)
-
             if self.value != TRUE_COLOR:
-                var ansi256 = hex_to_ansi256(hue.Color(R=h[0], G=h[1], B=h[2]))
+                var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color[RGBColor].value)))
                 if self.value == ANSI:
                     return ansi256_to_ansi(ansi256.value)
 

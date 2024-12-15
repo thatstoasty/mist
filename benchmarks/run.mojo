@@ -4,9 +4,8 @@ from mist.color import ANSIColor, ANSI256Color, RGBColor
 
 
 fn bench_rendering_with_profiles():
-    alias a: String = "Hello World!"
+    alias a = "Hello World!"
     var profile = mist.Profile()
-
     var style = mist.Style().foreground(color=profile.color(12))
     var output = style.render(a)
     output = style.foreground(color=profile.color(55)).render(a)
@@ -20,7 +19,7 @@ fn bench_rendering_with_profiles():
 
 
 fn bench_comptime_rendering_with_profiles():
-    alias a: String = "Hello World!"
+    alias a = "Hello World!"
     alias profile = mist.TRUE_COLOR_PROFILE
     alias style = mist.Style(profile.value).foreground(color=profile.color(12))
     var output = style.render(a)
