@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.1.9] - 2024-12-17
+
+- Remove `gojo` dependencies, any usage of `StringBuilder` now uses String streaming.
+- Rendering functions now accept `SizedWritable` types, instead of just `String`.
+
 ## [0.1.8] - 2024-09-22
 
 - Pull in null terminator fix from `gojo` library.

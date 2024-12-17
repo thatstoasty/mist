@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - src/**
-# on: ["push"]
 
 jobs:
   build:
