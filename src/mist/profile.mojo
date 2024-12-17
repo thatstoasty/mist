@@ -1,6 +1,6 @@
 import os
 from collections import InlineArray
-import hue
+import .hue
 from .color import (
     NoColor,
     ANSIColor,
@@ -26,10 +26,11 @@ alias ASCII_PROFILE = Profile(ASCII)
 # TODO: UNIX systems only for now. Need to add Windows, POSIX, and SOLARIS support.
 fn get_color_profile() -> Int:
     """Queries the terminal to determine the color profile it supports.
-    ASCII, ANSI, ANSI256, or TRUE_COLOR.
+    `ASCII`, `ANSI`, `ANSI256`, or `TRUE_COLOR`.
+
+    Returns:
+        The color profile the terminal supports.
     """
-    # if not o.isTTY():
-    # 	return Ascii
     if os.getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
         return TRUE_COLOR
 
@@ -70,28 +71,40 @@ fn get_color_profile() -> Int:
 
 @register_passable("trivial")
 struct Profile:
-    alias valid = InlineArray[Int, 4](TRUE_COLOR, ANSI256, ANSI, ASCII)
-    var value: Int
+    """The color profile for the terminal."""
 
-    fn __init__(inout self, value: Int):
-        """
-        Initialize a new profile with the given profile type.
+    alias valid = InlineArray[Int, 4](TRUE_COLOR, ANSI256, ANSI, ASCII)
+    """Valid color profiles."""
+    var value: Int
+    """The color profile to use. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII]."""
+
+    @implicit
+    fn __init__(out self, value: Int):
+        """Initialize a new profile with the given profile type.
 
         Args:
             value: The setting to use for this profile. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII].
+
+        Notes:
+            If an invalid value is passed in, the profile will default to ASCII.
+            This is to workaround the virtality of raising functions.
         """
         if value not in Self.valid:
-            self.value = TRUE_COLOR
+            self.value = ASCII
             return
 
         self.value = value
 
-    fn __init__(inout self):
+    fn __init__(out self):
         """Initialize a new profile with the given profile type."""
         self.value = get_color_profile()
 
-    fn __init__(inout self, other: Self):
-        """Initialize a new profile using the value of an existing profile."""
+    fn __init__(out self, other: Self):
+        """Initialize a new profile using the value of an existing profile.
+
+        Args:
+            other: The profile to copy the value from.
+        """
         self.value = other.value
 
     fn convert(self, color: AnyColor) -> AnyColor:
@@ -116,10 +129,8 @@ struct Profile:
 
             return color[ANSI256Color]
         elif color.isa[RGBColor]():
-            var h = hex_to_rgb(color[RGBColor].value)
-
             if self.value != TRUE_COLOR:
-                var ansi256 = hex_to_ansi256(hue.Color(h[0], h[1], h[2]))
+                var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color[RGBColor].value)))
                 if self.value == ANSI:
                     return ansi256_to_ansi(ansi256.value)
 

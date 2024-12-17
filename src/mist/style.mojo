@@ -1,4 +1,3 @@
-from gojo.strings import StringBuilder
 from .color import (
     Color,
     NoColor,
@@ -24,23 +23,37 @@ alias CROSSOUT = "9"
 alias OVERLINE = "53"
 
 # ANSI Operations
-alias ESCAPE = chr(27)  # Escape character
-alias BEL = "\a"  # Bell
-alias CSI = ESCAPE + "["  # Control Sequence Introducer
-alias OSC = ESCAPE + "]"  # Operating System Command
-alias ST = ESCAPE + chr(92)  # String Terminator
+alias ESCAPE = chr(27)
+"""Escape character."""
+alias BEL = "\a"
+"""Bell character."""
+alias CSI = ESCAPE + "["
+"""Control Sequence Introducer."""
+alias OSC = ESCAPE + "]"
+"""Operating System Command."""
+alias ST = ESCAPE + chr(92)
+"""String Terminator."""
 
-# CLEAR terminal and return cursor to top left
 alias CLEAR = ESCAPE + "[2J" + ESCAPE + "[H"
+"""Clear terminal and return cursor to top left."""
+
+
+trait SizedWritable(Sized, Writable):
+    """Trait for types that are both `Sized` and `Writable`."""
+
+    ...
 
 
 @value
 struct Style(Movable, Copyable, ExplicitlyCopyable):
-    """Style stores a list of styles to format text with. These styles are ANSI sequences which modify text (and control the terminal).
+    """Style stores a list of styles to format text with.
+    These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
 
-    This struct should be considered immutable and each style added returns a new instance of itself rather than modifying the struct in place.
-    Example:
+    This struct should be considered immutable and each style added returns a new instance of itself
+    rather than modifying the struct in place.
+
+    Examples:
     ```mojo
     import mist
 
@@ -50,9 +63,11 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
     """
 
     var styles: List[String]
+    """The list of ANSI styles to apply to the text."""
     var profile: Profile
+    """The color profile to use for color conversion."""
 
-    fn __init__(inout self, profile: Profile):
+    fn __init__(out self, profile: Profile):
         """Constructs a Style.
 
         Args:
@@ -61,14 +76,14 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         self.styles = List[String]()
         self.profile = profile
 
-    fn __init__(inout self):
+    fn __init__(out self):
         """Constructs a Style. This constructor is not compile time friendly, because
         the default constructor for a Profile checks the terminal color profile.
         """
         self.styles = List[String]()
         self.profile = Profile()
 
-    fn __init__(inout self, other: Style):
+    fn __init__(out self, other: Style):
         """Constructs a Style from another Style.
 
         Args:
@@ -88,35 +103,67 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         return new
 
     fn bold(self) -> Self:
-        """Makes the text bold when rendered."""
+        """Makes the text bold when rendered.
+
+        Returns:
+            A new Style with the bold style added.
+        """
         return self._add_style(BOLD)
 
     fn faint(self) -> Self:
-        """Makes the text faint when rendered."""
+        """Makes the text faint when rendered.
+
+        Returns:
+            A new Style with the faint style added.
+        """
         return self._add_style(FAINT)
 
     fn italic(self) -> Self:
-        """Makes the text italic when rendered."""
+        """Makes the text italic when rendered.
+
+        Returns:
+            A new Style with the italic style added.
+        """
         return self._add_style(ITALIC)
 
     fn underline(self) -> Self:
-        """Makes the text underlined when rendered."""
+        """Makes the text underlined when rendered.
+
+        Returns:
+            A new Style with the underline style added.
+        """
         return self._add_style(UNDERLINE)
 
     fn blink(self) -> Self:
-        """Makes the text blink when rendered."""
+        """Makes the text blink when rendered.
+
+        Returns:
+            A new Style with the blink style added.
+        """
         return self._add_style(BLINK)
 
     fn reverse(self) -> Self:
-        """Makes the text have reversed background and foreground colors when rendered."""
+        """Makes the text have reversed background and foreground colors when rendered.
+
+        Returns:
+            A new Style with the reverse style added.
+        """
         return self._add_style(REVERSE)
 
     fn crossout(self) -> Self:
-        """Makes the text crossed out when rendered."""
+        """Makes the text crossed out when rendered.
+
+        Returns:
+            A new Style with the crossout style added.
+        """
         return self._add_style(CROSSOUT)
 
     fn overline(self) -> Self:
-        """Makes the text overlined when rendered."""
+        """Makes the text overlined when rendered.
+
+        Returns:
+            A new Style with the overline style added.
+        """
         return self._add_style(OVERLINE)
 
     fn background(self, *, color: AnyColor) -> Self:
@@ -128,31 +175,25 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the background color set.
         """
-        if color.isa[NoColor]():
+        if color.isa[ANSIColor]():
+            return self._add_style(color[ANSIColor].sequence(True))
+        elif color.isa[ANSI256Color]():
+            return self._add_style(color[ANSI256Color].sequence(True))
+        elif color.isa[RGBColor]():
+            return self._add_style(color[RGBColor].sequence(True))
+        else:
             return self
 
-        var sequence: String = ""
-        if color.isa[ANSIColor]():
-            var c = color[ANSIColor]
-            sequence = c.sequence(True)
-        elif color.isa[ANSI256Color]():
-            var c = color[ANSI256Color]
-            sequence = c.sequence(True)
-        elif color.isa[RGBColor]():
-            var c = color[RGBColor]
-            sequence = c.sequence(True)
-        return self._add_style(sequence)
-
-    fn background(self, color_value: UInt32) -> Self:
+    fn background(self, color: UInt32) -> Self:
         """Shorthand for using the style profile to set the background color of the text.
 
         Args:
-            color_value: The color value to set the background to. This can be a hex value, an ANSI color, or an RGB color.
+            color: The color value to set the background to. This can be a hex value, an ANSI color, or an RGB color.
 
         Returns:
             A new Style with the background color set.
         """
-        return self.background(color=self.profile.color(color_value))
+        return self.background(color=self.profile.color(color))
 
     fn foreground(self, *, color: AnyColor) -> Self:
         """Set the foreground color of the text.
@@ -163,31 +204,31 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the foreground color set.
         """
-        if color.isa[NoColor]():
+        if color.isa[ANSIColor]():
+            return self._add_style(color[ANSIColor].sequence(False))
+        elif color.isa[ANSI256Color]():
+            return self._add_style(color[ANSI256Color].sequence(False))
+        elif color.isa[RGBColor]():
+            return self._add_style(color[RGBColor].sequence(False))
+        else:
             return self
 
-        var sequence: String = ""
-        if color.isa[ANSIColor]():
-            sequence = color[ANSIColor].sequence(False)
-        elif color.isa[ANSI256Color]():
-            sequence = color[ANSI256Color].sequence(False)
-        elif color.isa[RGBColor]():
-            sequence = color[RGBColor].sequence(False)
-        return self._add_style(sequence)
-
-    fn foreground(self, color_value: UInt32) -> Self:
+    fn foreground(self, color: UInt32) -> Self:
         """Shorthand for using the style profile to set the foreground color of the text.
 
         Args:
-            color_value: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
+            color: The color value to set the foreground to. This can be a hex value, an ANSI color, or an RGB color.
 
         Returns:
             A new Style with the foreground color set.
         """
-        return self.foreground(color=self.profile.color(color_value))
+        return self.foreground(color=self.profile.color(color))
 
-    fn render(self, text: String) -> String:
+    fn render[T: SizedWritable, //](self, text: T) -> String:
         """Renders text with the styles applied to it.
+
+        Parameters:
+            T: The type of the text object.
 
         Args:
             text: The text to render with the styles applied.
@@ -195,21 +236,15 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             The text with the styles applied.
         """
-        if self.profile.value == ASCII:
-            return text
+        if self.profile.value == ASCII or len(self.styles) == 0:
+            var result = String(capacity=len(text) + 1)
+            result.write(text)
+            return result
 
-        if len(self.styles) == 0:
-            return text
-
-        var builder = StringBuilder(capacity=len(text) + (len(self.styles) * 3))
-        _ = builder.write_string(CSI)
+        var result = String(capacity=int(len(text) * 1.25 + len(self.styles) * 3))
+        result.write(CSI)
         for i in range(len(self.styles)):
-            _ = builder.write_string(";")
-            _ = builder.write_string(self.styles[i])
-        _ = builder.write_string("m")
-        _ = builder.write_string(text)
-        _ = builder.write_string(CSI)
-        _ = builder.write_string(RESET)
-        _ = builder.write_string("m")
+            result.write(";", self.styles[i])
+        result.write("m", text, CSI, RESET, "m")
 
-        return builder.consume()
+        return result
