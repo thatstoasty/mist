@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.1.10] - 2024-12-21
+
+- Update profile detection to include a few more terminals.
+
 ## [0.1.9] - 2024-12-17
 
 - Remove `gojo` dependencies, any usage of `StringBuilder` now uses String streaming.
