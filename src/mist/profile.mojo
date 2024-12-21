@@ -52,18 +52,14 @@ fn get_color_profile() -> Int:
         return ANSI256
 
     # TERM is used by most terminals to indicate color support.
-    if term == "xterm-kitty" or term == "wezterm" or term == "xterm-ghostty":
+    if term in ["alacritty", "contour", "rio", "wezterm", "xterm-ghostty", "xterm-kitty"]:
         return TRUE_COLOR
-    elif term == "linux":
+    elif term in ["linux", "xterm"]:
         return ANSI
 
     if "256color" in term:
         return ANSI256
-
-    if "color" in term:
-        return ANSI
-
-    if "ansi" in term:
+    elif "color" in term or "ansi" in term:
         return ANSI
 
     return ASCII
