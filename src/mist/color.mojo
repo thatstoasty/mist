@@ -44,10 +44,10 @@ alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
 trait Color(EqualityComparable, RepresentableCollectionElement, ExplicitlyCopyable, Writable, Stringable):
     """Represents colors that can be displayed in the terminal."""
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Sequence returns the ANSI Sequence for the color.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
@@ -121,10 +121,10 @@ struct NoColor(Color):
         """
         return str(self)
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Returns an empty string. This function is used to implement the Color trait.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
@@ -221,16 +221,18 @@ struct ANSIColor(Color):
         """
         return ansi_to_rgb(self.value)
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Converts the ANSI Color to an ANSI Sequence.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
             The ANSI Sequence for the color and the text.
         """
         var modifier = 0
+
+        @parameter
         if is_background:
             modifier += 10
 
@@ -327,16 +329,18 @@ struct ANSI256Color(Color):
         """
         return ansi_to_rgb(self.value)
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Converts the ANSI256 Color to an ANSI Sequence.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
             The ANSI Sequence for the color and the text.
         """
         var output = String(capacity=8)
+
+        @parameter
         if is_background:
             output.write(BACKGROUND)
         else:
@@ -497,10 +501,10 @@ struct RGBColor(Color):
         """
         return hex_to_rgb(self.value)
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Converts the RGB Color to an ANSI Sequence.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
@@ -508,6 +512,8 @@ struct RGBColor(Color):
         """
         var rgb = hex_to_rgb(self.value)
         var output = String(capacity=8)
+
+        @parameter
         if is_background:
             output.write(BACKGROUND)
         else:

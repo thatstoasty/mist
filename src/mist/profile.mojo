@@ -24,7 +24,7 @@ alias ASCII_PROFILE = Profile(ASCII)
 
 
 # TODO: UNIX systems only for now. Need to add Windows, POSIX, and SOLARIS support.
-fn get_color_profile() -> Int:
+fn get_color_profile() -> Profile:
     """Queries the terminal to determine the color profile it supports.
     `ASCII`, `ANSI`, `ANSI256`, or `TRUE_COLOR`.
 
@@ -32,7 +32,7 @@ fn get_color_profile() -> Int:
         The color profile the terminal supports.
     """
     if os.getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
-        return TRUE_COLOR
+        return Profile.TRUE_COLOR
 
     var term = os.getenv("TERM").lower()
     var color_term = os.getenv("COLORTERM").lower()
@@ -44,35 +44,42 @@ fn get_color_profile() -> Int:
         if term.startswith("screen"):
             # tmux supports TRUE_COLOR, screen only ANSI256
             if os.getenv("TERM_PROGRAM") != "tmux":
-                return ANSI256
-        return TRUE_COLOR
+                return Profile.ANSI256
+        return Profile.TRUE_COLOR
     elif color_term == "yes":
         pass
     elif color_term == "true":
-        return ANSI256
+        return Profile.ANSI256
 
     # TERM is used by most terminals to indicate color support.
     if term in ["alacritty", "contour", "rio", "wezterm", "xterm-ghostty", "xterm-kitty"]:
-        return TRUE_COLOR
+        return Profile.TRUE_COLOR
     elif term in ["linux", "xterm"]:
-        return ANSI
+        return Profile.ANSI
 
     if "256color" in term:
-        return ANSI256
+        return Profile.ANSI256
     elif "color" in term or "ansi" in term:
-        return ANSI
+        return Profile.ANSI
 
-    return ASCII
+    return Profile.ASCII
 
 
 @register_passable("trivial")
 struct Profile:
     """The color profile for the terminal."""
 
-    alias valid = InlineArray[Int, 4](TRUE_COLOR, ANSI256, ANSI, ASCII)
-    """Valid color profiles."""
-    var value: Int
-    """The color profile to use. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII]."""
+    var _value: Int
+
+    alias TRUE_COLOR = Self(0)
+    alias ANSI256 = Self(1)
+    alias ANSI = Self(2)
+    alias ASCII = Self(3)
+
+    # alias valid = InlineArray[Int, 4](TRUE_COLOR, ANSI256, ANSI, ASCII)
+    # """Valid color profiles."""
+    # var value: Int
+    # """The color profile to use. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII]."""
 
     @implicit
     fn __init__(out self, value: Int):
@@ -85,15 +92,7 @@ struct Profile:
             If an invalid value is passed in, the profile will default to ASCII.
             This is to workaround the virtality of raising functions.
         """
-        if value not in Self.valid:
-            self.value = ASCII
-            return
-
-        self.value = value
-
-    fn __init__(out self):
-        """Initialize a new profile with the given profile type."""
-        self.value = get_color_profile()
+        self._value = value
 
     fn __init__(out self, other: Self):
         """Initialize a new profile using the value of an existing profile.
@@ -101,7 +100,38 @@ struct Profile:
         Args:
             other: The profile to copy the value from.
         """
-        self.value = other.value
+        self._value = other._value
+
+    @staticmethod
+    fn from_detect() -> Self:
+        """Initialize a new profile with the given profile type.
+
+        Returns:
+            The detected color profile for the terminal.
+        """
+        return get_color_profile()
+
+    fn __eq__(self, other: Self) -> Bool:
+        """Check if two profiles are equal.
+
+        Args:
+            other: The profile to compare against.
+
+        Returns:
+            True if the profiles are equal, False otherwise.
+        """
+        return self._value == other._value
+
+    fn __ne__(self, other: Self) -> Bool:
+        """Check if two profiles are not equal.
+
+        Args:
+            other: The profile to compare against.
+
+        Returns:
+            True if the profiles are not equal, False otherwise.
+        """
+        return self._value != other._value
 
     fn convert(self, color: AnyColor) -> AnyColor:
         """Degrades a color based on the terminal profile.
@@ -112,7 +142,7 @@ struct Profile:
         Returns:
             An `AnyColor` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
-        if self.value == ASCII:
+        if self == Self.ASCII:
             return NoColor()
 
         if color.isa[NoColor]():
@@ -120,14 +150,14 @@ struct Profile:
         elif color.isa[ANSIColor]():
             return color[ANSIColor]
         elif color.isa[ANSI256Color]():
-            if self.value == ANSI:
+            if self == Self.ANSI:
                 return ansi256_to_ansi(color[ANSI256Color].value)
 
             return color[ANSI256Color]
         elif color.isa[RGBColor]():
-            if self.value != TRUE_COLOR:
+            if self != Self.TRUE_COLOR:
                 var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color[RGBColor].value)))
-                if self.value == ANSI:
+                if self == Self.ANSI:
                     return ansi256_to_ansi(ansi256.value)
 
                 return ansi256
@@ -148,7 +178,7 @@ struct Profile:
         Returns:
             An `AnyColor` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
-        if self.value == ASCII:
+        if self == Self.ASCII:
             return NoColor()
 
         if value < 16:
