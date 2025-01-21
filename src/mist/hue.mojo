@@ -248,7 +248,7 @@ struct Color(Stringable, Representable, CollectionElementNew):
         self.G = other.G
         self.B = other.B
 
-    fn __init__(out self, R: UInt32, G: UInt32, B: UInt32):
+    fn __init__(out self, R: UInt8, G: UInt8, B: UInt8):
         """Initializes a new `Color` with the given red, green, and blue values.
 
         Args:
@@ -260,7 +260,7 @@ struct Color(Stringable, Representable, CollectionElementNew):
         self.G = G.cast[DType.float64]()
         self.B = B.cast[DType.float64]()
 
-    fn __init__(out self, rgb: Tuple[UInt32, UInt32, UInt32]):
+    fn __init__(out self, rgb: Tuple[UInt8, UInt8, UInt8]):
         """Initializes a new `Color` with the given red, green, and blue values.
 
         Args:
@@ -276,7 +276,12 @@ struct Color(Stringable, Representable, CollectionElementNew):
         Args:
             hex: The hex value.
         """
-        self.__init__(hex >> 16, hex >> 8 & 0xFF, hex & 0xFF)
+        # Downcast to UInt8 to ensure the values are in the correct range, 0-255.
+        # Better to truncate down to 255 rather than try to handle unexpectedly large values.
+        var r = (hex >> 16).cast[DType.uint8]()
+        var g = (hex >> 8 & 0xFF).cast[DType.uint8]()
+        var b = (hex & 0xFF).cast[DType.uint8]()
+        self.__init__(r, g, b)
 
     fn __str__(self) -> String:
         """Returns the string representation of the color.

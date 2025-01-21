@@ -1,4 +1,5 @@
 import os
+from sys.param_env import env_get_int
 from collections import InlineArray
 import .hue
 from .color import (
@@ -76,23 +77,42 @@ struct Profile:
     alias ANSI = Self(2)
     alias ASCII = Self(3)
 
-    # alias valid = InlineArray[Int, 4](TRUE_COLOR, ANSI256, ANSI, ASCII)
-    # """Valid color profiles."""
-    # var value: Int
-    # """The color profile to use. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII]."""
-
     @implicit
     fn __init__(out self, value: Int):
         """Initialize a new profile with the given profile type.
 
         Args:
-            value: The setting to use for this profile. Valid values: [TRUE_COLOR, ANSI256, ANSI, ASCII].
+            value: The setting to use for this profile. Valid values: [`TRUE_COLOR`, `ANSI256`, `ANSI`, `ASCII`].
 
         Notes:
             If an invalid value is passed in, the profile will default to ASCII.
             This is to workaround the virtality of raising functions.
         """
+        if value < 0 or value > 3:
+            self._value = ASCII
+            return
+
         self._value = value
+
+    fn __init__(out self):
+        """Initialize a new profile with the given profile type.
+
+        Notes:
+            If an invalid value is passed in, the profile will default to ASCII.
+            This is to workaround the virtality of raising functions.
+        """
+        alias profile = env_get_int["MIST_PROFILE", -1]()
+
+        @parameter
+        if profile != -1:
+            constrained[
+                profile in [TRUE_COLOR, ANSI256, ANSI, ASCII],
+                "Invalid profile setting. Must be one of [TRUE_COLOR, ANSI256, ANSI, ASCII].",
+            ]()
+            self._value = profile
+            return
+
+        self = get_color_profile()
 
     fn __init__(out self, other: Self):
         """Initialize a new profile using the value of an existing profile.
@@ -101,15 +121,6 @@ struct Profile:
             other: The profile to copy the value from.
         """
         self._value = other._value
-
-    @staticmethod
-    fn from_detect() -> Self:
-        """Initialize a new profile with the given profile type.
-
-        Returns:
-            The detected color profile for the terminal.
-        """
-        return get_color_profile()
 
     fn __eq__(self, other: Self) -> Bool:
         """Check if two profiles are equal.
@@ -151,16 +162,16 @@ struct Profile:
             return color[ANSIColor]
         elif color.isa[ANSI256Color]():
             if self == Self.ANSI:
-                return ansi256_to_ansi(color[ANSI256Color].value)
+                return ANSIColor(ansi256_to_ansi(color[ANSI256Color].value))
 
             return color[ANSI256Color]
         elif color.isa[RGBColor]():
             if self != Self.TRUE_COLOR:
                 var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color[RGBColor].value)))
                 if self == Self.ANSI:
-                    return ansi256_to_ansi(ansi256.value)
+                    return ANSIColor(ansi256_to_ansi(ansi256.value))
 
-                return ansi256
+                return ANSI256Color(ansi256)
 
             return color[RGBColor]
 
@@ -182,8 +193,8 @@ struct Profile:
             return NoColor()
 
         if value < 16:
-            return self.convert(ANSIColor(value))
+            return self.convert(ANSIColor(value.cast[DType.uint8]()))
         elif value < 256:
-            return self.convert(ANSI256Color(value))
+            return self.convert(ANSI256Color(value.cast[DType.uint8]()))
 
         return self.convert(RGBColor(value))

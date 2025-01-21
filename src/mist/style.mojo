@@ -81,7 +81,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         the default constructor for a Profile checks the terminal color profile.
         """
         self.styles = List[String]()
-        self.profile = Profile.from_detect()
+        self.profile = Profile()
 
     fn __init__(out self, other: Style):
         """Constructs a Style from another Style.
