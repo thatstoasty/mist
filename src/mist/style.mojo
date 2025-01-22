@@ -45,7 +45,7 @@ trait SizedWritable(Sized, Writable):
 
 
 @value
-struct Style(Movable, Copyable, ExplicitlyCopyable):
+struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, Writable):
     """Style stores a list of styles to format text with.
     These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
@@ -91,6 +91,41 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         """
         self.styles = other.styles
         self.profile = other.profile
+
+    fn copy(self) -> Self:
+        """Creates a copy of the Style.
+
+        Returns:
+            A new Style with the same styles and profile.
+        """
+        return Self(self)
+
+    fn __str__(self) -> String:
+        """Returns a string representation of the Style.
+
+        Returns:
+            A string representation of the Style.
+        """
+        return String.write(self)
+
+    fn __repr__(self) -> String:
+        """Returns a string representation of the Style.
+
+        Returns:
+            A string representation of the Style.
+        """
+        return String.write(self)
+
+    fn write_to[W: Writer, //](self, mut writer: W) -> None:
+        """Writes the Style to a Writer.
+
+        Parameters:
+            W: The type of the Writer to write to.
+
+        Args:
+            writer: The Writer to write the Style to.
+        """
+        writer.write("Style(", "styles=", self.styles.__repr__(), ", profile=", self.profile, ")")
 
     fn _add_style(self, style: String) -> Self:
         """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that.
@@ -185,14 +220,10 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the background color set.
         """
-        if color.isa[ANSIColor]():
-            return self._add_style(color[ANSIColor].sequence[True]())
-        elif color.isa[ANSI256Color]():
-            return self._add_style(color[ANSI256Color].sequence[True]())
-        elif color.isa[RGBColor]():
-            return self._add_style(color[RGBColor].sequence[True]())
-        else:
+        if color.isa[NoColor]():
             return self
+
+        return self._add_style(color.sequence[True]())
 
     fn background(self, color: UInt32) -> Self:
         """Shorthand for using the style profile to set the background color of the text.
@@ -214,14 +245,10 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the foreground color set.
         """
-        if color.isa[ANSIColor]():
-            return self._add_style(color[ANSIColor].sequence[False]())
-        elif color.isa[ANSI256Color]():
-            return self._add_style(color[ANSI256Color].sequence[False]())
-        elif color.isa[RGBColor]():
-            return self._add_style(color[RGBColor].sequence[False]())
-        else:
+        if color.isa[NoColor]():
             return self
+
+        return self._add_style(color.sequence[False]())
 
     fn foreground(self, color: UInt32) -> Self:
         """Shorthand for using the style profile to set the foreground color of the text.

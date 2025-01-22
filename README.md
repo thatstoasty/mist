@@ -72,7 +72,7 @@ fn main() raises:
 
 ## Styles
 
-You can apply text formatting effects to your text by setting the rules on the `Style` object then using that object to render your text.
+You can apply text formatting effects to your text by setting the rules on the `Style` object then using that object to render your text. Setting a new style **copies** the current style and applies the new rule to it. This means you can chain multiple styles together, without worrying about modifying the original.
 
 ```mojo
 import mist

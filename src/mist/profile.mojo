@@ -67,7 +67,7 @@ fn get_color_profile() -> Profile:
 
 
 @register_passable("trivial")
-struct Profile:
+struct Profile(ComparableCollectionElement, Writable, Stringable, Representable):
     """The color profile for the terminal."""
 
     var _value: Int
@@ -144,6 +144,124 @@ struct Profile:
         """
         return self._value != other._value
 
+    fn __lt__(self, other: Self) -> Bool:
+        """Check if the current profile is less than another profile.
+
+        Args:
+            other: The profile to compare against.
+
+        Returns:
+            True if the current profile is less than the other profile, False otherwise.
+        """
+        return self._value < other._value
+
+    fn __le__(self, other: Self) -> Bool:
+        """Check if the current profile is less than or equal to another profile.
+
+        Args:
+            other: The profile to compare against.
+
+        Returns:
+            True if the current profile is less than or equal to the other profile, False otherwise.
+        """
+        return self._value <= other._value
+
+    fn __gt__(self, other: Self) -> Bool:
+        """Check if the current profile is greater than another profile.
+
+        Args:
+            other: The profile to compare against.
+
+        Returns:
+            True if the current profile is greater than the other profile, False otherwise.
+        """
+        return self._value > other._value
+
+    fn __ge__(self, other: Self) -> Bool:
+        """Check if the current profile is greater than or equal to another profile.
+
+        Args:
+            other: The profile to compare against.
+
+        Returns:
+            True if the current profile is greater than or equal to the other profile, False otherwise.
+        """
+        return self._value >= other._value
+
+    fn __str__(self) -> String:
+        """Returns a string representation of the profile.
+
+        Returns:
+            A string representation of the profile.
+        """
+        if self._value == TRUE_COLOR:
+            return "TRUE_COLOR"
+        elif self._value == ANSI256:
+            return "ANSI256"
+        elif self._value == ANSI:
+            return "ANSI"
+        elif self._value == ASCII:
+            return "ASCII"
+        else:
+            return "INVALID STATE"
+
+    fn __repr__(self) -> String:
+        """Returns a string representation of the profile.
+
+        Returns:
+            A string representation of the profile.
+        """
+        return String.write(self)
+
+    fn write_to[W: Writer, //](self, mut writer: W) -> None:
+        """Writes the profile to a Writer.
+
+        Parameters:
+            W: The type of the Writer to write to.
+
+        Args:
+            writer: The Writer to write the profile to.
+        """
+        writer.write("Profile(_value=", self._value, ")")
+
+    fn convert_ansi256(self, color: ANSI256Color) -> AnyColor:
+        """Degrades an ANSI color based on the terminal profile.
+
+        Args:
+            color: The color to convert to the current profile.
+
+        Returns:
+            An `AnyColor` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
+        """
+        if self == Self.ASCII:
+            return NoColor()
+
+        if self == Self.ANSI:
+            return ANSIColor(ansi256_to_ansi(color.value))
+
+        return color
+
+    fn convert_rgb(self, color: RGBColor) -> AnyColor:
+        """Degrades an RGB color based on the terminal profile.
+
+        Args:
+            color: The color to convert to the current profile.
+
+        Returns:
+            An `AnyColor` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
+        """
+        if self == Self.ASCII:
+            return NoColor()
+
+        if self != Self.TRUE_COLOR:
+            var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color.value)))
+            if self == Self.ANSI:
+                return ANSIColor(ansi256_to_ansi(ansi256.value))
+
+            return ANSI256Color(ansi256)
+
+        return color
+
     fn convert(self, color: AnyColor) -> AnyColor:
         """Degrades a color based on the terminal profile.
 
@@ -157,26 +275,26 @@ struct Profile:
             return NoColor()
 
         if color.isa[NoColor]():
-            return color[NoColor]
+            return color.value[NoColor]
         elif color.isa[ANSIColor]():
-            return color[ANSIColor]
+            return color.value[ANSIColor]
         elif color.isa[ANSI256Color]():
             if self == Self.ANSI:
-                return ANSIColor(ansi256_to_ansi(color[ANSI256Color].value))
+                return ANSIColor(ansi256_to_ansi(color.value[ANSI256Color].value))
 
-            return color[ANSI256Color]
+            return color.value[ANSI256Color]
         elif color.isa[RGBColor]():
             if self != Self.TRUE_COLOR:
-                var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color[RGBColor].value)))
+                var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color.value[RGBColor].value)))
                 if self == Self.ANSI:
                     return ANSIColor(ansi256_to_ansi(ansi256.value))
 
                 return ANSI256Color(ansi256)
 
-            return color[RGBColor]
+            return color.value[RGBColor]
 
         # If it somehow gets here, just return No Color until I can figure out how to just return whatever color was passed in.
-        return color[NoColor]
+        return color.value[NoColor]
 
     fn color(self, value: UInt32) -> AnyColor:
         """Creates a `Color` from a number. Valid inputs are hex colors, as well as
@@ -193,8 +311,8 @@ struct Profile:
             return NoColor()
 
         if value < 16:
-            return self.convert(ANSIColor(value.cast[DType.uint8]()))
+            return ANSIColor(value.cast[DType.uint8]())
         elif value < 256:
-            return self.convert(ANSI256Color(value.cast[DType.uint8]()))
+            return self.convert_ansi256(ANSI256Color(value.cast[DType.uint8]()))
 
-        return self.convert(RGBColor(value))
+        return self.convert_rgb(RGBColor(value))

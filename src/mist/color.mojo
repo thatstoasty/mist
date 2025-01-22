@@ -20,7 +20,6 @@ fn int_to_str(value: UInt8, base: Int = 10) -> String:
 
 alias FOREGROUND = "38"
 alias BACKGROUND = "48"
-alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
 
 
 trait Color(EqualityComparable, RepresentableCollectionElement, ExplicitlyCopyable, Writable, Stringable):
@@ -598,3 +597,98 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
         var ci: UInt8 = (36 * r) + (6 * g) + b  # 0..215
         return 16 + ci
     return 232 + gray_index
+
+
+@value
+struct AnyColor:
+    """`AnyColor` is a `Variant` which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`."""
+
+    alias _type = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
+    """The internal type of the `AnyColor`."""
+    var value: Self._type
+    """The color value."""
+
+    @implicit
+    fn __init__(out self, value: NoColor):
+        """Initializes the AnyColor with a value.
+
+        Args:
+            value: The color value.
+        """
+        self.value = value
+
+    @implicit
+    fn __init__(out self, value: ANSIColor):
+        """Initializes the AnyColor with a value.
+
+        Args:
+            value: The color value.
+        """
+        self.value = value
+
+    @implicit
+    fn __init__(out self, value: ANSI256Color):
+        """Initializes the AnyColor with a value.
+
+        Args:
+            value: The color value.
+        """
+        self.value = value
+
+    @implicit
+    fn __init__(out self, value: RGBColor):
+        """Initializes the AnyColor with a value.
+
+        Args:
+            value: The color value.
+        """
+        self.value = value
+
+    fn __init__(out self, other: Self):
+        """Initializes the AnyColor with another AnyColor.
+
+        Args:
+            other: The AnyColor to copy.
+        """
+        self.value = other.value
+
+    fn sequence[is_background: Bool](self) -> String:
+        """Sequence returns the ANSI Sequence for the color.
+
+        Parameters:
+            is_background: Whether the color is a background color.
+
+        Returns:
+            The ANSI Sequence for the color.
+        """
+        # Internal type is a variant, so these branches exhaustively match all types.
+        if self.value.isa[ANSIColor]():
+            return self.value[ANSIColor].sequence[is_background]()
+        elif self.value.isa[ANSI256Color]():
+            return self.value[ANSI256Color].sequence[is_background]()
+        elif self.value.isa[RGBColor]():
+            return self.value[RGBColor].sequence[is_background]()
+
+        return self.value[NoColor].sequence[is_background]()
+
+    fn isa[T: CollectionElement](self) -> Bool:
+        """Checks if the value is of the given type.
+
+        Parameters:
+            T: The type to check against.
+
+        Returns:
+            True if the value is of the given type, False otherwise.
+        """
+        return self.value.isa[T]()
+
+    fn __getitem__[T: CollectionElement](ref self) -> ref [self.value] T:
+        """Gets the value as the given type.
+
+        Parameters:
+            T: The type to get the value as.
+
+        Returns:
+            The value as the given type.
+        """
+        return self.value[T]
