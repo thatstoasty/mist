@@ -45,7 +45,7 @@ trait SizedWritable(Sized, Writable):
 
 
 @value
-struct Style(Movable, Copyable, ExplicitlyCopyable):
+struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, Writable):
     """Style stores a list of styles to format text with.
     These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
@@ -92,10 +92,55 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         self.styles = other.styles
         self.profile = other.profile
 
+    fn copy(self) -> Self:
+        """Creates a copy of the Style.
+
+        Returns:
+            A new Style with the same styles and profile.
+        """
+        return Self(self)
+
+    fn __str__(self) -> String:
+        """Returns a string representation of the Style.
+
+        Returns:
+            A string representation of the Style.
+        """
+        return String.write(self)
+
+    fn __repr__(self) -> String:
+        """Returns a string representation of the Style.
+
+        Returns:
+            A string representation of the Style.
+        """
+        return String.write(self)
+
+    fn write_to[W: Writer, //](self, mut writer: W) -> None:
+        """Writes the Style to a Writer.
+
+        Parameters:
+            W: The type of the Writer to write to.
+
+        Args:
+            writer: The Writer to write the Style to.
+        """
+        writer.write("Style(", "styles=", self.styles.__repr__(), ", profile=", self.profile, ")")
+
     fn _add_style(self, style: String) -> Self:
         """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that.
 
         Args:
+            style: The ANSI style to add to the list of styles.
+        """
+        var new = self
+        new.styles.append(style)
+        return new
+
+    fn _add_style[style: String](self) -> Self:
+        """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that.
+
+        Parameters:
             style: The ANSI style to add to the list of styles.
         """
         var new = self
@@ -108,7 +153,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the bold style added.
         """
-        return self._add_style(BOLD)
+        return self._add_style[BOLD]()
 
     fn faint(self) -> Self:
         """Makes the text faint when rendered.
@@ -116,7 +161,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the faint style added.
         """
-        return self._add_style(FAINT)
+        return self._add_style[FAINT]()
 
     fn italic(self) -> Self:
         """Makes the text italic when rendered.
@@ -124,7 +169,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the italic style added.
         """
-        return self._add_style(ITALIC)
+        return self._add_style[ITALIC]()
 
     fn underline(self) -> Self:
         """Makes the text underlined when rendered.
@@ -132,7 +177,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the underline style added.
         """
-        return self._add_style(UNDERLINE)
+        return self._add_style[UNDERLINE]()
 
     fn blink(self) -> Self:
         """Makes the text blink when rendered.
@@ -140,7 +185,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the blink style added.
         """
-        return self._add_style(BLINK)
+        return self._add_style[BLINK]()
 
     fn reverse(self) -> Self:
         """Makes the text have reversed background and foreground colors when rendered.
@@ -148,7 +193,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the reverse style added.
         """
-        return self._add_style(REVERSE)
+        return self._add_style[REVERSE]()
 
     fn crossout(self) -> Self:
         """Makes the text crossed out when rendered.
@@ -156,7 +201,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the crossout style added.
         """
-        return self._add_style(CROSSOUT)
+        return self._add_style[CROSSOUT]()
 
     fn overline(self) -> Self:
         """Makes the text overlined when rendered.
@@ -164,7 +209,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the overline style added.
         """
-        return self._add_style(OVERLINE)
+        return self._add_style[OVERLINE]()
 
     fn background(self, *, color: AnyColor) -> Self:
         """Set the background color of the text when it's rendered.
@@ -175,14 +220,10 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the background color set.
         """
-        if color.isa[ANSIColor]():
-            return self._add_style(color[ANSIColor].sequence(True))
-        elif color.isa[ANSI256Color]():
-            return self._add_style(color[ANSI256Color].sequence(True))
-        elif color.isa[RGBColor]():
-            return self._add_style(color[RGBColor].sequence(True))
-        else:
+        if color.isa[NoColor]():
             return self
+
+        return self._add_style(color.sequence[True]())
 
     fn background(self, color: UInt32) -> Self:
         """Shorthand for using the style profile to set the background color of the text.
@@ -204,14 +245,10 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             A new Style with the foreground color set.
         """
-        if color.isa[ANSIColor]():
-            return self._add_style(color[ANSIColor].sequence(False))
-        elif color.isa[ANSI256Color]():
-            return self._add_style(color[ANSI256Color].sequence(False))
-        elif color.isa[RGBColor]():
-            return self._add_style(color[RGBColor].sequence(False))
-        else:
+        if color.isa[NoColor]():
             return self
+
+        return self._add_style(color.sequence[False]())
 
     fn foreground(self, color: UInt32) -> Self:
         """Shorthand for using the style profile to set the foreground color of the text.
@@ -236,7 +273,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable):
         Returns:
             The text with the styles applied.
         """
-        if self.profile.value == ASCII or len(self.styles) == 0:
+        if self.profile == Profile.ASCII or len(self.styles) == 0:
             var result = String(capacity=len(text) + 1)
             result.write(text)
             return result

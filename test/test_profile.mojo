@@ -8,12 +8,14 @@ import testing
 
 def test_profile_convert():
     # Degrade Hex, ANSI256, and ANSI to ASCII
-    testing.assert_equal(mist.ASCII_PROFILE.convert(ANSIColor(5))[NoColor].sequence(False), NoColor().sequence(False))
     testing.assert_equal(
-        mist.ASCII_PROFILE.convert(ANSI256Color(100))[NoColor].sequence(False), NoColor().sequence(False)
+        mist.ASCII_PROFILE.convert(ANSIColor(5))[NoColor].sequence[False](), NoColor().sequence[False]()
     )
     testing.assert_equal(
-        mist.ASCII_PROFILE.convert(RGBColor(0xC9A0DC))[NoColor].sequence(False), NoColor().sequence(False)
+        mist.ASCII_PROFILE.convert(ANSI256Color(100))[NoColor].sequence[False](), NoColor().sequence[False]()
+    )
+    testing.assert_equal(
+        mist.ASCII_PROFILE.convert(RGBColor(0xC9A0DC))[NoColor].sequence[False](), NoColor().sequence[False]()
     )
 
     # Degrade Hex, and ANSI256 to ANSI
@@ -28,7 +30,7 @@ def test_profile_convert():
 
 def test_profile_color():
     # ASCII profile returns NoColor for all colors.
-    testing.assert_equal(mist.ASCII_PROFILE.color(0xC9A0DC)[NoColor].sequence(False), NoColor().sequence(False))
+    testing.assert_equal(mist.ASCII_PROFILE.color(0xC9A0DC)[NoColor].sequence[False](), NoColor().sequence[False]())
 
     # ANSI256 profile will degrade the RGB color to the closest ANSI256 color.
     testing.assert_equal(str(mist.ANSI256_PROFILE.color(0xC9A0DC)[ANSI256Color].value), str(ANSI256Color(182).value))

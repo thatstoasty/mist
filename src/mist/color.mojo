@@ -1,11 +1,11 @@
 from utils import Variant
 from collections import InlineArray
 import .hue
-from .ansi_colors import ANSI_HEX_CODES
+from .ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
 
 
 # Workaround for str() not working at compile time due to using an external_call to c.
-fn int_to_str(owned value: UInt32, base: Int = 10) -> String:
+fn int_to_str(value: UInt8, base: Int = 10) -> String:
     """Converts an integer to a string.
 
     Args:
@@ -15,39 +15,20 @@ fn int_to_str(owned value: UInt32, base: Int = 10) -> String:
     Returns:
         The string representation of the integer.
     """
-    # Catch edge case of 0
-    if value == 0:
-        return "0"
-
-    alias valid = "0123456789abcdef"
-    var temp = List[Byte](capacity=3)
-    var i = 0
-    while value > 0:
-        byte = ord(valid[int(value) % base])
-        temp.append(byte)
-        i += 1
-        value /= 10
-
-    var buffer = List[Byte](capacity=3)
-    for i in range(len(temp) - 1, -1, -1):
-        buffer.append(temp[i])
-
-    buffer.append(0)
-    return String(buffer^)
+    return COLOR_STRINGS[int(value)]
 
 
 alias FOREGROUND = "38"
 alias BACKGROUND = "48"
-alias AnyColor = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
 
 
 trait Color(EqualityComparable, RepresentableCollectionElement, ExplicitlyCopyable, Writable, Stringable):
     """Represents colors that can be displayed in the terminal."""
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Sequence returns the ANSI Sequence for the color.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
@@ -121,10 +102,10 @@ struct NoColor(Color):
         """
         return str(self)
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Returns an empty string. This function is used to implement the Color trait.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
@@ -137,16 +118,27 @@ struct NoColor(Color):
 struct ANSIColor(Color):
     """ANSIColor is a color (0-15) as defined by the ANSI Standard."""
 
-    var value: UInt32
+    var value: UInt8
     """The ANSI color value."""
 
-    fn __init__(out self, value: UInt32):
+    fn __init__(out self, value: UInt8):
         """Initializes the ANSIColor with a value.
 
         Args:
             value: The ANSI color value.
         """
-        self.value = value
+        if value > 15:
+            self.value = ansi256_to_ansi(value)
+        else:
+            self.value = value
+
+    fn __init__(out self, color: hue.Color):
+        """Initializes the ANSIColor with a `hue.Color`.
+
+        Args:
+            color: The `hue.Color` to convert to an ANSIColor.
+        """
+        self.value = ansi256_to_ansi(hex_to_ansi256(color))
 
     fn __init__(out self, other: Self):
         """Initializes the ANSIColor with another ANSIColor.
@@ -155,14 +147,6 @@ struct ANSIColor(Color):
             other: The ANSIColor to copy.
         """
         self.value = other.value
-
-    fn __init__(out self, color: hue.Color):
-        """Initializes the ANSIColor with a `hue.Color`.
-
-        Args:
-            color: The `hue.Color` to convert to an ANSIColor.
-        """
-        self.value = color.hex()
 
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
@@ -213,7 +197,7 @@ struct ANSIColor(Color):
         """
         return self.value != other.value
 
-    fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+    fn to_rgb(self) -> (UInt8, UInt8, UInt8):
         """Converts the ANSI256 Color to an RGB Tuple.
 
         Returns:
@@ -221,18 +205,22 @@ struct ANSIColor(Color):
         """
         return ansi_to_rgb(self.value)
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Converts the ANSI Color to an ANSI Sequence.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
             The ANSI Sequence for the color and the text.
         """
-        var modifier = 0
+        var modifier: Int
+
+        @parameter
         if is_background:
-            modifier += 10
+            modifier = 10
+        else:
+            modifier = 0
 
         if self.value < 8:
             return int_to_str(modifier + self.value + 30)
@@ -243,16 +231,24 @@ struct ANSIColor(Color):
 struct ANSI256Color(Color):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
-    var value: UInt32
+    var value: UInt8
     """The ANSI256 color value."""
 
-    fn __init__(out self, value: UInt32):
+    fn __init__(out self, value: UInt8):
         """Initializes the ANSI256Color with a value.
 
         Args:
             value: The ANSI256 color value.
         """
         self.value = value
+
+    fn __init__(out self, color: hue.Color):
+        """Initializes the ANSI256Color with a `hue.Color`.
+
+        Args:
+            color: The `hue.Color` to convert to an ANSI256Color.
+        """
+        self.value = hex_to_ansi256(color)
 
     fn __init__(out self, other: Self):
         """Initializes the ANSI256Color with another ANSI256Color.
@@ -261,14 +257,6 @@ struct ANSI256Color(Color):
             other: The ANSI256Color to copy.
         """
         self.value = other.value
-
-    fn __init__(out self, color: hue.Color):
-        """Initializes the ANSI256Color with a `hue.Color`.
-
-        Args:
-            color: The `hue.Color` to convert to an ANSI256Color.
-        """
-        self.value = color.hex()
 
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
@@ -319,7 +307,7 @@ struct ANSI256Color(Color):
         """
         return self.value != other.value
 
-    fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+    fn to_rgb(self) -> (UInt8, UInt8, UInt8):
         """Converts the ANSI256 Color to an RGB Tuple.
 
         Returns:
@@ -327,16 +315,18 @@ struct ANSI256Color(Color):
         """
         return ansi_to_rgb(self.value)
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Converts the ANSI256 Color to an ANSI Sequence.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
             The ANSI Sequence for the color and the text.
         """
         var output = String(capacity=8)
+
+        @parameter
         if is_background:
             output.write(BACKGROUND)
         else:
@@ -346,7 +336,7 @@ struct ANSI256Color(Color):
         return output
 
 
-fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
+fn ansi_to_rgb(ansi: UInt8) -> (UInt8, UInt8, UInt8):
     """Converts an ANSI color to a 24-bit RGB color.
 
     Args:
@@ -357,7 +347,7 @@ fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
     """
     # For out-of-range values return black.
     if ansi > 255:
-        return UInt32(0), UInt32(0), UInt32(0)
+        return UInt8(0), UInt8(0), UInt8(0)
 
     # Low ANSI.
     if ansi < 16:
@@ -374,6 +364,8 @@ fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
     var g = (n - b) / 6 % 6
     var r = (n - b - g * 6) / 36 % 6
     var v = r
+
+    @parameter
     for _ in range(3):
         if v > 0:
             v = v * 40 + 55
@@ -381,7 +373,7 @@ fn ansi_to_rgb(ansi: UInt32) -> (UInt32, UInt32, UInt32):
     return r, g, b
 
 
-fn hex_to_rgb(hex: UInt32) -> (UInt32, UInt32, UInt32):
+fn hex_to_rgb(hex: UInt32) -> (UInt8, UInt8, UInt8):
     """Converts a number in hexadecimal format to red, green, and blue values.
     `r, g, b = hex_to_rgb(0x0000FF) # (0, 0, 255)`.
 
@@ -391,10 +383,15 @@ fn hex_to_rgb(hex: UInt32) -> (UInt32, UInt32, UInt32):
     Returns:
         The red, green, and blue values.
     """
-    return hex >> 16, hex >> 8 & 0xFF, hex & 0xFF
+    # Downcast to UInt8 to ensure the values are in the correct range, 0-255.
+    # Better to truncate down to 255 rather than try to handle unexpectedly large values.
+    var r = (hex >> 16).cast[DType.uint8]()
+    var g = (hex >> 8 & 0xFF).cast[DType.uint8]()
+    var b = (hex & 0xFF).cast[DType.uint8]()
+    return r, g, b
 
 
-fn rgb_to_hex(r: UInt32, g: UInt32, b: UInt32) -> UInt32:
+fn rgb_to_hex(r: UInt8, g: UInt8, b: UInt8) -> UInt32:
     """Converts red, green, and blue values to a number in hexadecimal format.
     `hex = rgb_to_hex(0, 0, 255) # 0x0000FF`.
 
@@ -406,12 +403,12 @@ fn rgb_to_hex(r: UInt32, g: UInt32, b: UInt32) -> UInt32:
     Returns:
         The hex value.
     """
-    return (r << 16) | (g << 8) | b
+    return (r.cast[DType.uint32]() << 16) | (g.cast[DType.uint32]() << 8) | b.cast[DType.uint32]()
 
 
 @register_passable("trivial")
 struct RGBColor(Color):
-    """RGBColor is a hex-encoded color, e.g. '0xabcdef'."""
+    """RGBColor is a hex-encoded color, e.g. `0xabcdef`."""
 
     var value: UInt32
     """The hex-encoded color value."""
@@ -489,7 +486,7 @@ struct RGBColor(Color):
         """
         return self.value != other.value
 
-    fn to_rgb(self) -> (UInt32, UInt32, UInt32):
+    fn to_rgb(self) -> (UInt8, UInt8, UInt8):
         """Converts the RGB Color to an RGB Tuple.
 
         Returns:
@@ -497,10 +494,10 @@ struct RGBColor(Color):
         """
         return hex_to_rgb(self.value)
 
-    fn sequence(self, is_background: Bool) -> String:
+    fn sequence[is_background: Bool](self) -> String:
         """Converts the RGB Color to an ANSI Sequence.
 
-        Args:
+        Parameters:
             is_background: Whether the color is a background color.
 
         Returns:
@@ -508,6 +505,8 @@ struct RGBColor(Color):
         """
         var rgb = hex_to_rgb(self.value)
         var output = String(capacity=8)
+
+        @parameter
         if is_background:
             output.write(BACKGROUND)
         else:
@@ -517,7 +516,7 @@ struct RGBColor(Color):
         return output
 
 
-fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
+fn ansi256_to_ansi(value: UInt8) -> UInt8:
     """Converts an ANSI256 color to an ANSI color.
 
     Args:
@@ -526,12 +525,13 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
     Returns:
         The ANSI color value.
     """
-    var r = 0
+    alias MAX_ANSI = 16
+    var r: UInt8 = 0
     var md = hue.MAX_FLOAT64
     var h = hex_to_rgb(ANSI_HEX_CODES[int(value)])
     var h_color = hue.Color(R=h[0], G=h[1], B=h[2])
 
-    for i in range(16):
+    for i in range(MAX_ANSI):
         var hb = hex_to_rgb(ANSI_HEX_CODES[int(i)])
         var d = h_color.distance_HSLuv(hue.Color(R=hb[0], G=hb[1], B=hb[2]))
 
@@ -539,7 +539,7 @@ fn ansi256_to_ansi(value: UInt32) -> ANSIColor:
             md = d
             r = i
 
-    return ANSIColor(r)
+    return r
 
 
 fn _v2ci(value: Float64) -> Int:
@@ -558,7 +558,7 @@ fn _v2ci(value: Float64) -> Int:
     return int((value - 35) / 40)
 
 
-fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
+fn hex_to_ansi256(color: hue.Color) -> UInt8:
     """Converts a hex code to a ANSI256 color.
 
     Args:
@@ -574,13 +574,13 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
     var b = _v2ci(color.B)
 
     # Calculate the represented colors back from the index
-    alias i2cv = InlineArray[UInt32, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
+    alias i2cv = InlineArray[UInt8, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
     var cr = i2cv[r]  # r/g/b, 0..255 each
     var cg = i2cv[g]
     var cb = i2cv[b]
 
     # Calculate the nearest 0-based gray index at 232..255
-    var gray_index: UInt32
+    var gray_index: UInt8
     var average = (r + g + b) / 3
     if average > 238:
         gray_index = 23
@@ -594,6 +594,101 @@ fn hex_to_ansi256(color: hue.Color) -> ANSI256Color:
     var gray_dist = color.distance_HSLuv(hue.Color(R=gv, G=gv, B=gv))
 
     if color_dist <= gray_dist:
-        var ci = int((36 * r) + (6 * g) + b)  # 0..215
-        return ANSI256Color(16 + ci)
-    return ANSI256Color(232 + gray_index)
+        var ci: UInt8 = (36 * r) + (6 * g) + b  # 0..215
+        return 16 + ci
+    return 232 + gray_index
+
+
+@value
+struct AnyColor:
+    """`AnyColor` is a `Variant` which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`."""
+
+    alias _type = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
+    """The internal type of the `AnyColor`."""
+    var value: Self._type
+    """The color value."""
+
+    @implicit
+    fn __init__(out self, value: NoColor):
+        """Initializes the AnyColor with a value.
+
+        Args:
+            value: The color value.
+        """
+        self.value = value
+
+    @implicit
+    fn __init__(out self, value: ANSIColor):
+        """Initializes the AnyColor with a value.
+
+        Args:
+            value: The color value.
+        """
+        self.value = value
+
+    @implicit
+    fn __init__(out self, value: ANSI256Color):
+        """Initializes the AnyColor with a value.
+
+        Args:
+            value: The color value.
+        """
+        self.value = value
+
+    @implicit
+    fn __init__(out self, value: RGBColor):
+        """Initializes the AnyColor with a value.
+
+        Args:
+            value: The color value.
+        """
+        self.value = value
+
+    fn __init__(out self, other: Self):
+        """Initializes the AnyColor with another AnyColor.
+
+        Args:
+            other: The AnyColor to copy.
+        """
+        self.value = other.value
+
+    fn sequence[is_background: Bool](self) -> String:
+        """Sequence returns the ANSI Sequence for the color.
+
+        Parameters:
+            is_background: Whether the color is a background color.
+
+        Returns:
+            The ANSI Sequence for the color.
+        """
+        # Internal type is a variant, so these branches exhaustively match all types.
+        if self.value.isa[ANSIColor]():
+            return self.value[ANSIColor].sequence[is_background]()
+        elif self.value.isa[ANSI256Color]():
+            return self.value[ANSI256Color].sequence[is_background]()
+        elif self.value.isa[RGBColor]():
+            return self.value[RGBColor].sequence[is_background]()
+
+        return self.value[NoColor].sequence[is_background]()
+
+    fn isa[T: CollectionElement](self) -> Bool:
+        """Checks if the value is of the given type.
+
+        Parameters:
+            T: The type to check against.
+
+        Returns:
+            True if the value is of the given type, False otherwise.
+        """
+        return self.value.isa[T]()
+
+    fn __getitem__[T: CollectionElement](ref self) -> ref [self.value] T:
+        """Gets the value as the given type.
+
+        Parameters:
+            T: The type to get the value as.
+
+        Returns:
+            The value as the given type.
+        """
+        return self.value[T]

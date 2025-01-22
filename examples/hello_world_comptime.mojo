@@ -34,7 +34,6 @@ fn main():
         faint.render("faint"),
         italic.render("italic"),
         underline.render("underline"),
-        faint.render("faint"),
         crossout.render("crossout"),
         end="",
     )

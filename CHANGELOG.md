@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.1.11] - 2024-01-22
+
+- Moved some of the logic to compile time to reduce runtime overhead.
+- Switched `int_to_str` to just fetch a string from a lookup array. It's faster and simpler.
+- Changed the internal value for the ANSI colors to be UInt8, to constrain the values to 0-255.
+- Changed RGB Tuples from UInt32 to UInt8, to constrain the values to 0-255.
+
 ## [0.1.10] - 2024-12-21
 
 - Update profile detection to include a few more terminals.

@@ -76,15 +76,7 @@ fn set_foreground_color(color: AnyColor) raises:
     Args:
         color: The color to set.
     """
-    var c: String = ""
-    if color.isa[ANSIColor]():
-        c = color[ANSIColor].sequence(False)
-    elif color.isa[ANSI256Color]():
-        c = color[ANSI256Color].sequence(False)
-    elif color.isa[RGBColor]():
-        c = color[RGBColor].sequence(False)
-
-    print(OSC + SET_FOREGROUND_COLOR_SEQ.format(c), end="")
+    print(OSC + SET_FOREGROUND_COLOR_SEQ.format(color.sequence[False]()), end="")
 
 
 fn set_background_color(color: AnyColor) raises:
@@ -93,15 +85,7 @@ fn set_background_color(color: AnyColor) raises:
     Args:
         color: The color to set.
     """
-    var c: String = ""
-    if color.isa[ANSIColor]():
-        c = color[ANSIColor].sequence(True)
-    elif color.isa[ANSI256Color]():
-        c = color[ANSI256Color].sequence(True)
-    elif color.isa[RGBColor]():
-        c = color[RGBColor].sequence(True)
-
-    print(OSC + SET_BACKGROUND_COLOR_SEQ.format(c), end="")
+    print(OSC + SET_BACKGROUND_COLOR_SEQ.format(color.sequence[True]()), end="")
 
 
 fn set_cursor_color(color: AnyColor) raises:
@@ -110,15 +94,7 @@ fn set_cursor_color(color: AnyColor) raises:
     Args:
         color: The color to set.
     """
-    var c: String = ""
-    if color.isa[ANSIColor]():
-        c = color[ANSIColor].sequence(True)
-    elif color.isa[ANSI256Color]():
-        c = color[ANSI256Color].sequence(True)
-    elif color.isa[RGBColor]():
-        c = color[RGBColor].sequence(True)
-
-    print(OSC + SET_CURSOR_COLOR_SEQ.format(c), end="")
+    print(OSC + SET_CURSOR_COLOR_SEQ.format(color.sequence[True]()), end="")
 
 
 fn restore_screen():
