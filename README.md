@@ -28,47 +28,58 @@ Once we have type checking in Mojo, Colors will automatically be degraded to the
 import mist
 
 fn main() raises:
-    var a: String = "Hello World!"
     var profile = mist.Profile()
 
     # will automatically convert the color to the best matching color in the profile.
     # ANSI Color Support (0-15)
     var style = mist.Style().foreground(12)
-    print(style.render(a))
+    print(style.render("Hello World!"))
 
     # ANSI256 Color Support (16-255)
     style = mist.Style().foreground(55)
-    print(style.render(a))
+    print(style.render("Hello World!"))
 
     # RGBColor Support (Hex Codes)
     style = mist.Style().foreground(0xc9a0dc)
-    print(style.render(a))
+    print(style.render("Hello World!"))
 
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
     style = mist.Style(mist.ASCII_PROFILE).foreground(0xc9a0dc)
-    print(style.render(a))
+    print(style.render("Hello World!"))
 
     # ANSI Color Support (0-15)
     style = mist.Style(mist.ANSI_PROFILE).foreground(0xc9a0dc)
-    print(style.render(a))
+    print(style.render("Hello World!"))
 
     # ANSI256 Color Support (16-255)
     style = mist.Style(mist.ANSI256_PROFILE).foreground(0xc9a0dc)
-    print(style.render(a))
+    print(style.render("Hello World!"))
 
     # RGBColor Support (Hex Codes)
     style = mist.Style(mist.TRUE_COLOR_PROFILE).foreground(0xc9a0dc)
-    print(style.render(a))
+    print(style.render("Hello World!"))
 
     # It also supports using the Profile of the Style to instead of passing Profile().color().
     style = mist.Style(Profile(TRUE_COLOR)).foreground(0xc9a0dc)
-    print(style.render(a))
+    print(style.render("Hello World!"))
 
 ```
 
 ![Profiles](https://github.com/thatstoasty/mist/blob/main/doc/tapes/profiles.gif)
+
+### Setting the color profile as a build parameter
+
+If you want to set the color profile during the build process, you can do so by setting the `MIST_PROFILE` parameter environment variable. This will set the color profile for all styles that do not have a profile explicitly set.
+
+```bash
+mojo build my_file.mojo -D MIST_PROFILE=TRUE_COLOR
+# or...
+mojo my_file.mojo -D MIST_PROFILE=TRUE_COLOR
+```
+
+The valid values are: `TRUE_COLOR`, `ANSI256`, `ANSI`, `ASCII`. If it is not set, the profile will be automatically set based on the terminal's capabilities. However, if you're constructing a style at compile time, and you didn't set the profile explicitly nor did you set the `MIST_PROFILE` parameter environment variable, the compilation will fail as the terminal cannot be queried at that time.
 
 ## Styles
 

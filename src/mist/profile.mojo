@@ -1,5 +1,5 @@
 import os
-from sys.param_env import env_get_int
+from sys.param_env import env_get_string
 from collections import InlineArray
 import .hue
 from .color import (
@@ -101,16 +101,27 @@ struct Profile(ComparableCollectionElement, Writable, Stringable, Representable)
             If an invalid value is passed in, the profile will default to ASCII.
             This is to workaround the virtality of raising functions.
         """
-        alias profile = env_get_int["MIST_PROFILE", -1]()
+        alias profile = env_get_string["MIST_PROFILE", ""]()
 
         @parameter
-        if profile != -1:
+        if profile == "TRUE_COLOR":
+            self._value = TRUE_COLOR
+            return
+        elif profile == "ANSI256":
+            self._value = ANSI256
+            return
+        elif profile == "ANSI":
+            self._value = ANSI
+            return
+        elif profile == "ASCII":
+            self._value = ASCII
+            return
+        elif profile != "":
+            # A profile was passed, but was invalid. If none passed, move on to `get_color_profile`
             constrained[
-                profile in [TRUE_COLOR, ANSI256, ANSI, ASCII],
+                False,
                 "Invalid profile setting. Must be one of [TRUE_COLOR, ANSI256, ANSI, ASCII].",
             ]()
-            self._value = profile
-            return
 
         self = get_color_profile()
 
