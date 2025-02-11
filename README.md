@@ -313,3 +313,4 @@ Color chart lifted from <https://github.com/muesli/termenv>, give their projects
 ## TODO
 
 - Enable terminal querying for platforms other than UNIX based.
+- Support querying terminal background color and if it's light or dark.

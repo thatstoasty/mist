@@ -77,11 +77,11 @@ alias ESCAPE = "\x1b"
 """Escape character."""
 alias BEL = "\x07"
 """Bell character."""
-alias CSI = ESCAPE + "["
+alias CSI = "\x1b["
 """Control Sequence Introducer."""
-alias OSC = ESCAPE + "]"
+alias OSC = "\x1b]"
 """Operating System Command."""
-alias ST = ESCAPE + "\\"
+alias ST = "\x1b\\"
 """String Terminator."""
 
 alias CLEAR = "\x1b[2J\x1b[H"
@@ -116,13 +116,14 @@ struct Style(Movable, ExplicitlyCopyable, Stringable, Representable, Writable):
     var profile: Profile
     """The color profile to use for color conversion."""
 
-    fn __init__(out self, profile: Profile):
+    fn __init__(out self, profile: Profile, styles: List[String] = List[String]()):
         """Constructs a Style.
 
         Args:
             profile: The color profile to use for color conversion.
+            styles: The list of ANSI styles to apply to the text.
         """
-        self.styles = List[String]()
+        self.styles = styles
         self.profile = profile
 
     fn __init__(out self):
@@ -141,13 +142,14 @@ struct Style(Movable, ExplicitlyCopyable, Stringable, Representable, Writable):
         self.styles = other.styles
         self.profile = other.profile
 
+    @always_inline
     fn copy(self) -> Self:
         """Creates a copy of the Style.
 
         Returns:
             A new Style with the same styles and profile.
         """
-        return Self(self)
+        return Self(styles=self.styles, profile=self.profile)
 
     fn __moveinit__(out self, owned other: Style):
         """Constructs a Style from another Style.
@@ -728,15 +730,12 @@ struct Style(Movable, ExplicitlyCopyable, Stringable, Representable, Writable):
             The text with the styles applied.
         """
         if self.profile == Profile.ASCII or len(self.styles) == 0:
-            var result = String(capacity=len(text) + 1)
-            result.write(text)
-            return result
-
-        var result = String(capacity=Int(len(text) * 1.25 + len(self.styles) * 3))
+            return String(text)
 
         # 1. Write the SGR styles. The SGR function starts with CSI and ends with m. Styles are delimited by ;.
         # 2. Write the text.
         # 3. Write the reset SGR sequence to turn off any styles that have been applied.
+        var result = String(capacity=Int(len(text) * 1.25 + len(self.styles) * 3))
         result.write(CSI)
         for i in range(len(self.styles)):
             result.write(";", self.styles[i])

@@ -1,7 +1,9 @@
-import os
+from sys import external_call, os_is_linux, os_is_macos, os_is_windows
 from sys.param_env import env_get_string
 from sys.ffi import _Global
 from collections import InlineArray
+from collections.string import StringSlice
+from memory import UnsafePointer
 import .hue
 from .color import (
     NoColor,
@@ -25,7 +27,34 @@ alias ANSI_PROFILE = Profile(ANSI)
 alias ASCII_PROFILE = Profile(ASCII)
 
 
-# TODO: UNIX systems only for now. Need to add Windows, POSIX, and SOLARIS support.
+# Faster getenv implementation that doesn't need to convert StringLiterals to strings.
+fn getenv[name: StringLiteral, default: StringLiteral = ""]() -> String:
+    """Returns the value of the given environment variable.
+
+    Constraints:
+      The function only works on macOS or Linux and returns an empty string
+      otherwise.
+
+    Parameters:
+      name: The name of the environment variable.
+      default: The default value to return if the environment variable
+        doesn't exist.
+
+    Returns:
+      The value of the environment variable.
+    """
+    constrained[
+        not os_is_windows(), "operating system must be Linux or macOS"
+    ]()
+
+    var ptr = external_call["getenv", UnsafePointer[UInt8]](
+        name.unsafe_cstr_ptr()
+    )
+    if not ptr:
+        return default
+    return String(StringSlice[ptr.origin](unsafe_from_utf8_ptr=ptr))
+
+
 fn get_color_profile() -> Profile:
     """Queries the terminal to determine the color profile it supports.
     `ASCII`, `ANSI`, `ANSI256`, or `TRUE_COLOR`.
@@ -33,12 +62,12 @@ fn get_color_profile() -> Profile:
     Returns:
         The color profile the terminal supports.
     """
-    if os.getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
+    if getenv["GOOGLE_CLOUD_SHELL", "false"]() == "true":
         return Profile.TRUE_COLOR
 
     # TODO: Remove the conversion to lower case as it is consuming a fair bit of time in the critical path.
-    var term = os.getenv("TERM").lower()
-    var color_term = os.getenv("COLORTERM")
+    var term = getenv["TERM"]().lower()
+    var color_term = getenv["COLORTERM"]()
 
     # COLORTERM is used by some terminals to indicate TRUE_COLOR support.
     if color_term == "24bit":
@@ -46,7 +75,7 @@ fn get_color_profile() -> Profile:
     elif color_term == "truecolor":
         if term.startswith("screen"):
             # tmux supports TRUE_COLOR, screen only ANSI256
-            if os.getenv("TERM_PROGRAM") != "tmux":
+            if getenv["TERM_PROGRAM"]() != "tmux":
                 return Profile.ANSI256
         return Profile.TRUE_COLOR
     elif color_term == "yes":

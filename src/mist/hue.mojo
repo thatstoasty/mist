@@ -3,6 +3,7 @@ from collections import InlineArray
 from utils.numerics import max_finite
 
 
+@always_inline
 fn sq(v: Float64) -> Float64:
     """Returns the square of the given value.
 
@@ -15,6 +16,7 @@ fn sq(v: Float64) -> Float64:
     return v * v
 
 
+@always_inline
 fn clamp01(v: Float64) -> Float64:
     """Clamps from 0 to 1.
 
@@ -109,6 +111,7 @@ fn get_bounds(l: Float64) -> List[List[Float64]]:
     return ret
 
 
+@always_inline
 fn intersect_line_line(x1: Float64, y1: Float64, x2: Float64, y2: Float64) -> Float64:
     """Returns the intersection of two lines.
 
@@ -124,6 +127,7 @@ fn intersect_line_line(x1: Float64, y1: Float64, x2: Float64, y2: Float64) -> Fl
     return (y1 - y2) / (x2 - x1)
 
 
+@always_inline
 fn distance_from_pole(x: Float64, y: Float64) -> Float64:
     """Returns the distance from the pole.
 
@@ -1577,9 +1581,7 @@ fn LuvLChToLuv(l: Float64, c: Float64, h: Float64) -> (Float64, Float64, Float64
         The Luminance, u*, and v* values.
     """
     var H = 0.01745329251994329576 * h  # Deg2Rad
-    var u = c * math.cos(H)
-    var v = c * math.sin(H)
-    return l, u, v
+    return l, c * math.cos(H), c * math.sin(H)
 
 
 fn LuvLCh_white_ref(l: Float64, c: Float64, h: Float64, wref: List[Float64]) -> Color:
@@ -1623,10 +1625,7 @@ fn linearize(v: Float64) -> Float64:
     """
     if v <= 0.04045:
         return v / 12.92
-
-    var lhs: Float64 = (v + 0.055) / 1.055
-    var rhs: Float64 = 2.4
-    return lhs**rhs
+    return ((v + 0.055) / 1.055) ** 2.4
 
 
 fn linear_rgb_to_xyz(r: Float64, g: Float64, b: Float64) -> (Float64, Float64, Float64):
@@ -1640,10 +1639,11 @@ fn linear_rgb_to_xyz(r: Float64, g: Float64, b: Float64) -> (Float64, Float64, F
     Returns:
         The X, Y, and Z values.
     """
-    var x = 0.41239079926595948 * r + 0.35758433938387796 * g + 0.18048078840183429 * b
-    var y = 0.21263900587151036 * r + 0.71516867876775593 * g + 0.072192315360733715 * b
-    var z = 0.019330818715591851 * r + 0.11919477979462599 * g + 0.95053215224966058 * b
-    return x, y, z
+    return (
+        0.41239079926595948 * r + 0.35758433938387796 * g + 0.18048078840183429 * b,
+        0.21263900587151036 * r + 0.71516867876775593 * g + 0.072192315360733715 * b,
+        0.019330818715591851 * r + 0.11919477979462599 * g + 0.95053215224966058 * b
+    )
 
 
 fn luv_to_xyz_white_ref(l: Float64, u: Float64, v: Float64, wref: List[Float64]) -> (Float64, Float64, Float64):
