@@ -44,34 +44,34 @@ fn bench_render_with_background_color():
     _ = output
 
 
-fn bench_render_big_file():
-    var content: String = ""
-    try:
-        with open("./benchmarks/data/big.txt", "r") as file:
-            content = file.read()
-            var output = mist.render_as_color(content, 0xC9A0DC)
-            _ = output
-    except e:
-        print(e)
+# fn bench_render_big_file():
+#     var content: String = ""
+#     try:
+#         with open("./benchmarks/data/big.txt", "r") as file:
+#             content = file.read()
+#             var output = mist.render_as_color(content, 0xC9A0DC)
+#             _ = output
+#     except e:
+#         print(e)
 
 
 def main():
     print("Running bench_rendering_with_profiles")
-    var report = benchmark.run[bench_rendering_with_profiles](max_iters=20)
+    var report = benchmark.run[bench_rendering_with_profiles](max_iters=1000)
     report.print(benchmark.Unit.ms)
 
     print("Running bench_comptime_rendering_with_profiles")
-    report = benchmark.run[bench_comptime_rendering_with_profiles](max_iters=20)
+    report = benchmark.run[bench_comptime_rendering_with_profiles](max_iters=1000)
     report.print(benchmark.Unit.ms)
 
     print("Running bench_render_as_color")
-    report = benchmark.run[bench_render_as_color](max_iters=10)
+    report = benchmark.run[bench_render_as_color](max_iters=1000)
     report.print(benchmark.Unit.ms)
 
     print("Running bench_render_with_background_color")
-    report = benchmark.run[bench_render_with_background_color](max_iters=10)
+    report = benchmark.run[bench_render_with_background_color](max_iters=1000)
     report.print(benchmark.Unit.ms)
 
-    print("Running bench_render_big_file")
-    report = benchmark.run[bench_render_big_file](max_iters=10)
-    report.print(benchmark.Unit.ms)
+    # print("Running bench_render_big_file")
+    # report = benchmark.run[bench_render_big_file](max_iters=10)
+    # report.print(benchmark.Unit.ms)

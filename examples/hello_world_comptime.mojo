@@ -8,7 +8,7 @@ alias bold = true_color_style.bold()
 alias faint = true_color_style.faint()
 alias italic = true_color_style.italic()
 alias underline = true_color_style.underline()
-alias crossout = true_color_style.crossout()
+alias strikethrough = true_color_style.strikethrough()
 
 alias red = true_color_style.foreground(0xE88388)
 alias green = true_color_style.foreground(0xA8CC8C)
@@ -34,7 +34,7 @@ fn main():
         faint.render("faint"),
         italic.render("italic"),
         underline.render("underline"),
-        crossout.render("crossout"),
+        strikethrough.render("strikethrough"),
         end="",
     )
 

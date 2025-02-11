@@ -9,7 +9,7 @@ fn main():
     var faint = true_color_style.faint()
     var italic = true_color_style.italic()
     var underline = true_color_style.underline()
-    var crossout = true_color_style.crossout()
+    var strikethrough = true_color_style.strikethrough()
 
     var red = true_color_style.foreground(0xE88388)
     var green = true_color_style.foreground(0xA8CC8C)
@@ -32,7 +32,7 @@ fn main():
         faint.render("faint"),
         italic.render("italic"),
         underline.render("underline"),
-        crossout.render("crossout"),
+        strikethrough.render("strikethrough"),
         end="",
     )
 
