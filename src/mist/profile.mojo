@@ -1,5 +1,6 @@
 import os
 from sys.param_env import env_get_string
+from sys.ffi import _Global
 from collections import InlineArray
 import .hue
 from .color import (
@@ -35,8 +36,9 @@ fn get_color_profile() -> Profile:
     if os.getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
         return Profile.TRUE_COLOR
 
+    # TODO: Remove the conversion to lower case as it is consuming a fair bit of time in the critical path.
     var term = os.getenv("TERM").lower()
-    var color_term = os.getenv("COLORTERM").lower()
+    var color_term = os.getenv("COLORTERM")
 
     # COLORTERM is used by some terminals to indicate TRUE_COLOR support.
     if color_term == "24bit":
@@ -53,9 +55,13 @@ fn get_color_profile() -> Profile:
         return Profile.ANSI256
 
     # TERM is used by most terminals to indicate color support.
-    if term in ["alacritty", "contour", "rio", "wezterm", "xterm-ghostty", "xterm-kitty"]:
+    alias TRUE_COLOR_TERMINALS = InlineArray[String, 6](
+        "alacritty", "contour", "rio", "wezterm", "xterm-ghostty", "xterm-kitty"
+    )
+    alias ANSI_TERMINALS = InlineArray[String, 2]("linux", "xterm")
+    if term in TRUE_COLOR_TERMINALS:
         return Profile.TRUE_COLOR
-    elif term in ["linux", "xterm"]:
+    elif term in ANSI_TERMINALS:
         return Profile.ANSI
 
     if "256color" in term:
@@ -123,7 +129,7 @@ struct Profile(ComparableCollectionElement, Writable, Stringable, Representable)
                 "Invalid profile setting. Must be one of [TRUE_COLOR, ANSI256, ANSI, ASCII].",
             ]()
 
-        self = get_color_profile()
+        self._value = get_color_profile()._value
 
     fn __init__(out self, other: Self):
         """Initialize a new profile using the value of an existing profile.

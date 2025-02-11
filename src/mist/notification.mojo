@@ -8,6 +8,4 @@ fn notify(title: String, body: String) -> None:
         title: The title of the notification.
         body: The body of the notification.
     """
-    var output = String(capacity=14 + len(title) + len(body))
-    output.write(OSC, "777;notify;", title, ";", body, ST)
-    print(output, end="")
+    print(String(OSC, "777;notify;", title, ";", body, ST), end="")

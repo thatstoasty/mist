@@ -281,7 +281,7 @@ struct Color(Stringable, Representable, CollectionElementNew):
         var r = (hex >> 16).cast[DType.uint8]()
         var g = (hex >> 8 & 0xFF).cast[DType.uint8]()
         var b = (hex & 0xFF).cast[DType.uint8]()
-        self.__init__(r, g, b)
+        return self.__init__(r, g, b)
 
     fn __str__(self) -> String:
         """Returns the string representation of the color.
@@ -289,7 +289,15 @@ struct Color(Stringable, Representable, CollectionElementNew):
         Returns:
             The string representation of the color.
         """
-        return "Color(" + str(self.R) + ", " + str(self.G) + ", " + str(self.B) + ")"
+        return String(
+            "Color(",
+            String(self.R),
+            ", ",
+            String(self.G),
+            ", ",
+            String(self.B),
+            ")"
+        )
 
     fn __repr__(self) -> String:
         """Returns the string representation of the color.
@@ -297,7 +305,15 @@ struct Color(Stringable, Representable, CollectionElementNew):
         Returns:
             The string representation of the color.
         """
-        return "Color(" + str(self.R) + ", " + str(self.G) + ", " + str(self.B) + ")"
+        return String(
+            "Color(",
+            String(self.R),
+            ", ",
+            String(self.G),
+            ", ",
+            String(self.B),
+            ")"
+        )
 
     fn hex(self) -> UInt32:
         """Converts red, green, and blue values to a number in hexadecimal format.
@@ -305,7 +321,7 @@ struct Color(Stringable, Representable, CollectionElementNew):
         Returns:
             The hexadecimal representation of the color.
         """
-        return (int(self.R) << 16) | (int(self.G) << 8) | int(self.B)
+        return (Int(self.R) << 16) | (Int(self.G) << 8) | Int(self.B)
 
     fn linear_rgb(self) -> (Float64, Float64, Float64):
         """Converts the color into the linear color space (see http://www.sjbrown.co.uk/2004/05/14/gamma-correct-rendering/).

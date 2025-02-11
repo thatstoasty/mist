@@ -3,21 +3,6 @@ from collections import InlineArray
 import .hue
 from .ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
 
-
-# Workaround for str() not working at compile time due to using an external_call to c.
-fn int_to_str(value: UInt8, base: Int = 10) -> String:
-    """Converts an integer to a string.
-
-    Args:
-        value: The integer to convert to a string.
-        base: The base to convert the integer to.
-
-    Returns:
-        The string representation of the integer.
-    """
-    return COLOR_STRINGS[int(value)]
-
-
 alias FOREGROUND = "38"
 alias BACKGROUND = "48"
 
@@ -52,6 +37,14 @@ struct NoColor(Color):
             other: The `NoColor` color to copy.
         """
         pass
+
+    fn copy(self) -> Self:
+        """Copies the `NoColor`.
+
+        Returns:
+            A copy of the `NoColor`.
+        """
+        return self
 
     fn __eq__(self, other: NoColor) -> Bool:
         """Compares two colors for equality.
@@ -100,7 +93,7 @@ struct NoColor(Color):
         Returns:
             The string representation of the NoColor.
         """
-        return str(self)
+        return String(self)
 
     fn sequence[is_background: Bool](self) -> String:
         """Returns an empty string. This function is used to implement the Color trait.
@@ -148,6 +141,14 @@ struct ANSIColor(Color):
         """
         self.value = other.value
 
+    fn copy(self) -> Self:
+        """Copies the `ANSIColor`.
+
+        Returns:
+            A copy of the `ANSIColor`.
+        """
+        return self
+
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
 
@@ -157,7 +158,7 @@ struct ANSIColor(Color):
         Args:
             writer: The writer to write the data to.
         """
-        writer.write("ANSIColor(", str(self.value), ")")
+        writer.write("ANSIColor(", String(self.value), ")")
 
     fn __str__(self) -> String:
         """Converts the ANSIColor to a string.
@@ -173,7 +174,7 @@ struct ANSIColor(Color):
         Returns:
             The string representation of the ANSIColor.
         """
-        return str(self)
+        return String(self)
 
     fn __eq__(self, other: ANSIColor) -> Bool:
         """Compares two colors for equality.
@@ -223,8 +224,8 @@ struct ANSIColor(Color):
             modifier = 0
 
         if self.value < 8:
-            return int_to_str(modifier + self.value + 30)
-        return int_to_str(modifier + self.value - 8 + 90)
+            return COLOR_STRINGS[modifier + self.value + 30]
+        return COLOR_STRINGS[modifier + self.value - 8 + 90]
 
 
 @register_passable("trivial")
@@ -258,6 +259,14 @@ struct ANSI256Color(Color):
         """
         self.value = other.value
 
+    fn copy(self) -> Self:
+        """Copies the `ANSI256Color`.
+
+        Returns:
+            A copy of the `ANSI256Color`.
+        """
+        return self
+
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
 
@@ -267,7 +276,7 @@ struct ANSI256Color(Color):
         Args:
             writer: The writer to write the data to.
         """
-        writer.write("ANSI256Color(", str(self.value), ")")
+        writer.write("ANSI256Color(", String(self.value), ")")
 
     fn __str__(self) -> String:
         """Converts the color to a string.
@@ -283,7 +292,7 @@ struct ANSI256Color(Color):
         Returns:
             The string representation of the ANSI256Color.
         """
-        return str(self)
+        return String(self)
 
     fn __eq__(self, other: ANSI256Color) -> Bool:
         """Compares two colors for equality.
@@ -331,7 +340,7 @@ struct ANSI256Color(Color):
             output.write(BACKGROUND)
         else:
             output.write(FOREGROUND)
-        output.write(";5;", int_to_str(self.value))
+        output.write(";5;", COLOR_STRINGS[self.value])
 
         return output
 
@@ -351,7 +360,7 @@ fn ansi_to_rgb(ansi: UInt8) -> (UInt8, UInt8, UInt8):
 
     # Low ANSI.
     if ansi < 16:
-        return hex_to_rgb(ANSI_HEX_CODES[int(ansi)])
+        return hex_to_rgb(ANSI_HEX_CODES[Int(ansi)])
 
     # Grays.
     if ansi > 231:
@@ -437,6 +446,14 @@ struct RGBColor(Color):
         """
         self.value = other.value
 
+    fn copy(self) -> Self:
+        """Copies the `RGBColor`.
+
+        Returns:
+            A copy of the `RGBColor`.
+        """
+        return self
+
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
 
@@ -446,7 +463,7 @@ struct RGBColor(Color):
         Args:
             writer: The writer to write the data to.
         """
-        writer.write("RGBColor(", str(self.value), ")")
+        writer.write("RGBColor(", String(self.value), ")")
 
     fn __str__(self) -> String:
         """Converts the RGBColor to a string.
@@ -511,7 +528,7 @@ struct RGBColor(Color):
             output.write(BACKGROUND)
         else:
             output.write(FOREGROUND)
-        output.write(";2;", int_to_str(rgb[0]), ";", int_to_str(rgb[1]), ";", int_to_str(rgb[2]))
+        output.write(";2;", COLOR_STRINGS[rgb[0]], ";", COLOR_STRINGS[rgb[1]], ";", COLOR_STRINGS[rgb[2]])
 
         return output
 
@@ -528,11 +545,11 @@ fn ansi256_to_ansi(value: UInt8) -> UInt8:
     alias MAX_ANSI = 16
     var r: UInt8 = 0
     var md = hue.MAX_FLOAT64
-    var h = hex_to_rgb(ANSI_HEX_CODES[int(value)])
+    var h = hex_to_rgb(ANSI_HEX_CODES[Int(value)])
     var h_color = hue.Color(R=h[0], G=h[1], B=h[2])
 
     for i in range(MAX_ANSI):
-        var hb = hex_to_rgb(ANSI_HEX_CODES[int(i)])
+        var hb = hex_to_rgb(ANSI_HEX_CODES[Int(i)])
         var d = h_color.distance_HSLuv(hue.Color(R=hb[0], G=hb[1], B=hb[2]))
 
         if d < md:
@@ -555,7 +572,7 @@ fn _v2ci(value: Float64) -> Int:
         return 0
     elif value < 115:
         return 1
-    return int((value - 35) / 40)
+    return Int((value - 35) / 40)
 
 
 fn hex_to_ansi256(color: hue.Color) -> UInt8:
@@ -585,7 +602,7 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     if average > 238:
         gray_index = 23
     else:
-        gray_index = int((average - 3) / 10)  # 0..23
+        gray_index = Int((average - 3) / 10)  # 0..23
     var gv = 8 + 10 * gray_index  # same value for r/g/b, 0..255
 
     # Return the one which is nearer to the original input rgb value
