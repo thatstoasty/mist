@@ -1,5 +1,4 @@
 from mist.color import (
-    int_to_str,
     ANSIColor,
     ANSI256Color,
     RGBColor,
@@ -14,14 +13,6 @@ from mist.color import (
 )
 import mist.hue
 import testing
-
-
-def test_int_to_str():
-    testing.assert_equal(int_to_str(0), "0")
-    testing.assert_equal(int_to_str(5), "5")
-    testing.assert_equal(int_to_str(10), "10")
-    testing.assert_equal(int_to_str(100), "100")
-    testing.assert_equal(int_to_str(255), "255")
 
 
 def test_color_sequence():
@@ -75,7 +66,7 @@ def test_ansi_color_sequence():
 
 def test_stringify_ansi_color():
     var color = ANSIColor(0)
-    testing.assert_equal(str(color), "ANSIColor(0)")
+    testing.assert_equal(String(color), "ANSIColor(0)")
 
 
 def test_represent_ansi_color():
@@ -114,7 +105,7 @@ def test_ansi256_color_sequence():
 
 def test_stringify_ansi256_color():
     var color = ANSI256Color(0)
-    testing.assert_equal(str(color), "ANSI256Color(0)")
+    testing.assert_equal(String(color), "ANSI256Color(0)")
 
 
 def test_represent_ansi256_color():
@@ -153,7 +144,7 @@ def test_rgb_color_sequence():
 
 def test_stringify_rgb_color():
     var color = RGBColor(0xFFFFFF)
-    testing.assert_equal(str(color), "RGBColor(16777215)")
+    testing.assert_equal(String(color), "RGBColor(16777215)")
 
 
 def test_represent_rgb_color():

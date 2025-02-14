@@ -19,12 +19,12 @@ def test_profile_convert():
     )
 
     # Degrade Hex, and ANSI256 to ANSI
-    testing.assert_equal(str(mist.ANSI_PROFILE.convert(ANSI256Color(100))[ANSIColor].value), str(ANSIColor(3).value))
-    testing.assert_equal(str(mist.ANSI_PROFILE.convert(RGBColor(0xC9A0DC))[ANSIColor].value), str(ANSIColor(5).value))
+    testing.assert_equal(String(mist.ANSI_PROFILE.convert(ANSI256Color(100))[ANSIColor].value), String(ANSIColor(3).value))
+    testing.assert_equal(String(mist.ANSI_PROFILE.convert(RGBColor(0xC9A0DC))[ANSIColor].value), String(ANSIColor(5).value))
 
     # Degrade Hex to ANSI256
     testing.assert_equal(
-        str(mist.ANSI256_PROFILE.convert(RGBColor(0xC9A0DC))[ANSI256Color].value), str(ANSI256Color(182).value)
+        String(mist.ANSI256_PROFILE.convert(RGBColor(0xC9A0DC))[ANSI256Color].value), String(ANSI256Color(182).value)
     )
 
 
@@ -33,10 +33,10 @@ def test_profile_color():
     testing.assert_equal(mist.ASCII_PROFILE.color(0xC9A0DC)[NoColor].sequence[False](), NoColor().sequence[False]())
 
     # ANSI256 profile will degrade the RGB color to the closest ANSI256 color.
-    testing.assert_equal(str(mist.ANSI256_PROFILE.color(0xC9A0DC)[ANSI256Color].value), str(ANSI256Color(182).value))
+    testing.assert_equal(String(mist.ANSI256_PROFILE.color(0xC9A0DC)[ANSI256Color].value), String(ANSI256Color(182).value))
 
     # ANSI profile will degrade the ANSI256 color to the closest ANSI color.
-    testing.assert_equal(str(mist.ANSI_PROFILE.convert(ANSI256Color(100))[ANSIColor].value), str(ANSIColor(3).value))
+    testing.assert_equal(String(mist.ANSI_PROFILE.convert(ANSI256Color(100))[ANSIColor].value), String(ANSIColor(3).value))
 
 
 def test_render_profiles():

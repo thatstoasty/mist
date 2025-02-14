@@ -260,7 +260,7 @@ alias ANSI_HEX_CODES = InlineArray[UInt32, 255](
 )
 """RGB values of ANSI colors (0-255)."""
 
-alias COLOR_STRINGS = InlineArray[StringLiteral, 256](
+alias COLOR_STRINGS = InlineArray[String, 256](
     "0",
     "1",
     "2",

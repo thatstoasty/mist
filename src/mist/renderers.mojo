@@ -364,8 +364,8 @@ fn overline[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return Style(profile).overline().render(text)
 
 
-fn crossout[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
-    """Render the text with the crossout style applied.
+fn strikethrough[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+    """Render the text with the strikethrough style applied.
 
     Parameters:
         T: The type of the text object.
@@ -378,5 +378,5 @@ fn crossout[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
         The crossed out text.
     """
     if profile == -1:
-        return Style().crossout().render(text)
-    return Style(profile).crossout().render(text)
+        return Style().strikethrough().render(text)
+    return Style(profile).strikethrough().render(text)

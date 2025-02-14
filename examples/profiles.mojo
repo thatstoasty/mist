@@ -41,7 +41,7 @@ fn renderers():
     print(mist.blue_background("Hello, world!"))
     print(mist.bold("Hello, world!"))
     print(mist.italic("Hello, world!"))
-    print(mist.crossout("Hello, world!"))
+    print(mist.strikethrough("Hello, world!"))
 
 
 fn main():

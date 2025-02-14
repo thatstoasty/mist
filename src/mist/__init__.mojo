@@ -1,5 +1,5 @@
 from .color import Color
-from .style import Style, Style
+from .style import Style
 from .profile import (
     Profile,
     ASCII,
@@ -34,6 +34,6 @@ from .renderers import (
     italic,
     underline,
     faint,
-    crossout,
+    strikethrough,
     overline,
 )
