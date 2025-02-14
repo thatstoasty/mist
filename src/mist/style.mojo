@@ -11,8 +11,11 @@ from .color import (
 )
 from .profile import get_color_profile, ASCII
 
+
 # Text formatting sequences
 struct SGR:
+    """Enum of ANSI SGR (Select Graphic Rendition) sequences."""
+
     alias RESET = "0"
     alias BOLD = "1"
     alias FAINT = "2"
@@ -193,6 +196,9 @@ struct Style(Movable, ExplicitlyCopyable, Stringable, Representable, Writable):
         Args:
             style: The ANSI style to add to the list of styles.
 
+        Returns:
+            A new Style with the added style.
+
         #### Notes:
         - The style being added must be a valid ANSI SGR sequence.
         - You can use the `SGR` enum for some common styles to apply.
@@ -206,6 +212,9 @@ struct Style(Movable, ExplicitlyCopyable, Stringable, Representable, Writable):
 
         Parameters:
             style: The ANSI style to add to the list of styles.
+
+        Returns:
+            A new Style with the style added.
 
         #### Notes:
         - The style being added must be a valid ANSI SGR sequence.
