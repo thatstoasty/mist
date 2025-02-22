@@ -97,7 +97,7 @@ trait SizedWritable(Sized, Writable):
     ...
 
 
-struct Style(Movable, ExplicitlyCopyable, Stringable, Representable, Writable):
+struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, Writable):
     """Style stores a list of styles to format text with.
     These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
@@ -153,6 +153,15 @@ struct Style(Movable, ExplicitlyCopyable, Stringable, Representable, Writable):
             A new Style with the same styles and profile.
         """
         return Self(styles=self.styles, profile=self.profile)
+
+    fn __copyinit__(out self, other: Style):
+        """Constructs a Style from another Style.
+
+        Args:
+            other: The Style to copy.
+        """
+        self.styles = other.styles
+        self.profile = other.profile
 
     fn __moveinit__(out self, owned other: Style):
         """Constructs a Style from another Style.
