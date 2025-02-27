@@ -3,6 +3,7 @@ from collections import InlineArray
 import .hue
 from .ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
 
+
 alias FOREGROUND = "38"
 alias BACKGROUND = "48"
 

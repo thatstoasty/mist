@@ -4,7 +4,7 @@ channels = ["conda-forge", "https://conda.modular.com/max"]
 description = "Mist lets you safely use advanced styling options on the terminal."
 name = "mist"
 platforms = ["osx-arm64", "linux-64"]
-version = "25.1.0"
+version = "25.1.1"
 license = "MIT"
 license-file = "LICENSE"
 homepage = "https://github.com/thatstoasty/mist"
@@ -19,13 +19,4 @@ build = { cmd = "python scripts/util.py build", env = { MODULAR_MOJO_IMPORT_PATH
 publish = { cmd = "python scripts/util.py publish", env = { PREFIX_API_KEY = "$PREFIX_API_KEY" } }
 
 [dependencies]
-max = "==25.1.0"
-
-[feature.nightly]
-channels = ["conda-forge", "https://conda.modular.com/max-nightly"]
-
-[feature.nightly.dependencies]
-max = "*"
-
-[environments]
-nightly = ["nightly"]
+max = ">=25.1.0,<25.2.0"
