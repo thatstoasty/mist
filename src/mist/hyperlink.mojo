@@ -1,4 +1,4 @@
-from .style import OSC, ST
+from mist.style import OSC, ST
 
 
 fn hyperlink(link: String, name: String) -> String:

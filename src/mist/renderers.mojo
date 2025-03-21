@@ -1,5 +1,5 @@
-from .style import Style, SizedWritable
-from .profile import Profile
+from mist.style import Style, SizedWritable
+from mist.profile import Profile
 
 
 alias RED = 0xE88388

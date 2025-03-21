@@ -1,4 +1,5 @@
 from collections import InlineArray
+from collections.string import StaticString
 
 alias ANSI_HEX_CODES = InlineArray[UInt32, 255](
     0x000000,
@@ -260,7 +261,7 @@ alias ANSI_HEX_CODES = InlineArray[UInt32, 255](
 )
 """RGB values of ANSI colors (0-255)."""
 
-alias COLOR_STRINGS = InlineArray[String, 256](
+alias COLOR_STRINGS = InlineArray[StaticString, 256](
     "0",
     "1",
     "2",

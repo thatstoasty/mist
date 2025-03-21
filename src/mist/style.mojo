@@ -1,4 +1,4 @@
-from .color import (
+from mist.color import (
     Color,
     NoColor,
     ANSIColor,
@@ -9,7 +9,7 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
 )
-from .profile import get_color_profile, ASCII
+from mist.profile import get_color_profile, ASCII
 
 
 # Text formatting sequences

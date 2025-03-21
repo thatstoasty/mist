@@ -1,5 +1,5 @@
-from .style import BEL, CSI, SGR, OSC
-from .color import AnyColor, NoColor, ANSIColor, ANSI256Color, RGBColor
+from mist.style import BEL, CSI, SGR, OSC
+from mist.color import AnyColor, NoColor, ANSIColor, ANSI256Color, RGBColor
 
 # Sequence definitions.
 ## Cursor positioning.
