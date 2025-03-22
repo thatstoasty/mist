@@ -8,7 +8,6 @@ from mist.color import (
     hex_to_rgb,
     rgb_to_hex,
     ansi256_to_ansi,
-    _v2ci,
     hex_to_ansi256,
 )
 import mist.hue

@@ -160,7 +160,7 @@ struct ANSIColor(Color):
         Args:
             writer: The writer to write the data to.
         """
-        writer.write("ANSIColor(", String(self.value), ")")
+        writer.write("ANSIColor(", self.value, ")")
 
     fn __str__(self) -> String:
         """Converts the ANSIColor to a string.
@@ -278,7 +278,7 @@ struct ANSI256Color(Color):
         Args:
             writer: The writer to write the data to.
         """
-        writer.write("ANSI256Color(", String(self.value), ")")
+        writer.write("ANSI256Color(", self.value, ")")
 
     fn __str__(self) -> String:
         """Converts the color to a string.
@@ -362,7 +362,7 @@ fn ansi_to_rgb(ansi: UInt8) -> (UInt8, UInt8, UInt8):
 
     # Low ANSI.
     if ansi < 16:
-        return hex_to_rgb(ANSI_HEX_CODES[Int(ansi)])
+        return hex_to_rgb(ANSI_HEX_CODES[ansi])
 
     # Grays.
     if ansi > 231:
@@ -465,7 +465,7 @@ struct RGBColor(Color):
         Args:
             writer: The writer to write the data to.
         """
-        writer.write("RGBColor(", String(self.value), ")")
+        writer.write("RGBColor(", self.value, ")")
 
     fn __str__(self) -> String:
         """Converts the RGBColor to a string.
@@ -522,7 +522,6 @@ struct RGBColor(Color):
         Returns:
             The ANSI Sequence for the color and the text.
         """
-        var rgb = hex_to_rgb(self.value)
         var output = String(capacity=8)
 
         @parameter
@@ -530,6 +529,7 @@ struct RGBColor(Color):
             output.write(BACKGROUND)
         else:
             output.write(FOREGROUND)
+        var rgb = hex_to_rgb(self.value)
         output.write(";2;", COLOR_STRINGS[rgb[0]], ";", COLOR_STRINGS[rgb[1]], ";", COLOR_STRINGS[rgb[2]])
 
         return output^
@@ -551,7 +551,7 @@ fn ansi256_to_ansi(value: UInt8) -> UInt8:
     var h_color = hue.Color(R=h[0], G=h[1], B=h[2])
 
     for i in range(MAX_ANSI):
-        var hb = hex_to_rgb(ANSI_HEX_CODES[Int(i)])
+        var hb = hex_to_rgb(ANSI_HEX_CODES[i])
         var d = h_color.distance_HSLuv(hue.Color(R=hb[0], G=hb[1], B=hb[2]))
 
         if d < md:
@@ -592,12 +592,6 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     var g = _value_to_color_index(color.G)
     var b = _value_to_color_index(color.B)
 
-    # Calculate the represented colors back from the index
-    alias i2cv = InlineArray[UInt8, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
-    var cr = i2cv[r]  # r/g/b, 0..255 each
-    var cg = i2cv[g]
-    var cb = i2cv[b]
-
     # Calculate the nearest 0-based gray index at 232..255
     var gray_index: UInt8
     var average = (r + g + b) / 3
@@ -606,6 +600,12 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     else:
         gray_index = Int((average - 3) / 10)  # 0..23
     var gv = 8 + 10 * gray_index  # same value for r/g/b, 0..255
+
+    # Calculate the represented colors back from the index
+    alias i2cv = InlineArray[UInt8, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
+    var cr = i2cv[r]  # r/g/b, 0..255 each
+    var cg = i2cv[g]
+    var cb = i2cv[b]
 
     # Return the one which is nearer to the original input rgb value
     # Originall had / 255.0 for r, g, and b in each of these

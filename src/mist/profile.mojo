@@ -1,9 +1,9 @@
-from sys import external_call, os_is_linux, os_is_macos, os_is_windows
+from sys import external_call, os_is_windows, is_compile_time
 from sys.param_env import env_get_string
-from sys.ffi import _Global
 from collections import InlineArray
 from collections.string import StringSlice
 from memory import UnsafePointer
+from os import abort
 import mist.hue
 from mist.color import (
     NoColor,
@@ -15,8 +15,6 @@ from mist.color import (
     ansi256_to_ansi,
     hex_to_rgb,
 )
-from sys import is_compile_time
-from os import abort
 
 alias TRUE_COLOR: Int = 0
 alias ANSI256: Int = 1
@@ -159,7 +157,7 @@ struct Profile(ComparableCollectionElement, Writable, Stringable, Representable)
         if is_compile_time():
             abort(
                 "No profile was set that could be evaluated at compilation time. Either set profile value explicitly,"
-                " set the MIST_PROFILE build parameter, or move the profile creation into a runtime context."
+                " set the MIST_PROFILE build parameter, or move the Profile or Style creation into a runtime context."
             )
 
         self._value = get_color_profile()._value

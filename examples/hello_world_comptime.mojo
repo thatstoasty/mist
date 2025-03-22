@@ -1,7 +1,6 @@
 import mist
 
 
-# Profile queries for the terminal profile at run time.
 alias true_color_style = mist.Style(mist.TRUE_COLOR)
 
 alias bold = true_color_style.bold()
