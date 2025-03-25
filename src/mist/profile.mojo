@@ -1,11 +1,11 @@
-from sys import external_call, os_is_linux, os_is_macos, os_is_windows
+from sys import external_call, os_is_windows, is_compile_time
 from sys.param_env import env_get_string
-from sys.ffi import _Global
 from collections import InlineArray
 from collections.string import StringSlice
 from memory import UnsafePointer
-import .hue
-from .color import (
+from os import abort
+import mist._hue as hue
+from mist.color import (
     NoColor,
     ANSIColor,
     ANSI256Color,
@@ -43,13 +43,9 @@ fn getenv[name: StringLiteral, default: StringLiteral = ""]() -> String:
     Returns:
       The value of the environment variable.
     """
-    constrained[
-        not os_is_windows(), "operating system must be Linux or macOS"
-    ]()
+    constrained[not os_is_windows(), "operating system must be Linux or macOS"]()
 
-    var ptr = external_call["getenv", UnsafePointer[UInt8]](
-        name.unsafe_cstr_ptr()
-    )
+    var ptr = external_call["getenv", UnsafePointer[UInt8]](name.unsafe_cstr_ptr())
     if not ptr:
         return default
     return String(StringSlice[ptr.origin](unsafe_from_utf8_ptr=ptr))
@@ -157,6 +153,12 @@ struct Profile(ComparableCollectionElement, Writable, Stringable, Representable)
                 False,
                 "Invalid profile setting. Must be one of [TRUE_COLOR, ANSI256, ANSI, ASCII].",
             ]()
+
+        if is_compile_time():
+            abort(
+                "No profile was set that could be evaluated at compilation time. Either set profile value explicitly,"
+                " set the MIST_PROFILE build parameter, or move the Profile or Style creation into a runtime context."
+            )
 
         self._value = get_color_profile()._value
 

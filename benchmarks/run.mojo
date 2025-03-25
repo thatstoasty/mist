@@ -1,47 +1,157 @@
 import benchmark
+from benchmark import ThroughputMeasure, BenchMetric, Bencher, Bench, BenchId, BenchConfig
+
+import pathlib
+import time
 import mist
 from mist.color import ANSIColor, ANSI256Color, RGBColor
+from mist import dedent, indent, margin, padding, truncate, word_wrap, wrap
 
 
-fn bench_rendering_with_profiles():
-    alias a = "Hello World!"
-    var profile = mist.Profile()
-    var style = mist.Style().foreground(color=profile.color(12))
-    var output = style.render(a)
-    output = style.foreground(color=profile.color(55)).render(a)
-    output = style.foreground(color=profile.color(0xC9A0DC)).render(a)
-    output = mist.Style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.Style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.Style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.Style(mist.TRUE_COLOR).foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.Style(mist.TRUE_COLOR).foreground(0xC9A0DC).render(a)
-    _ = output
+fn get_gbs_measure(input: String) raises -> ThroughputMeasure:
+    return ThroughputMeasure(BenchMetric.bytes, input.byte_length())
 
 
-fn bench_comptime_rendering_with_profiles():
-    alias a = "Hello World!"
-    alias profile = mist.TRUE_COLOR_PROFILE
-    alias style = mist.Style(profile).foreground(color=profile.color(12))
-    var output = style.render(a)
-
-    output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(55)).render(a)
-    output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.Style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.Style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(a)
-    output = mist.Style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(a)
-    output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(a)
-    output = style.foreground(0xC9A0DC).render(a)
-    _ = output
+fn run[func: fn (mut Bencher, String) raises capturing, name: String](mut m: Bench, data: String) raises:
+    m.bench_with_input[String, func](BenchId(name), data, get_gbs_measure(data))
 
 
-fn bench_render_as_color():
-    var output = mist.render_as_color("Hello, world!", 0xC9A0DC)
-    _ = output
+fn run[func: fn (mut Bencher) raises capturing, name: String](mut m: Bench) raises:
+    m.bench_function[func](BenchId(name))
 
 
-fn bench_render_with_background_color():
-    var output = mist.render_with_background_color("Hello, world!", 0xC9A0DC)
-    _ = output
+@parameter
+fn bench_rendering_with_profiles(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        alias a = "Hello World!"
+        var profile = mist.Profile()
+        var style = mist.Style().foreground(color=profile.color(12))
+        var output = style.render(s)
+        output = style.foreground(color=profile.color(55)).render(s)
+        output = style.foreground(color=profile.color(0xC9A0DC)).render(s)
+        output = mist.Style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(s)
+        output = mist.Style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(s)
+        output = mist.Style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(s)
+        output = mist.Style(mist.TRUE_COLOR).foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(s)
+        output = mist.Style(mist.TRUE_COLOR).foreground(0xC9A0DC).render(s)
+        _ = output
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_comptime_rendering_with_profiles(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        alias profile = mist.TRUE_COLOR_PROFILE
+        alias style = mist.Style(profile).foreground(color=profile.color(12))
+        var output = style.render(s)
+
+        output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(55)).render(s)
+        output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(s)
+        output = mist.Style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(s)
+        output = mist.Style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(s)
+        output = mist.Style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(s)
+        output = style.foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(s)
+        output = style.foreground(0xC9A0DC).render(s)
+        _ = output
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_render_as_color(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        var output = mist.render_as_color("Hello, world!", 0xC9A0DC)
+        _ = output
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_render_with_background_color(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        var output = mist.render_with_background_color("Hello, world!", 0xC9A0DC)
+        _ = output
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_indent(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        _ = indent(s, 4)
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_dedent(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        _ = dedent(s)
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_margin(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        _ = margin(s, 4, 4)
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_word_wrap(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        _ = word_wrap(s, 100)
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_wrap(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        _ = wrap(s, 100)
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_truncate(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        _ = truncate(s, 100)
+
+    b.iter[do]()
+
+
+@parameter
+fn bench_padding(mut b: Bencher, s: String) raises:
+    @always_inline
+    @parameter
+    fn do() raises:
+        _ = padding(s, 4)
+
+    b.iter[do]()
 
 
 # fn bench_render_big_file():
@@ -56,22 +166,33 @@ fn bench_render_with_background_color():
 
 
 def main():
-    print("Running bench_rendering_with_profiles")
-    var report = benchmark.run[bench_rendering_with_profiles](max_iters=1000)
-    report.print(benchmark.Unit.ms)
+    var config = BenchConfig()
+    config.verbose_timing = True
+    config.flush_denormals = True
+    config.show_progress = True
+    var bench_config = Bench(config)
 
-    print("Running bench_comptime_rendering_with_profiles")
-    report = benchmark.run[bench_comptime_rendering_with_profiles](max_iters=1000)
-    report.print(benchmark.Unit.ms)
-
-    print("Running bench_render_as_color")
-    report = benchmark.run[bench_render_as_color](max_iters=1000)
-    report.print(benchmark.Unit.ms)
-
-    print("Running bench_render_with_background_color")
-    report = benchmark.run[bench_render_with_background_color](max_iters=1000)
-    report.print(benchmark.Unit.ms)
+    alias text = "Hello World!"
+    run[bench_rendering_with_profiles, "bench_rendering_with_profiles"](bench_config, text)
+    run[bench_comptime_rendering_with_profiles, "bench_comptime_rendering_with_profiles"](bench_config, text)
+    run[bench_render_as_color, "bench_render_as_color"](bench_config, text)
+    run[bench_render_with_background_color, "bench_render_with_background_color"](bench_config, text)
 
     # print("Running bench_render_big_file")
     # report = benchmark.run[bench_render_big_file](max_iters=10)
     # report.print(benchmark.Unit.ms)
+
+    var path = String(pathlib._dir_of_current_file()) + "/data/big.txt"
+    var data: String
+    with open(path, "r") as file:
+        data = file.read()
+
+    run[bench_indent, "Indent"](bench_config, data)
+    run[bench_dedent, "Dedent"](bench_config, data)
+    run[bench_margin, "Margin"](bench_config, data)
+    run[bench_word_wrap, "WordWrap"](bench_config, data)
+    run[bench_wrap, "Wrap"](bench_config, data)
+    run[bench_truncate, "Truncate"](bench_config, data)
+    run[bench_padding, "Padding"](bench_config, data)
+
+    bench_config.dump_report()

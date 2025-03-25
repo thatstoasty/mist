@@ -1,5 +1,5 @@
-from .style import Style, SizedWritable
-from .profile import Profile
+from mist.style import Style
+from mist.profile import Profile
 
 
 alias RED = 0xE88388
@@ -12,7 +12,7 @@ alias GRAY = 0xB9BFCA
 
 
 # Convenience functions for quick style application
-fn render_as_color[T: SizedWritable, //](text: T, color: UInt32, profile: Int = -1) -> String:
+fn render_as_color[T: Writable, //](text: T, color: UInt32, profile: Int = -1) -> String:
     """Render the text with the given color.
 
     Parameters:
@@ -31,7 +31,7 @@ fn render_as_color[T: SizedWritable, //](text: T, color: UInt32, profile: Int = 
     return Style(profile).foreground(color).render(text)
 
 
-fn red[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn red[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply red color to the text.
 
     Parameters:
@@ -47,7 +47,7 @@ fn red[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_as_color(text, RED, profile)
 
 
-fn green[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn green[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply green color to the text.
 
     Parameters:
@@ -63,7 +63,7 @@ fn green[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_as_color(text, GREEN, profile)
 
 
-fn yellow[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn yellow[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply yellow color to the text.
 
     Parameters:
@@ -79,7 +79,7 @@ fn yellow[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_as_color(text, YELLOW, profile)
 
 
-fn blue[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn blue[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply blue color to the text.
 
     Parameters:
@@ -95,7 +95,7 @@ fn blue[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_as_color(text, BLUE, profile)
 
 
-fn magenta[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn magenta[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply magenta color to the text.
 
     Parameters:
@@ -111,7 +111,7 @@ fn magenta[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_as_color(text, MAGENTA, profile)
 
 
-fn cyan[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn cyan[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply cyan color to the text.
 
     Parameters:
@@ -127,7 +127,7 @@ fn cyan[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_as_color(text, CYAN, profile)
 
 
-fn gray[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn gray[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply gray color to the text.
 
     Parameters:
@@ -143,7 +143,7 @@ fn gray[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_as_color(text, GRAY, profile)
 
 
-fn render_with_background_color[T: SizedWritable, //](text: T, color: UInt32, profile: Int = -1) -> String:
+fn render_with_background_color[T: Writable, //](text: T, color: UInt32, profile: Int = -1) -> String:
     """Render the text with the given background color.
 
     Parameters:
@@ -162,7 +162,7 @@ fn render_with_background_color[T: SizedWritable, //](text: T, color: UInt32, pr
     return Style(profile).background(color).render(text)
 
 
-fn red_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn red_background[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply red background color to the text.
 
     Parameters:
@@ -178,7 +178,7 @@ fn red_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_with_background_color(text, RED, profile)
 
 
-fn green_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn green_background[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply green background color to the text.
 
     Parameters:
@@ -194,7 +194,7 @@ fn green_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_with_background_color(text, GREEN, profile)
 
 
-fn yellow_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn yellow_background[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply yellow background color to the text.
 
     Parameters:
@@ -210,7 +210,7 @@ fn yellow_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String
     return render_with_background_color(text, YELLOW, profile)
 
 
-fn blue_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn blue_background[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply blue background color to the text.
 
     Parameters:
@@ -226,7 +226,7 @@ fn blue_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_with_background_color(text, BLUE, profile)
 
 
-fn magenta_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn magenta_background[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply magenta background color to the text.
 
     Parameters:
@@ -242,7 +242,7 @@ fn magenta_background[T: SizedWritable, //](text: T, profile: Int = -1) -> Strin
     return render_with_background_color(text, MAGENTA, profile)
 
 
-fn cyan_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn cyan_background[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply cyan background color to the text.
 
     Parameters:
@@ -258,7 +258,7 @@ fn cyan_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_with_background_color(text, CYAN, profile)
 
 
-fn gray_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn gray_background[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Apply gray background color to the text.
 
     Parameters:
@@ -274,7 +274,7 @@ fn gray_background[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return render_with_background_color(text, GRAY, profile)
 
 
-fn bold[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn bold[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Render the text with the bold style applied.
 
     Parameters:
@@ -292,7 +292,7 @@ fn bold[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return Style(profile).bold().render(text)
 
 
-fn faint[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn faint[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Render the text with the faint style applied.
 
     Parameters:
@@ -310,7 +310,7 @@ fn faint[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return Style(profile).faint().render(text)
 
 
-fn italic[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn italic[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Render the text with the italic style applied.
 
     Parameters:
@@ -328,7 +328,7 @@ fn italic[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return Style(profile).italic().render(text)
 
 
-fn underline[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn underline[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Render the text with the underline style applied.
 
     Parameters:
@@ -346,7 +346,7 @@ fn underline[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return Style(profile).underline().render(text)
 
 
-fn overline[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn overline[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Render the text with the overline style applied.
 
     Parameters:
@@ -364,7 +364,7 @@ fn overline[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
     return Style(profile).overline().render(text)
 
 
-fn strikethrough[T: SizedWritable, //](text: T, profile: Int = -1) -> String:
+fn strikethrough[T: Writable, //](text: T, profile: Int = -1) -> String:
     """Render the text with the strikethrough style applied.
 
     Parameters:

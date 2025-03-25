@@ -1,4 +1,4 @@
-from .color import (
+from mist.color import (
     Color,
     NoColor,
     ANSIColor,
@@ -9,7 +9,7 @@ from .color import (
     hex_to_ansi256,
     ansi256_to_ansi,
 )
-from .profile import get_color_profile, ASCII
+from mist.profile import get_color_profile, ASCII
 
 
 # Text formatting sequences
@@ -89,12 +89,8 @@ alias ST = "\x1b\\"
 
 alias CLEAR = "\x1b[2J\x1b[H"
 """Clear terminal and return cursor to top left."""
-
-
-trait SizedWritable(Sized, Writable):
-    """Trait for types that are both `Sized` and `Writable`."""
-
-    ...
+alias RESET_STYLE = CSI + SGR.RESET + "m"
+"""Reset all styles."""
 
 
 struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, Writable):
@@ -735,7 +731,7 @@ struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, W
         """
         return self.add_style[SGR.BRIGHT_WHITE_BACKGROUND_COLOR]()
 
-    fn render[T: SizedWritable, //](self, text: T) -> String:
+    fn render[T: Writable, //](self, text: T) -> String:
         """Renders text with the styles applied to it.
 
         Parameters:
@@ -750,13 +746,4 @@ struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, W
         if self.profile == Profile.ASCII or len(self.styles) == 0:
             return String(text)
 
-        # 1. Write the SGR styles. The SGR function starts with CSI and ends with m. Styles are delimited by ;.
-        # 2. Write the text.
-        # 3. Write the reset SGR sequence to turn off any styles that have been applied.
-        var result = String(capacity=Int(len(text) * 1.25 + len(self.styles) * 3))
-        result.write(CSI)
-        for i in range(len(self.styles)):
-            result.write(";", self.styles[i])
-        result.write("m", text, CSI, SGR.RESET, "m")
-
-        return result^
+        return String(CSI, ";".join(self.styles), "m", text, RESET_STYLE)

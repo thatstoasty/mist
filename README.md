@@ -1,15 +1,20 @@
 # mist
 
-`mist` lets you safely use advanced styling options on the terminal. It offers you convenient methods to colorize and style your output, without you having to deal with all kinds of weird ANSI escape sequences and color conversions.
+`mist` is an ANSI aware toolkit that enables you to style and transform text on the terminal.
 
-This is a port/conversion of: <https://github.com/muesli/termenv/tree/master>.
-
-![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.1-orange)
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.2-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
 ![Test Status](https://github.com/thatstoasty/mist/actions/workflows/test.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![Example](https://github.com/thatstoasty/mist/blob/main/doc/images/hello_world.png)
+
+## Attributions
+
+This project was heavily inspired by:
+
+- <https://github.com/muesli/termenv/tree/master>
+- <https://github.com/muesli/reflow/tree/master>
 
 ## Installation
 
@@ -19,10 +24,10 @@ This is a port/conversion of: <https://github.com/muesli/termenv/tree/master>.
 
 ## Colors
 
-It also supports multiple color profiles: Ascii (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TRUE_COLOR (24-bit RGB). If profile is not explicitly provided, it will be automatically set based on the terminal's capabilities. And if a profile is set manually, it will also automatically degrade colors to the best matching color in the desired profile. For example, you provide a hex code but your profile is in ANSI. The library will automatically degrade the color to the best matching ANSI color.
+It also supports multiple color profiles: ASCII (black & white only), ANSI (16 colors), ANSI Extended (256 colors), and TRUE_COLOR (24-bit RGB). If profile is not explicitly provided, it will be automatically set based on the terminal's capabilities. And if a profile is set manually, it will also automatically degrade colors to the best matching color in the desired profile. For example, you provide a hex code but your profile is in ANSI. The library will automatically degrade the color to the best matching ANSI color.
 
 Once we have type checking in Mojo, Colors will automatically be degraded to the best matching available color in the desired profile:
-`TRUE_COLOR` => `ANSI 256 Colors` => `ANSI 16 Colors` => `Ascii`
+`TRUE_COLOR` => `ANSI (256 Colors)` => `ANSI (16 Colors)` => `ASCII`
 
 ```mojo
 import mist
@@ -89,7 +94,6 @@ You can apply text formatting effects to your text by setting the rules on the `
 import mist
 
 fn main() raises:
-    var a: String = "Hello World!"
     var style = mist.Style()
 
     # Text styles
@@ -106,7 +110,7 @@ fn main() raises:
     # Blinking text
     style = style.blink()
 
-    print(style.render(a))
+    print(style.render("Hello World!"))
 ```
 
 ## Compile Time Styles
@@ -146,7 +150,7 @@ fn main():
 ## Positioning
 
 ```mojo
-from mist.screen import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
+from mist.terminal.screen import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
 
 fn main() raises:
     # Move the cursor to a given position
@@ -182,7 +186,7 @@ fn main() raises:
 ## Screen
 
 ```mojo
-from mist.screen import reset, restore_screen, save_screen, alt_screen, exit_alt_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
+from mist.terminal.screen import reset, restore_screen, save_screen, alt_screen, exit_alt_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
 
 fn main() raises:
     # Reset the terminal to its default style, removing any active styles
@@ -224,7 +228,7 @@ fn main() raises:
 ## Example using cursor and screen operations
 
 ```mojo
-from mist.screen import cursor_back, clear_line_right
+from mist.terminal.screen import cursor_back, clear_line_right
 
 fn main():
     print("hello", end="")
@@ -239,7 +243,7 @@ Output
 ## Session
 
 ```mojo
-from mist.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
+from mist.terminal.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
 
 fn main() raises:
     # Sets the terminal window title
@@ -258,7 +262,7 @@ fn main() raises:
 ## Mouse
 
 ```mojo
-from mist.screen import enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
+from mist.terminal.screen import enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
 
 fn main() raises:
     # Enable X10 mouse mode, only button press events are sent
@@ -295,7 +299,7 @@ fn main() raises:
 ## Bracketed Paste
 
 ```mojo
-from mist.screen import enable_bracketed_paste, disable_bracketed_paste
+from mist.terminal.screen import enable_bracketed_paste, disable_bracketed_paste
 
 fn main() raises:
     # Enables bracketed paste mode
@@ -303,6 +307,143 @@ fn main() raises:
 
     # Disables bracketed paste mode
     disable_bracketed_paste()
+```
+
+## Text Transformation
+
+### Wrap (Unconditional Wrapping)
+
+The `wrap` module lets you unconditionally wrap strings or entire blocks of text.
+
+```mojo
+from mist.transform import wrap
+
+fn main():
+    print(wrap("Hello Sekai!", 5))
+```
+
+Output
+
+```txt
+Hello
+Sekai
+!
+```
+
+### Word wrap
+
+The `word_wrap` package lets you word-wrap strings or entire blocks of text.
+
+```mojo
+from mist.transform import word_wrap
+
+fn main():
+    print(word_wrap("Hello Sekai!", 6))
+```
+
+Output
+
+```txt
+Hello
+Sekai!
+```
+
+#### ANSI Example
+
+```mojo
+print(word_wrap("I really \x1B[38;2;249;38;114mlove\x1B[0m Mojo!", 10))
+```
+
+![ANSI Example Output](https://github.com/thatstoasty/mist/blob/main/doc/images/weave.png)
+
+### Indent
+
+The `indent` module lets you indent strings or entire blocks of text.
+
+```mojo
+from mist.transform import indent
+
+fn main():
+    print(indent("Hello\nWorld\n  TEST!", 5))
+```
+
+Output
+
+```txt
+     Hello
+     World
+       TEST!
+```
+
+### Dedent
+
+The `dedent` module lets you dedent strings or entire blocks of text.
+It takes the minimum indentation of all lines and removes that amount of leading whitespace from each line.
+
+```mojo
+from mist.transform import dedent
+
+fn main():
+    print(dedent("    Line 1!\n  Line 2!"))
+```
+
+Output
+
+```txt
+  Line 1!
+Line 2!
+```
+
+### Padding
+
+The `padding` module lets you right pad strings or entire blocks of text.
+
+```mojo
+from mist.transform import padding
+
+fn main():
+    print(padding("Hello\nWorld\nThis is my text!", 15))
+```
+
+Output
+
+```txt
+Hello
+World
+This is my text!
+```
+
+### Truncate
+
+```mojo
+from mist.transform import truncate
+
+fn main():
+    print(truncate("abcdefghikl\nasjdn", 5))
+```
+
+Output
+
+```txt
+abcde
+```
+
+### Chaining outputs
+
+```mojo
+from mist.transform import wrap
+from mist.transform import padding
+
+fn main():
+    print(padding(wrap("Hello Sekai!", 5), 5))
+```
+
+Output
+
+```txt
+Hello
+Sekai
+!
 ```
 
 ## Color Chart
