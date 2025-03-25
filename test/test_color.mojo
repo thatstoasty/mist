@@ -10,7 +10,7 @@ from mist.color import (
     ansi256_to_ansi,
     hex_to_ansi256,
 )
-import mist.hue
+import mist._hue as hue
 import testing
 
 

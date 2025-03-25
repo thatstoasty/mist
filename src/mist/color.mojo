@@ -1,8 +1,8 @@
 from utils import Variant
 from collections import InlineArray
 from collections.string import StaticString
-import mist.hue
-from mist.ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
+import mist._hue as hue
+from mist._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
 
 
 alias FOREGROUND = "38"

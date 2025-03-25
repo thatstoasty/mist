@@ -4,7 +4,7 @@ from collections import InlineArray
 from collections.string import StringSlice
 from memory import UnsafePointer
 from os import abort
-import mist.hue
+import mist._hue as hue
 from mist.color import (
     NoColor,
     ANSIColor,

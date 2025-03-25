@@ -1,6 +1,6 @@
-from .color import Color
-from .style import Style
-from .profile import (
+from mist.color import Color
+from mist.style import Style
+from mist.profile import (
     Profile,
     ASCII,
     ANSI,
@@ -13,7 +13,7 @@ from .profile import (
     AnyColor,
     NoColor,
 )
-from .renderers import (
+from mist.renderers import (
     render_as_color,
     render_with_background_color,
     red,
@@ -37,3 +37,10 @@ from .renderers import (
     strikethrough,
     overline,
 )
+from mist.transform.dedenter import dedent
+from mist.transform.indenter import indent
+from mist.transform.marginer import margin
+from mist.transform.padder import padding
+from mist.transform.truncater import truncate
+from mist.transform.wrapper import wrap
+from mist.transform.word_wrapper import word_wrap

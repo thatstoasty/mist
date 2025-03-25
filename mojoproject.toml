@@ -1,6 +1,6 @@
 [project]
 authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
-channels = ["conda-forge", "https://conda.modular.com/max-nightly"]
+channels = ["conda-forge", "https://conda.modular.com/max"]
 description = "Mist lets you safely use advanced styling options on the terminal."
 name = "mist"
 platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
