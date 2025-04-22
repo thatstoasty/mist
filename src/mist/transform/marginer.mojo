@@ -1,11 +1,8 @@
 import utils.write
-from utils import StringSlice
-from memory import Span
 import mist.transform.ansi
 import mist.transform.padder as padding
 import mist.transform.indenter as indent
 from mist.transform.bytes import ByteWriter
-from mist.transform.traits import AsStringSlice
 from mist.transform.unicode import string_width
 
 
@@ -14,7 +11,7 @@ struct Writer(Stringable, Writable, Movable):
 
     Example Usage:
     ```mojo
-    from weave import marginer as margin
+    from mist.transform import marginer as margin
 
     fn main():
         var writer = margin.Writer(5, 2)
@@ -99,36 +96,15 @@ struct Writer(Stringable, Writable, Movable):
         """
         return self.buf.as_bytes()
 
-    fn _write(mut self, text: StringSlice) -> None:
+    fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, with the
         padding and indentation applied.
 
         Args:
             text: The String to write.
         """
-        self.iw._write(text)
+        self.iw.write(text)
         self.pw.write(self.iw.consume())
-
-    fn write(mut self, text: StringLiteral) -> None:
-        """Writes the text, `content`, to the writer, with the
-        padding and indentation applied.
-
-        Args:
-            text: The String to write.
-        """
-        self._write(text)
-
-    fn write[T: AsStringSlice, //](mut self, text: T) -> None:
-        """Writes the text, `content`, to the writer, with the
-        padding and indentation applied.
-
-        Parameters:
-            T: The type of the Stringable object to dedent.
-
-        Args:
-            text: The String to write.
-        """
-        self._write(text.as_string_slice())
 
     fn close(mut self):
         """Will finish the margin operation. Always call it before trying to retrieve the final result."""
@@ -136,28 +112,8 @@ struct Writer(Stringable, Writable, Movable):
         self.buf.write(self.pw.consume())
 
 
-fn margin(text: StringLiteral, width: Int, margin: Int) -> String:
+fn margin(text: StringSlice, width: Int, margin: Int) -> String:
     """Right pads `text` with a `width` number of spaces, and indents it with `margin` spaces.
-
-    Args:
-        text: The content to apply the margin to.
-        width: The width of the margin.
-        margin: The margin to apply.
-
-    Returns:
-        A new margin applied string.
-    """
-    var writer = Writer(width, margin)
-    writer.write(text)
-    writer.close()
-    return writer.consume()
-
-
-fn margin[T: AsStringSlice, //](text: T, width: Int, margin: Int) -> String:
-    """Right pads `text` with a `width` number of spaces, and indents it with `margin` spaces.
-
-    Parameters:
-        T: The type of the Stringable object to dedent.
 
     Args:
         text: The content to apply the margin to.

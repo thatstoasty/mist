@@ -1,4 +1,3 @@
-from utils import StringSlice
 from collections import InlineArray
 from mist.transform._table import (
     Interval,
@@ -9,7 +8,6 @@ from mist.transform._table import (
     emoji,
     nonprint,
 )
-from mist.transform.traits import AsStringSlice
 
 
 @value
@@ -95,31 +93,6 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool]:
             width += self.char_width(codepoint)
         return width
 
-    fn string_width[T: AsStringSlice, //](self, content: T) -> Int:
-        """Return width as you can see.
-
-        Parameters:
-            T: The type of the AsStringSlice object.
-
-        Args:
-            content: The string to calculate the width of.
-
-        Returns:
-            The printable width of the string.
-        """
-        return self.string_width(content.as_string_slice())
-
-    fn string_width(self, content: StringLiteral) -> Int:
-        """Return width as you can see.
-
-        Args:
-            content: The string to calculate the width of.
-
-        Returns:
-            The printable width of the string.
-        """
-        return self.string_width(content.as_string_slice())
-
 
 fn in_tables(codepoint: Codepoint, *tables: InlineArray[Interval]) -> Bool:
     """Check if the codepoint is in any of the tables.
@@ -169,34 +142,7 @@ alias DEFAULT_CONDITION = Condition[east_asian_width=False, strict_emoji_neutral
 """The default configuration for calculating the width of runes and strings."""
 
 
-fn string_width[T: AsStringSlice, //](content: T) -> Int:
-    """Return width as you can see.
-
-    Parameters:
-        T: The type of the AsStringSlice object.
-
-    Args:
-        content: The string to calculate the width of.
-
-    Returns:
-        The printable width of the string.
-    """
-    return DEFAULT_CONDITION.string_width(content)
-
-
 fn string_width(content: StringSlice) -> Int:
-    """Return width as you can see.
-
-    Args:
-        content: The string to calculate the width of.
-
-    Returns:
-        The printable width of the string.
-    """
-    return DEFAULT_CONDITION.string_width(content)
-
-
-fn string_width(content: StringLiteral) -> Int:
     """Return width as you can see.
 
     Args:

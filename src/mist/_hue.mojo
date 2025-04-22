@@ -29,8 +29,6 @@ fn clamp01(v: Float64) -> Float64:
     return max(0.0, min(v, 1.0))
 
 
-alias PI: Float64 = 3.141592653589793238462643383279502884197169399375105820974944592307816406286
-"""The mathematical constant π."""
 alias MAX_FLOAT64: Float64 = max_finite[DType.float64]()
 """The maximum value of a 64-bit floating-point number."""
 
@@ -147,7 +145,7 @@ fn max_chroma_for_lh(l: Float64, h: Float64) -> Float64:
     Returns:
         The maximum chroma for the given luminance and hue.
     """
-    var h_rad = h / 360.0 * PI * 2.0
+    var h_rad = h / 360.0 * math.pi * 2.0
     var min_length = MAX_FLOAT64
     var bounds = get_bounds(l)
 
@@ -487,13 +485,13 @@ struct Color(Stringable, Representable, CollectionElementNew):
         if min == max:
             return 0.0, 0.0, l
 
-        var s = 0.0
+        var s: Float64
         if l < 0.5:
             s = (max - min) / (max + min)
         else:
             s = (max - min) / (2.0 - max - min)
 
-        var h = 0.0
+        var h: Float64
         if max == self.R:
             h = (self.G - self.B) / (max - min)
         elif max == self.G:
@@ -711,14 +709,14 @@ struct Color(Stringable, Representable, CollectionElementNew):
         if b1 != ap1 or ap1 != 0:
             hp1 = math.atan2(b1, ap1)
             if hp1 < 0:
-                hp1 += PI * 2
-            hp1 *= 180 / PI
+                hp1 += math.pi * 2
+            hp1 *= 180 / math.pi
         var hp2 = 0.0
         if b2 != ap2 or ap2 != 0:
             hp2 = math.atan2(b2, ap2)
             if hp2 < 0:
-                hp2 += PI * 2
-            hp2 *= 180 / PI
+                hp2 += math.pi * 2
+            hp2 *= 180 / math.pi
 
         var delta_Lp = l2 - l1
         var delta_Cp = cp2 - cp1
@@ -730,7 +728,7 @@ struct Color(Stringable, Representable, CollectionElementNew):
                 dhp -= 360
             elif dhp < -180:
                 dhp += 360
-        var delta_Hp = 2 * math.sqrt(cpProduct) * math.sin(dhp / 2 * PI / 180)
+        var delta_Hp = 2 * math.sqrt(cpProduct) * math.sin(dhp / 2 * math.pi / 180)
 
         var lp_mean = (l1 + l2) / 2
         var cp_mean = (cp1 + cp2) / 2
@@ -743,15 +741,15 @@ struct Color(Stringable, Representable, CollectionElementNew):
                 else:
                     hp_mean -= 180
 
-        var t = 1 - 0.17 * math.cos((hp_mean - 30) * PI / 180) + 0.24 * math.cos(
-            2 * hp_mean * PI / 180
-        ) + 0.32 * math.cos((3 * hp_mean + 6) * PI / 180) - 0.2 * math.cos((4 * hp_mean - 63) * PI / 180)
+        var t = 1 - 0.17 * math.cos((hp_mean - 30) * math.pi / 180) + 0.24 * math.cos(
+            2 * hp_mean * math.pi / 180
+        ) + 0.32 * math.cos((3 * hp_mean + 6) * math.pi / 180) - 0.2 * math.cos((4 * hp_mean - 63) * math.pi / 180)
         var delta_theta = 30 * math.exp(-sq((hp_mean - 275) / 25))
         var rc = 2 * math.sqrt((cp_mean**7) / ((cp_mean**7) + (p**7)))
         var sl = 1 + (0.015 * sq(lp_mean - 50)) / math.sqrt(20 + sq(lp_mean - 50))
         var sc = 1 + 0.045 * cp_mean
         var sh = 1 + 0.015 * cp_mean * t
-        var rt = -math.sin(2 * delta_theta * PI / 180) * rc
+        var rt = -math.sin(2 * delta_theta * math.pi / 180) * rc
 
         return (
             math.sqrt(
@@ -1267,7 +1265,7 @@ fn lab_f(t: Float64) -> Float64:
 
 fn xyz_to_lab(x: Float64, y: Float64, z: Float64) -> (Float64, Float64, Float64):
     """Use `D65` white as reference point by default.
-    http://www.fredmiranda.com/forum/toPIc/1035332
+    http://www.fredmiranda.com/forum/tomath.pic/1035332
     http://en.wikipedia.org/wiki/Standard_illuminant.
 
     Args:

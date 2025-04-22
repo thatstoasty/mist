@@ -1,6 +1,5 @@
-from utils import StringSlice
 from algorithm.memory import parallel_memcpy
-from memory import UnsafePointer, Span
+from memory import UnsafePointer
 
 
 struct ByteWriter(Writer, Writable, Stringable, Sized):
@@ -136,7 +135,8 @@ struct ByteWriter(Writer, Writable, Stringable, Sized):
             bytes_to_add: The number of bytes to add to the buffer.
         """
         # TODO: Handle the case where new_capacity is greater than MAX_INT. It should panic.
-        if bytes_to_add > self._capacity - self._size:
+        # 1 Byte reserved for null terminator.
+        if bytes_to_add > self._capacity - self._size - 1:
             new_capacity = Int(self._capacity * 2)
             if new_capacity < self._capacity + bytes_to_add:
                 new_capacity = self._capacity + bytes_to_add
@@ -170,9 +170,8 @@ struct ByteWriter(Writer, Writable, Stringable, Sized):
         Returns:
             The `String` constructed from the `ByteWriter`. Returns an empty string if the internal buffer is empty.
         """
-        bytes = List[Byte, True](ptr=self._data, length=self._size, capacity=self._capacity)
-        bytes.append(0)
-        result = String(bytes^)
+        self._data[self._size] = 0
+        result = String(unsafe_from_utf8_ptr=self._data)
 
         @parameter
         if reuse:

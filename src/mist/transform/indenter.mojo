@@ -1,8 +1,5 @@
-from collections.string import StringSlice
-from memory import Span
 import utils.write
 from mist.transform.bytes import ByteWriter
-from mist.transform.traits import AsStringSlice
 import mist.transform.ansi
 from mist.transform.ansi import SPACE, NEWLINE_BYTE
 
@@ -12,7 +9,7 @@ struct Writer(Stringable, Writable, Movable):
 
     Example Usage:
     ```mojo
-    from weave import indenter as indent
+    from mist.transform import indenter as indent
 
     fn main():
         var writer = indent.Writer(4)
@@ -79,7 +76,7 @@ struct Writer(Stringable, Writable, Movable):
         """
         return self.ansi_writer.forward.consume()
 
-    fn _write(mut self, text: StringSlice) -> None:
+    fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `text`, to the writer,
         indenting each line by `self.indent` spaces.
 
@@ -107,29 +104,8 @@ struct Writer(Stringable, Writable, Movable):
 
             self.ansi_writer.write(codepoint)
 
-    fn write(mut self, text: StringLiteral) -> None:
-        """Writes the text, `text`, to the writer,
-        indenting each line by `self.indent` spaces.
 
-        Args:
-            text: The content to write.
-        """
-        self._write(text.as_string_slice())
-
-    fn write[T: AsStringSlice, //](mut self, text: T) -> None:
-        """Writes the text, `text`, to the writer,
-        indenting each line by `self.indent` spaces.
-
-        Parameters:
-            T: The type of the AsStringSlice object.
-
-        Args:
-            text: The content to write.
-        """
-        self._write(text.as_string_slice())
-
-
-fn indent(text: StringLiteral, indent: Int) -> String:
+fn indent(text: StringSlice, indent: Int) -> String:
     """Indents `text` with a `indent` number of spaces.
 
     Args:
@@ -141,34 +117,7 @@ fn indent(text: StringLiteral, indent: Int) -> String:
 
     #### Examples:
     ```mojo
-    from weave import indent
-
-    fn main():
-        print(indent("Hello, World!", 4))
-    ```
-    .
-    """
-    var writer = Writer(indent)
-    writer.write(text)
-    return writer.consume()
-
-
-fn indent[T: AsStringSlice, //](text: T, indent: Int) -> String:
-    """Indents `text` with a `indent` number of spaces.
-
-    Parameters:
-        T: The type of the Stringable object.
-
-    Args:
-        text: The string to indent.
-        indent: The number of spaces to indent.
-
-    Returns:
-        A new indented string.
-
-    Examples:
-    ```mojo
-    from weave import indent
+    from mist import indent
 
     fn main():
         print(indent("Hello, World!", 4))

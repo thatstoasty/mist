@@ -1,10 +1,7 @@
 import utils.write
-from utils import StringSlice
-from memory import Span
 import mist.transform.ansi
 from mist.transform.ansi import SPACE, NEWLINE_BYTE
 from mist.transform.bytes import ByteWriter
-from mist.transform.traits import AsStringSlice
 from mist.transform.unicode import char_width
 
 
@@ -13,7 +10,7 @@ struct Writer(Stringable, Writable, Movable):
 
     Example Usage:
     ```mojo
-    from weave import padder as padding
+    from mist.transform import padder as padding
 
     fn main():
         var writer = padding.Writer(4)
@@ -93,7 +90,7 @@ struct Writer(Stringable, Writable, Movable):
         """
         return self.cache.consume()
 
-    fn _write(mut self, text: StringSlice) -> None:
+    fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer,
         padding the text with a `self.width` number of spaces.
 
@@ -117,27 +114,6 @@ struct Writer(Stringable, Writable, Movable):
 
             self.ansi_writer.write(codepoint)
 
-    fn write(mut self, src: StringLiteral) -> None:
-        """Writes the text, `content`, to the writer,
-        padding the text with a `self.width` number of spaces.
-
-        Args:
-            src: The content to write.
-        """
-        self._write(src)
-
-    fn write[T: AsStringSlice, //](mut self, src: T) -> None:
-        """Writes the text, `content`, to the writer,
-        padding the text with a `self.width` number of spaces.
-
-        Parameters:
-            T: The type of the Stringable object.
-
-        Args:
-            src: The content to write.
-        """
-        self._write(src.as_string_slice())
-
     fn pad(mut self):
         """Pads the current line with spaces to the given width."""
         if self.padding > 0 and self.line_len < self.padding:
@@ -154,7 +130,7 @@ struct Writer(Stringable, Writable, Movable):
         self.in_ansi = False
 
 
-fn padding(text: StringLiteral, width: Int) -> String:
+fn padding(text: StringSlice, width: Int) -> String:
     """Right pads `text` with a `width` number of spaces.
 
     Args:
@@ -166,36 +142,7 @@ fn padding(text: StringLiteral, width: Int) -> String:
 
     Example Usage:
     ```mojo
-    from weave import padding
-
-    fn main():
-        var padded = padding("Hello, World!", 5)
-        print(padded)
-    ```
-    .
-    """
-    var writer = Writer(width)
-    writer.write(text)
-    writer.flush()
-    return writer.consume()
-
-
-fn padding[T: AsStringSlice, //](text: T, width: Int) -> String:
-    """Right pads `text` with a `width` number of spaces.
-
-    Parameters:
-        T: The type of the AsStringSlice object.
-
-    Args:
-        text: The string to pad.
-        width: The padding width.
-
-    Returns:
-        A new padded string.
-
-    Example Usage:
-    ```mojo
-    from weave import padding
+    from mist import padding
 
     fn main():
         var padded = padding("Hello, World!", 5)
