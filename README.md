@@ -2,7 +2,7 @@
 
 `mist` is an ANSI aware toolkit that enables you to style and transform text on the terminal.
 
-![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.2-orange)
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.3-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
 ![Test Status](https://github.com/thatstoasty/mist/actions/workflows/test.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
