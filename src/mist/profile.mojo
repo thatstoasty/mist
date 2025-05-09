@@ -74,7 +74,7 @@ fn get_color_profile() -> Profile:
 
 
 @register_passable("trivial")
-struct Profile(ComparableCollectionElement, Writable, Stringable, Representable):
+struct Profile(Comparable, Movable, Copyable, Writable, Stringable, Representable):
     """The color profile for the terminal."""
 
     var _value: Int
@@ -130,11 +130,11 @@ struct Profile(ComparableCollectionElement, Writable, Stringable, Representable)
                 "Invalid profile setting. Must be one of [TRUE_COLOR, ANSI256, ANSI, ASCII].",
             ]()
 
-        if is_compile_time():
-            abort(
-                "No profile was set that could be evaluated at compilation time. Either set profile value explicitly,"
-                " set the MIST_PROFILE build parameter, or move the Profile or Style creation into a runtime context."
-            )
+        # if is_compile_time():
+        #     abort(
+        #         "No profile was set that could be evaluated at compilation time. Either set profile value explicitly,"
+        #         " set the MIST_PROFILE build parameter, or move the Profile or Style creation into a runtime context."
+        #     )
 
         self._value = get_color_profile()._value
 
@@ -278,7 +278,7 @@ struct Profile(ComparableCollectionElement, Writable, Stringable, Representable)
             return NoColor()
 
         if self != Self.TRUE_COLOR:
-            var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color.value)))
+            var ansi256 = hex_to_ansi256(hue.Color(color.value))
             if self == Self.ANSI:
                 return ANSIColor(ansi256_to_ansi(ansi256.value))
 

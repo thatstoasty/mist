@@ -1,10 +1,10 @@
 [project]
 authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
-channels = ["conda-forge", "https://conda.modular.com/max-nightly"]
+channels = ["conda-forge", "https://conda.modular.com/max"]
 description = "Mist lets you safely use advanced styling options on the terminal."
 name = "mist"
 platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
-version = "25.2.0"
+version = "25.3.0"
 license = "MIT"
 license-file = "LICENSE"
 homepage = "https://github.com/thatstoasty/mist"
@@ -19,5 +19,4 @@ build = { cmd = "python scripts/util.py build", env = { MODULAR_MOJO_IMPORT_PATH
 publish = { cmd = "python scripts/util.py publish", env = { PREFIX_API_KEY = "$PREFIX_API_KEY" } }
 
 [dependencies]
-# max = ">=25.2.0,<25.3.0"
-max = "*"
+max = ">=25.3.0,<25.4.0"

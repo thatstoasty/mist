@@ -1,4 +1,6 @@
 import math
+from sys import is_compile_time
+from os import abort
 from collections import InlineArray
 from utils.numerics import max_finite
 
@@ -222,7 +224,7 @@ fn LuvLch_to_HSLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, 
 
 @value
 @register_passable("trivial")
-struct Color(Stringable, Representable, CollectionElementNew):
+struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
     """A color represented by red, green, and blue values."""
 
     var R: Float64
@@ -513,7 +515,7 @@ struct Color(Stringable, Representable, CollectionElementNew):
         Returns:
             The linear RGB values.
         """
-        return delinearize_fast(self.R), delinearize_fast(self.G), delinearize_fast(self.B)
+        return linearize_fast(self.R), linearize_fast(self.G), linearize_fast(self.B)
 
     fn blend_linear_rgb(self, c2: Self, t: Float64) -> Self:
         """Blends two colors in the Linear RGB color-space.
@@ -1213,18 +1215,12 @@ fn xyy_to_xyz(x: Float64, y: Float64, Y: Float64) -> (Float64, Float64, Float64)
     Returns:
         The XYZ values.
     """
-    var Yout = y
-    var X = x
-    var Z = 0.0
-
     if -1e-14 < y and y < 1e-14:
-        X = 0.0
-        Z = 0.0
-    else:
-        X = Y / y * x
-        Z = Y / y * (1.0 - x - y)
+        return 0.0, Y, 0.0
 
-    return x, y, Yout
+    var X = Y / y * x
+    var Z = Y / y * (1.0 - x - y)
+    return X, Y, Z
 
 
 fn xyy(x: Float64, y: Float64, Y: Float64) -> Color:
@@ -1238,9 +1234,6 @@ fn xyy(x: Float64, y: Float64, Y: Float64) -> Color:
     Returns:
         The new Color.
     """
-    var X: Float64
-    var new_Y: Float64
-    var Z: Float64
     X, new_Y, Z = xyy_to_xyz(x, y, Y)
     return xyz(X, new_Y, Z)
 
@@ -1259,6 +1252,8 @@ fn lab_f(t: Float64) -> Float64:
         The calculated value.
     """
     if t > 6.0 / 29.0 * 6.0 / 29.0 * 6.0 / 29.0:
+        # if is_compile_time():
+        #     abort("Cannot call `math.cbrt` at compile time. Please execute it at runtime.")
         return math.cbrt(t)
     return t / 3.0 * 29.0 / 6.0 * 29.0 / 6.0 + 4.0 / 29.0
 
@@ -1647,19 +1642,16 @@ fn luv_to_xyz_white_ref(
     else:
         y = wref[1] * ((l + 0.16) / 1.16) ** 3
 
-    var un: Float64 = 0
-    var vn: Float64 = 0
     un, vn = xyz_to_uv(wref[0], wref[1], wref[2])
 
-    var x: Float64 = 0
-    var z: Float64 = 0
+    var x = 0.0
+    var z = 0.0
     if l != 0.0:
         var ubis = (u / (13.0 * l)) + un
         var vbis = (v / (13.0 * l)) + vn
         x = y * 9.0 * ubis / (4.0 * vbis)
         z = y * (12.0 - (3.0 * ubis) - (20.0 * vbis)) / (4.0 * vbis)
     else:
-        x = 0.0
         y = 0.0
 
     return x, y, z
@@ -1711,20 +1703,14 @@ fn xyz_to_Luv_white_ref(
     if y / wref[1] <= 6.0 / 29.0 * 6.0 / 29.0 * 6.0 / 29.0:
         l = y / wref[1] * (29.0 / 3.0 * 29.0 / 3.0 * 29.0 / 3.0) / 100.0
     else:
+        # if is_compile_time():
+        #     abort("Cannot call `math.cbrt` at compile time. Please execute it at runtime.")
         l = 1.16 * math.cbrt(y / wref[1]) - 0.16
 
-    var ubis: Float64
-    var vbis: Float64
     ubis, vbis = xyz_to_uv(x, y, z)
-
-    var un: Float64
-    var vn: Float64
     un, vn = xyz_to_uv(wref[0], wref[1], wref[2])
-
-    var u: Float64
-    var v: Float64
-    u = 13.0 * l * (ubis - un)
-    v = 13.0 * l * (vbis - vn)
+    var u = 13.0 * l * (ubis - un)
+    var v = 13.0 * l * (vbis - vn)
 
     return l, u, v
 
