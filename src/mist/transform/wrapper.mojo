@@ -1,9 +1,6 @@
 import utils.write
-from utils import StringSlice
-from memory import Span
 import mist.transform.ansi
 from mist.transform.bytes import ByteWriter
-from mist.transform.traits import AsStringSlice
 from mist.transform.unicode import char_width
 from mist.transform.ansi import SPACE, NEWLINE_BYTE, SPACE_BYTE
 
@@ -19,7 +16,7 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
 
     Example Usage:
     ```mojo
-    from weave import wrapper as wrap
+    from mist.transform import wrapper as wrap
 
     fn main():
         var writer = wrap.Writer(5)
@@ -131,7 +128,7 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
         self.buf.write(self.newline)
         self.line_len = 0
 
-    fn _write(mut self, text: StringSlice) -> None:
+    fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
 
         Args:
@@ -177,30 +174,11 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
                 self.line_len += width
             self.buf.write(codepoint)
 
-    fn write(mut self, content: StringLiteral) -> None:
-        """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
-
-        Args:
-            content: The text to write to the writer.
-        """
-        self._write(content.as_string_slice())
-
-    fn write[T: AsStringSlice, //](mut self, content: T) -> None:
-        """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
-
-        Parameters:
-            T: The type of the Stringable object to dedent.
-
-        Args:
-            content: The text to write to the writer.
-        """
-        self._write(content.as_string_slice())
-
 
 fn wrap[
     keep_newlines: Bool = True
 ](
-    text: StringLiteral,
+    text: StringSlice,
     limit: Int,
     *,
     newline: String = DEFAULT_NEWLINE,
@@ -223,49 +201,7 @@ fn wrap[
         A new wrapped string.
 
     ```mojo
-    from weave import wrap
-
-    fn main():
-        var wrapped = wrap("Hello, World!", 5)
-        print(wrapped)
-    ```
-    .
-    """
-    var writer = Writer[keep_newlines=keep_newlines](
-        limit, newline=newline, preserve_space=preserve_space, tab_width=tab_width
-    )
-    writer.write(text)
-    return writer.consume()
-
-
-fn wrap[
-    T: AsStringSlice, //, keep_newlines: Bool = True
-](
-    text: T,
-    limit: Int,
-    *,
-    newline: String = DEFAULT_NEWLINE,
-    preserve_space: Bool = False,
-    tab_width: Int = DEFAULT_TAB_WIDTH,
-) -> String:
-    """Wraps `text` at `limit` characters per line.
-
-    Parameters:
-        T: The type of the Stringable object to dedent.
-        keep_newlines: Whether to keep newlines in the content.
-
-    Args:
-        text: The string to wrap.
-        limit: The maximum line length before wrapping.
-        newline: The character to use as a newline.
-        preserve_space: Whether to preserve space characters.
-        tab_width: The width of a tab character.
-
-    Returns:
-        A new wrapped string.
-
-    ```mojo
-    from weave import wrap
+    from mist import wrap
 
     fn main():
         var wrapped = wrap("Hello, World!", 5)

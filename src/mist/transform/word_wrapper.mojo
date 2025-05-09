@@ -1,10 +1,7 @@
 import utils.write
-from utils import StringSlice
-from memory import Span
 import mist.transform.ansi
 from mist.transform.ansi import SPACE_BYTE, SPACE, NEWLINE
 from mist.transform.bytes import ByteWriter
-from mist.transform.traits import AsStringSlice
 
 
 alias DEFAULT_NEWLINE = "\n"
@@ -19,7 +16,7 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
 
     Example Usage:
     ```mojo
-    from weave import word_wrapper as word_wrap
+    from mist.transform import word_wrapper as word_wrap
 
     fn main():
         var writer = word_wrap.Writer(5)
@@ -134,7 +131,7 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
         """Write the content of the word buffer to the word-wrap buffer."""
         if len(self.word) > 0:
             self.add_space()
-            self.line_len += ansi.printable_rune_width(self.word)
+            self.line_len += ansi.printable_rune_width(self.word.as_string_slice())
             self.buf.write(self.word)
             self.word.clear()
 
@@ -144,7 +141,7 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
         self.line_len = 0
         self.space.reset()
 
-    fn _write(mut self, text: StringSlice) -> None:
+    fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
         If the word cannot fit on the line, then it will be written to the next line.
 
@@ -206,30 +203,9 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
 
                 # add a line break if the current word would exceed the line's
                 # character limit
-                var word_width = ansi.printable_rune_width(self.word)
+                var word_width = ansi.printable_rune_width(self.word.as_string_slice())
                 if word_width < self.limit and self.line_len + len(self.space) + word_width > self.limit:
                     self.add_newline()
-
-    fn write(mut self, text: StringLiteral) -> None:
-        """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
-        If the word cannot fit on the line, then it will be written to the next line.
-
-        Args:
-            text: The content to write.
-        """
-        self._write(text.as_string_slice())
-
-    fn write[T: AsStringSlice, //](mut self, text: T) -> None:
-        """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
-        If the word cannot fit on the line, then it will be written to the next line.
-
-        Parameters:
-            T: The type of the Stringable object.
-
-        Args:
-            text: The content to write.
-        """
-        self._write(text.as_string_slice())
 
     fn close(mut self):
         """Finishes the word-wrap operation. Always call it before trying to retrieve the final result."""
@@ -239,7 +215,7 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
 fn word_wrap[
     keep_newlines: Bool = True
 ](
-    text: StringLiteral,
+    text: StringSlice,
     limit: Int,
     *,
     newline: String = DEFAULT_NEWLINE,
@@ -261,41 +237,7 @@ fn word_wrap[
         A new word wrapped string.
 
     ```mojo
-    from weave import word_wrap
-
-    fn main():
-        var wrapped = word_wrap("Hello, World!", 5)
-        print(wrapped)
-    ```
-    .
-    """
-    var writer = Writer[keep_newlines=keep_newlines](limit, newline=newline, breakpoint=breakpoint)
-    writer.write(text)
-    writer.close()
-    return writer.consume()
-
-
-fn word_wrap[
-    T: AsStringSlice, //, keep_newlines: Bool = True
-](text: T, limit: Int, *, newline: String = DEFAULT_NEWLINE, breakpoint: String = DEFAULT_BREAKPOINT) -> String:
-    """Wraps `text` at `limit` characters per line, if the word can fit on the line.
-    Otherwise, it will break prior to adding the word, then add it to the next line.
-
-    Parameters:
-        T: The type of the Stringable object.
-        keep_newlines: Whether to keep newlines in the content.
-
-    Args:
-        text: The string to wrap.
-        limit: The maximum number of characters per line.
-        newline: The character to use as a newline.
-        breakpoint: The character to use as a breakpoint.
-
-    Returns:
-        A new word wrapped string.
-
-    ```mojo
-    from weave import word_wrap
+    from mist import word_wrap
 
     fn main():
         var wrapped = word_wrap("Hello, World!", 5)

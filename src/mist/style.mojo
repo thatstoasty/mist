@@ -746,4 +746,4 @@ struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, W
         if self.profile == Profile.ASCII or len(self.styles) == 0:
             return String(text)
 
-        return String(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
+        return String(CSI, StaticString(";").join(self.styles), "m", text, RESET_STYLE)

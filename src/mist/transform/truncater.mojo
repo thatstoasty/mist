@@ -1,8 +1,5 @@
 import utils.write
-from utils import StringSlice
-from memory import Span
 import mist.transform.ansi
-from mist.transform.traits import AsStringSlice
 from mist.transform.unicode import char_width
 
 
@@ -11,7 +8,7 @@ struct Writer(Stringable, Writable, Movable):
 
     Example Usage:
     ```mojo
-    from weave import truncater as truncate
+    from mist.transform import truncater as truncate
 
     fn main():
         var writer = truncate.Writer(4, tail=".")
@@ -89,7 +86,7 @@ struct Writer(Stringable, Writable, Movable):
         """
         return self.ansi_writer.forward.as_bytes()
 
-    fn _write(mut self, text: StringSlice) -> None:
+    fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, truncating content at the given printable cell width,
         leaving any ANSI sequences intact.
 
@@ -123,30 +120,8 @@ struct Writer(Stringable, Writable, Movable):
 
             self.ansi_writer.write(codepoint)
 
-    fn write(mut self, text: StringLiteral) -> None:
-        """Writes the text, `content`, to the writer, truncating content at the given printable cell width,
-        leaving any ANSI sequences intact.
 
-
-        Args:
-            text: The content to write.
-        """
-        self._write(text)
-
-    fn write[T: AsStringSlice, //](mut self, text: T) -> None:
-        """Writes the text, `content`, to the writer, truncating content at the given printable cell width,
-        leaving any ANSI sequences intact.
-
-        Parameters:
-            T: The type of the Stringable object.
-
-        Args:
-            text: The content to write.
-        """
-        self._write(text.as_string_slice())
-
-
-fn truncate(text: StringLiteral, width: Int, tail: String = "") -> String:
+fn truncate(text: StringSlice, width: Int, tail: String = "") -> String:
     """Truncates `text` at `width` characters. A tail is then added to the end of the string.
 
     Args:
@@ -158,35 +133,7 @@ fn truncate(text: StringLiteral, width: Int, tail: String = "") -> String:
         A new truncated string.
 
     ```mojo
-    from weave import truncate
-
-    fn main():
-        var truncated = truncate("Hello, World!", 5, ".")
-        print(truncated)
-    ```
-    .
-    """
-    var writer = Writer(width, tail)
-    writer.write(text)
-    return writer.consume()
-
-
-fn truncate[T: AsStringSlice, //](text: T, width: Int, tail: String = "") -> String:
-    """Truncates `text` at `width` characters. A tail is then added to the end of the string.
-
-    Parameters:
-        T: The type of the Stringable object.
-
-    Args:
-        text: The string to truncate.
-        width: The maximum printable cell width.
-        tail: The tail to append to the truncated content.
-
-    Returns:
-        A new truncated string.
-
-    ```mojo
-    from weave import truncate
+    from mist import truncate
 
     fn main():
         var truncated = truncate("Hello, World!", 5, ".")

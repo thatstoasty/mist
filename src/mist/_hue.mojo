@@ -1,4 +1,6 @@
 import math
+from sys import is_compile_time
+from os import abort
 from collections import InlineArray
 from utils.numerics import max_finite
 
@@ -29,8 +31,6 @@ fn clamp01(v: Float64) -> Float64:
     return max(0.0, min(v, 1.0))
 
 
-alias PI: Float64 = 3.141592653589793238462643383279502884197169399375105820974944592307816406286
-"""The mathematical constant π."""
 alias MAX_FLOAT64: Float64 = max_finite[DType.float64]()
 """The maximum value of a 64-bit floating-point number."""
 
@@ -147,7 +147,7 @@ fn max_chroma_for_lh(l: Float64, h: Float64) -> Float64:
     Returns:
         The maximum chroma for the given luminance and hue.
     """
-    var h_rad = h / 360.0 * PI * 2.0
+    var h_rad = h / 360.0 * math.pi * 2.0
     var min_length = MAX_FLOAT64
     var bounds = get_bounds(l)
 
@@ -224,7 +224,7 @@ fn LuvLch_to_HSLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, 
 
 @value
 @register_passable("trivial")
-struct Color(Stringable, Representable, CollectionElementNew):
+struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
     """A color represented by red, green, and blue values."""
 
     var R: Float64
@@ -487,13 +487,13 @@ struct Color(Stringable, Representable, CollectionElementNew):
         if min == max:
             return 0.0, 0.0, l
 
-        var s = 0.0
+        var s: Float64
         if l < 0.5:
             s = (max - min) / (max + min)
         else:
             s = (max - min) / (2.0 - max - min)
 
-        var h = 0.0
+        var h: Float64
         if max == self.R:
             h = (self.G - self.B) / (max - min)
         elif max == self.G:
@@ -515,7 +515,7 @@ struct Color(Stringable, Representable, CollectionElementNew):
         Returns:
             The linear RGB values.
         """
-        return delinearize_fast(self.R), delinearize_fast(self.G), delinearize_fast(self.B)
+        return linearize_fast(self.R), linearize_fast(self.G), linearize_fast(self.B)
 
     fn blend_linear_rgb(self, c2: Self, t: Float64) -> Self:
         """Blends two colors in the Linear RGB color-space.
@@ -711,14 +711,14 @@ struct Color(Stringable, Representable, CollectionElementNew):
         if b1 != ap1 or ap1 != 0:
             hp1 = math.atan2(b1, ap1)
             if hp1 < 0:
-                hp1 += PI * 2
-            hp1 *= 180 / PI
+                hp1 += math.pi * 2
+            hp1 *= 180 / math.pi
         var hp2 = 0.0
         if b2 != ap2 or ap2 != 0:
             hp2 = math.atan2(b2, ap2)
             if hp2 < 0:
-                hp2 += PI * 2
-            hp2 *= 180 / PI
+                hp2 += math.pi * 2
+            hp2 *= 180 / math.pi
 
         var delta_Lp = l2 - l1
         var delta_Cp = cp2 - cp1
@@ -730,7 +730,7 @@ struct Color(Stringable, Representable, CollectionElementNew):
                 dhp -= 360
             elif dhp < -180:
                 dhp += 360
-        var delta_Hp = 2 * math.sqrt(cpProduct) * math.sin(dhp / 2 * PI / 180)
+        var delta_Hp = 2 * math.sqrt(cpProduct) * math.sin(dhp / 2 * math.pi / 180)
 
         var lp_mean = (l1 + l2) / 2
         var cp_mean = (cp1 + cp2) / 2
@@ -743,15 +743,15 @@ struct Color(Stringable, Representable, CollectionElementNew):
                 else:
                     hp_mean -= 180
 
-        var t = 1 - 0.17 * math.cos((hp_mean - 30) * PI / 180) + 0.24 * math.cos(
-            2 * hp_mean * PI / 180
-        ) + 0.32 * math.cos((3 * hp_mean + 6) * PI / 180) - 0.2 * math.cos((4 * hp_mean - 63) * PI / 180)
+        var t = 1 - 0.17 * math.cos((hp_mean - 30) * math.pi / 180) + 0.24 * math.cos(
+            2 * hp_mean * math.pi / 180
+        ) + 0.32 * math.cos((3 * hp_mean + 6) * math.pi / 180) - 0.2 * math.cos((4 * hp_mean - 63) * math.pi / 180)
         var delta_theta = 30 * math.exp(-sq((hp_mean - 275) / 25))
         var rc = 2 * math.sqrt((cp_mean**7) / ((cp_mean**7) + (p**7)))
         var sl = 1 + (0.015 * sq(lp_mean - 50)) / math.sqrt(20 + sq(lp_mean - 50))
         var sc = 1 + 0.045 * cp_mean
         var sh = 1 + 0.015 * cp_mean * t
-        var rt = -math.sin(2 * delta_theta * PI / 180) * rc
+        var rt = -math.sin(2 * delta_theta * math.pi / 180) * rc
 
         return (
             math.sqrt(
@@ -1215,18 +1215,12 @@ fn xyy_to_xyz(x: Float64, y: Float64, Y: Float64) -> (Float64, Float64, Float64)
     Returns:
         The XYZ values.
     """
-    var Yout = y
-    var X = x
-    var Z = 0.0
-
     if -1e-14 < y and y < 1e-14:
-        X = 0.0
-        Z = 0.0
-    else:
-        X = Y / y * x
-        Z = Y / y * (1.0 - x - y)
+        return 0.0, Y, 0.0
 
-    return x, y, Yout
+    var X = Y / y * x
+    var Z = Y / y * (1.0 - x - y)
+    return X, Y, Z
 
 
 fn xyy(x: Float64, y: Float64, Y: Float64) -> Color:
@@ -1240,9 +1234,6 @@ fn xyy(x: Float64, y: Float64, Y: Float64) -> Color:
     Returns:
         The new Color.
     """
-    var X: Float64
-    var new_Y: Float64
-    var Z: Float64
     X, new_Y, Z = xyy_to_xyz(x, y, Y)
     return xyz(X, new_Y, Z)
 
@@ -1261,13 +1252,15 @@ fn lab_f(t: Float64) -> Float64:
         The calculated value.
     """
     if t > 6.0 / 29.0 * 6.0 / 29.0 * 6.0 / 29.0:
+        # if is_compile_time():
+        #     abort("Cannot call `math.cbrt` at compile time. Please execute it at runtime.")
         return math.cbrt(t)
     return t / 3.0 * 29.0 / 6.0 * 29.0 / 6.0 + 4.0 / 29.0
 
 
 fn xyz_to_lab(x: Float64, y: Float64, z: Float64) -> (Float64, Float64, Float64):
     """Use `D65` white as reference point by default.
-    http://www.fredmiranda.com/forum/toPIc/1035332
+    http://www.fredmiranda.com/forum/tomath.pic/1035332
     http://en.wikipedia.org/wiki/Standard_illuminant.
 
     Args:
@@ -1649,19 +1642,16 @@ fn luv_to_xyz_white_ref(
     else:
         y = wref[1] * ((l + 0.16) / 1.16) ** 3
 
-    var un: Float64 = 0
-    var vn: Float64 = 0
     un, vn = xyz_to_uv(wref[0], wref[1], wref[2])
 
-    var x: Float64 = 0
-    var z: Float64 = 0
+    var x = 0.0
+    var z = 0.0
     if l != 0.0:
         var ubis = (u / (13.0 * l)) + un
         var vbis = (v / (13.0 * l)) + vn
         x = y * 9.0 * ubis / (4.0 * vbis)
         z = y * (12.0 - (3.0 * ubis) - (20.0 * vbis)) / (4.0 * vbis)
     else:
-        x = 0.0
         y = 0.0
 
     return x, y, z
@@ -1713,20 +1703,14 @@ fn xyz_to_Luv_white_ref(
     if y / wref[1] <= 6.0 / 29.0 * 6.0 / 29.0 * 6.0 / 29.0:
         l = y / wref[1] * (29.0 / 3.0 * 29.0 / 3.0 * 29.0 / 3.0) / 100.0
     else:
+        # if is_compile_time():
+        #     abort("Cannot call `math.cbrt` at compile time. Please execute it at runtime.")
         l = 1.16 * math.cbrt(y / wref[1]) - 0.16
 
-    var ubis: Float64
-    var vbis: Float64
     ubis, vbis = xyz_to_uv(x, y, z)
-
-    var un: Float64
-    var vn: Float64
     un, vn = xyz_to_uv(wref[0], wref[1], wref[2])
-
-    var u: Float64
-    var v: Float64
-    u = 13.0 * l * (ubis - un)
-    v = 13.0 * l * (vbis - vn)
+    var u = 13.0 * l * (ubis - un)
+    var v = 13.0 * l * (vbis - vn)
 
     return l, u, v
 

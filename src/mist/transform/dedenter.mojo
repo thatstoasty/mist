@@ -1,7 +1,4 @@
-from collections.string import StringSlice
-from memory import Span
 from mist.transform.bytes import ByteWriter
-from mist.transform.traits import AsStringSlice
 
 
 fn min_indent(text: StringSlice) -> Int:
@@ -66,7 +63,7 @@ fn apply_dedent(text: StringSlice, indent: Int) -> String:
     return buf.consume()
 
 
-fn _dedent(text: StringSlice) -> String:
+fn dedent(text: StringSlice) -> String:
     """Automatically detects the maximum indentation shared by all lines and
     trims them accordingly.
 
@@ -75,60 +72,19 @@ fn _dedent(text: StringSlice) -> String:
 
     Returns:
         A copy of the original text that's been dedented.
+
+    #### Examples:
+    ```mojo
+    from mist import dedent
+
+    fn main() -> None:
+        var text = dedent("    Hello, World!\\n    This is a test.\\n    \\n")
+        print(text)
+    ```
+    .
     """
     var indent = min_indent(text)
     if indent == 0:
         return String(text)
 
     return apply_dedent(text, indent)
-
-
-# TODO: StringLiteral.as_string_slice() does not conform to the typical
-# as_string_slice() function signature. This is a temporary workaround.
-fn dedent(text: StringLiteral) -> String:
-    """Automatically detects the maximum indentation shared by all lines and
-    trims them accordingly.
-
-    Args:
-        text: The text to dedent.
-
-    Returns:
-        A copy of the original text that's been dedented.
-
-    Examples:
-    ```mojo
-    from weave import dedent
-
-    fn main() -> None:
-        var text = dedent("    Hello, World!\\n    This is a test.\\n    \\n")
-        print(text)
-    ```
-    .
-    """
-    return _dedent(text.as_string_slice())
-
-
-fn dedent[T: AsStringSlice, //](text: T) -> String:
-    """Automatically detects the maximum indentation shared by all lines and
-    trims them accordingly.
-
-    Parameters:
-        T: The type of the AsStringSlice object.
-
-    Args:
-        text: The text to dedent.
-
-    Returns:
-        A copy of the original text that's been dedented.
-
-    Examples:
-    ```mojo
-    from weave import dedent
-
-    fn main() -> None:
-        var text = dedent("    Hello, World!\\n    This is a test.\\n    \\n")
-        print(text)
-    ```
-    .
-    """
-    return _dedent(text.as_string_slice())

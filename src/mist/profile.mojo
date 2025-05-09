@@ -3,7 +3,7 @@ from sys.param_env import env_get_string
 from collections import InlineArray
 from collections.string import StringSlice
 from memory import UnsafePointer
-from os import abort
+from os import abort, getenv
 import mist._hue as hue
 from mist.color import (
     NoColor,
@@ -27,30 +27,6 @@ alias ANSI_PROFILE = Profile(ANSI)
 alias ASCII_PROFILE = Profile(ASCII)
 
 
-# Faster getenv implementation that doesn't need to convert StringLiterals to strings.
-fn getenv[name: StringLiteral, default: StringLiteral = ""]() -> String:
-    """Returns the value of the given environment variable.
-
-    Constraints:
-      The function only works on macOS or Linux and returns an empty string
-      otherwise.
-
-    Parameters:
-      name: The name of the environment variable.
-      default: The default value to return if the environment variable
-        doesn't exist.
-
-    Returns:
-      The value of the environment variable.
-    """
-    constrained[not os_is_windows(), "operating system must be Linux or macOS"]()
-
-    var ptr = external_call["getenv", UnsafePointer[UInt8]](name.unsafe_cstr_ptr())
-    if not ptr:
-        return default
-    return String(StringSlice[ptr.origin](unsafe_from_utf8_ptr=ptr))
-
-
 fn get_color_profile() -> Profile:
     """Queries the terminal to determine the color profile it supports.
     `ASCII`, `ANSI`, `ANSI256`, or `TRUE_COLOR`.
@@ -58,12 +34,12 @@ fn get_color_profile() -> Profile:
     Returns:
         The color profile the terminal supports.
     """
-    if getenv["GOOGLE_CLOUD_SHELL", "false"]() == "true":
+    if getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
         return Profile.TRUE_COLOR
 
     # TODO: Remove the conversion to lower case as it is consuming a fair bit of time in the critical path.
-    var term = getenv["TERM"]().lower()
-    var color_term = getenv["COLORTERM"]()
+    var term = getenv("TERM").lower()
+    var color_term = getenv("COLORTERM")
 
     # COLORTERM is used by some terminals to indicate TRUE_COLOR support.
     if color_term == "24bit":
@@ -71,7 +47,7 @@ fn get_color_profile() -> Profile:
     elif color_term == "truecolor":
         if term.startswith("screen"):
             # tmux supports TRUE_COLOR, screen only ANSI256
-            if getenv["TERM_PROGRAM"]() != "tmux":
+            if getenv("TERM_PROGRAM") != "tmux":
                 return Profile.ANSI256
         return Profile.TRUE_COLOR
     elif color_term == "yes":
@@ -98,7 +74,7 @@ fn get_color_profile() -> Profile:
 
 
 @register_passable("trivial")
-struct Profile(ComparableCollectionElement, Writable, Stringable, Representable):
+struct Profile(Comparable, Movable, Copyable, Writable, Stringable, Representable):
     """The color profile for the terminal."""
 
     var _value: Int
@@ -154,11 +130,11 @@ struct Profile(ComparableCollectionElement, Writable, Stringable, Representable)
                 "Invalid profile setting. Must be one of [TRUE_COLOR, ANSI256, ANSI, ASCII].",
             ]()
 
-        if is_compile_time():
-            abort(
-                "No profile was set that could be evaluated at compilation time. Either set profile value explicitly,"
-                " set the MIST_PROFILE build parameter, or move the Profile or Style creation into a runtime context."
-            )
+        # if is_compile_time():
+        #     abort(
+        #         "No profile was set that could be evaluated at compilation time. Either set profile value explicitly,"
+        #         " set the MIST_PROFILE build parameter, or move the Profile or Style creation into a runtime context."
+        #     )
 
         self._value = get_color_profile()._value
 
@@ -302,7 +278,7 @@ struct Profile(ComparableCollectionElement, Writable, Stringable, Representable)
             return NoColor()
 
         if self != Self.TRUE_COLOR:
-            var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color.value)))
+            var ansi256 = hex_to_ansi256(hue.Color(color.value))
             if self == Self.ANSI:
                 return ANSIColor(ansi256_to_ansi(ansi256.value))
 

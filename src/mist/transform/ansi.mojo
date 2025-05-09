@@ -1,8 +1,5 @@
-from utils import StringSlice
-from memory import Span
 from mist.transform.unicode import string_width, char_width
 from mist.transform.bytes import ByteWriter
-from mist.transform.traits import AsStringSlice
 
 
 alias ANSI_ESCAPE = "[0m"
@@ -97,39 +94,12 @@ fn printable_rune_width(text: StringSlice) -> Int:
     return length
 
 
-fn printable_rune_width(text: StringLiteral) -> Int:
-    """Returns the cell width of the given string.
-
-    Args:
-        text: String to calculate the width of.
-
-    Returns:
-        The printable cell width of the string.
-    """
-    return printable_rune_width(text.as_string_slice())
-
-
-fn printable_rune_width[T: AsStringSlice, //](text: T) -> Int:
-    """Returns the cell width of the given string.
-
-    Parameters:
-        T: The type of the AsStringSlice object.
-
-    Args:
-        text: String to calculate the width of.
-
-    Returns:
-        The printable cell width of the string.
-    """
-    return printable_rune_width(text.as_string_slice())
-
-
 struct Writer:
     """A writer that handles ANSI escape sequences in the content.
 
     Example Usage:
     ```mojo
-    from weave import ansi
+    from mist.transform import ansi
 
     fn main():
         var writer = ansi.Writer()

@@ -9,7 +9,7 @@ alias FOREGROUND = "38"
 alias BACKGROUND = "48"
 
 
-trait Color(EqualityComparable, RepresentableCollectionElement, ExplicitlyCopyable, Writable, Stringable):
+trait Color(EqualityComparable, Representable, Movable, Copyable, ExplicitlyCopyable, Writable, Stringable):
     """Represents colors that can be displayed in the terminal."""
 
     fn sequence[is_background: Bool](self) -> String:
@@ -356,13 +356,9 @@ fn ansi_to_rgb(ansi: UInt8) -> (UInt8, UInt8, UInt8):
     Returns:
         The RGB color tuple.
     """
-    # For out-of-range values return black.
-    if ansi > 255:
-        return UInt8(0), UInt8(0), UInt8(0)
-
     # Low ANSI.
     if ansi < 16:
-        return hex_to_rgb(ANSI_HEX_CODES[ansi])
+        return hex_to_rgb(ANSI_HEX_CODES[Int(ansi)])
 
     # Grays.
     if ansi > 231:
@@ -547,11 +543,14 @@ fn ansi256_to_ansi(value: UInt8) -> UInt8:
     alias MAX_ANSI = 16
     var r: UInt8 = 0
     var md = hue.MAX_FLOAT64
-    var h = hex_to_rgb(ANSI_HEX_CODES[Int(value)])
+    var h = ansi_to_rgb(value)
+    # var h = hex_to_rgb(ANSI_HEX_CODES[Int(value)])
     var h_color = hue.Color(R=h[0], G=h[1], B=h[2])
 
+    @parameter
     for i in range(MAX_ANSI):
-        var hb = hex_to_rgb(ANSI_HEX_CODES[i])
+        var hb = ansi_to_rgb(i)
+        # var hb = hex_to_rgb(ANSI_HEX_CODES[i])
         var d = h_color.distance_HSLuv(hue.Color(R=hb[0], G=hb[1], B=hb[2]))
 
         if d < md:
@@ -603,13 +602,9 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
 
     # Calculate the represented colors back from the index
     alias i2cv = InlineArray[UInt8, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
-    var cr = i2cv[r]  # r/g/b, 0..255 each
-    var cg = i2cv[g]
-    var cb = i2cv[b]
 
     # Return the one which is nearer to the original input rgb value
-    # Originall had / 255.0 for r, g, and b in each of these
-    var color_dist = color.distance_HSLuv(hue.Color(R=cr, G=cg, B=cb))
+    var color_dist = color.distance_HSLuv(hue.Color(R=i2cv[r], G=i2cv[g], B=i2cv[b]))
     var gray_dist = color.distance_HSLuv(hue.Color(R=gv, G=gv, B=gv))
 
     if color_dist <= gray_dist:
@@ -689,7 +684,7 @@ struct AnyColor:
 
         return self.value[NoColor].sequence[is_background]()
 
-    fn isa[T: CollectionElement](self) -> Bool:
+    fn isa[T: Movable & Copyable](self) -> Bool:
         """Checks if the value is of the given type.
 
         Parameters:
@@ -700,7 +695,7 @@ struct AnyColor:
         """
         return self.value.isa[T]()
 
-    fn __getitem__[T: CollectionElement](ref self) -> ref [self.value] T:
+    fn __getitem__[T: Movable & Copyable](ref self) -> ref [self.value] T:
         """Gets the value as the given type.
 
         Parameters:
