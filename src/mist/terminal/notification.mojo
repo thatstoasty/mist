@@ -1,11 +1,11 @@
-from mist.style import OSC, ST
+from mist.terminal.sgr import OSC, ST, _write_sequence_to_stdout
 
 
-fn notify(title: String, body: String) -> None:
+fn notify(title: StringSlice, body: StringSlice) -> None:
     """Sends a notification to the terminal.
 
     Args:
         title: The title of the notification.
         body: The body of the notification.
     """
-    print(String(OSC, "777;notify;", title, ";", body, ST), end="")
+    _write_sequence_to_stdout(OSC, "777;notify;", title, ";", body, ST)

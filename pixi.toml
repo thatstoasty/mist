@@ -1,14 +1,14 @@
-[project]
-authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
-channels = ["conda-forge", "https://conda.modular.com/max"]
+[workspace]
 description = "Mist lets you safely use advanced styling options on the terminal."
-name = "mist"
+authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
+channels = ["https://repo.prefix.dev/mojo-community", "conda-forge", "https://conda.modular.com/max-nightly", "https://prefix.dev/pixi-build-backends"]
 platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
-version = "25.3.0"
 license = "MIT"
 license-file = "LICENSE"
+readme = "README.md"
 homepage = "https://github.com/thatstoasty/mist"
 repository = "https://github.com/thatstoasty/mist"
+preview = ["pixi-build"]
 
 [tasks]
 tests = "python scripts/util.py run tests"
@@ -19,4 +19,13 @@ build = { cmd = "python scripts/util.py build", env = { MODULAR_MOJO_IMPORT_PATH
 publish = { cmd = "python scripts/util.py publish", env = { PREFIX_API_KEY = "$PREFIX_API_KEY" } }
 
 [dependencies]
-max = ">=25.3.0,<25.4.0"
+max = ">=25.4.0.dev2025052905,<25.5.0"
+# max = ">=25.3.0,<25.4.0"
+# mog = ">=25.3.0,<25.4.0"
+
+[package]
+name = "mist"
+version = "25.4.0"
+
+[package.build]
+backend = { name = "pixi-build-rattler-build", version = "*" }

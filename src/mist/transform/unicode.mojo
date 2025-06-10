@@ -105,7 +105,7 @@ fn in_tables(codepoint: Codepoint, *tables: InlineArray[Interval]) -> Bool:
         True if the codepoint is in any of the tables, False otherwise.
     """
     for t in tables:
-        if in_table(codepoint, t[]):
+        if in_table(codepoint, t):
             return True
     return False
 
