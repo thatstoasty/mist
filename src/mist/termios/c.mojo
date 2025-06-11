@@ -3,6 +3,7 @@ from memory import Pointer, UnsafePointer
 from sys import external_call, os_is_macos, os_is_windows
 from sys.ffi import c_int, c_char
 from time.time import _CTimeSpec
+from collections import BitSet
 
 # C types
 alias c_void = UInt8
@@ -598,3 +599,94 @@ fn read(fd: c_int, buf: UnsafePointer[c_void], size: UInt) -> c_int:
     Reference: https://man7.org/linux/man-pages/man3/read.3p.html.
     """
     return external_call["read", Int, c_int, UnsafePointer[c_void], UInt](fd, buf, size)
+
+
+alias FileDescriptorBitSet = BitSet[1024]
+
+
+@fieldwise_init
+@register_passable("trivial")
+struct _TimeValue(Movable, Copyable, ExplicitlyCopyable):
+    var seconds: Int64
+    var microseconds: Int64
+
+
+fn _select(
+    nfds: c_int,
+    readfds: Pointer[mut=True, FileDescriptorBitSet],
+    writefds: Pointer[mut=True, FileDescriptorBitSet],
+    exceptfds: Pointer[mut=True, FileDescriptorBitSet],
+    timeout: Pointer[mut=True, _TimeValue],
+) -> c_int:
+    """Libc POSIX `select` function.
+
+    Args:
+        nfds: The highest-numbered file descriptor in any of the three sets, plus 1.
+        readfds: A pointer to the set of file descriptors to read from.
+        writefds: A pointer to the set of file descriptors to write to.
+        exceptfds: A pointer to the set of file descriptors to check for exceptions.
+        timeout: A pointer to a TimeValue struct to set a timeout.
+
+    Returns:
+        The number of file descriptors in the sets or -1 in case of failure.
+
+    #### C Function:
+    ```c
+    int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+    ```
+
+    #### Notes:
+    Reference: https://man7.org/linux/man-pages/man2/select.2.html
+    """
+    return external_call[
+        "select",
+        c_int,  # FnName, RetType
+    ](nfds, readfds, writefds, exceptfds, timeout)
+
+
+fn select(
+    highest_fd: c_int,
+    mut read_fds: FileDescriptorBitSet,
+    mut write_fds: FileDescriptorBitSet,
+    mut except_fds: FileDescriptorBitSet,
+    mut timeout: _TimeValue,
+) raises -> None:
+    """Libc POSIX `select` function.
+
+    Args:
+        highest_fd: The highest-numbered file descriptor in any of the three sets, plus 1.
+        read_fds: A pointer to the set of file descriptors to read from.
+        write_fds: A pointer to the set of file descriptors to write to.
+        except_fds: A pointer to the set of file descriptors to check for exceptions.
+        timeout: A pointer to a TimeValue struct to set a timeout.
+
+    #### C Function Signature:
+    ```c
+    int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+    ```
+
+    #### Reference
+    https://man7.org/linux/man-pages/man2/select.2.html.
+    """
+    var result = _select(
+        highest_fd,
+        Pointer(to=read_fds),
+        Pointer(to=write_fds),
+        Pointer(to=except_fds),
+        Pointer(to=timeout),
+    )
+
+    if result == -1:
+        var errno = c.get_errno()
+        if errno == c.EBADF:
+            raise Error("[EBADF] An invalid file descriptor was given in one of the sets.")
+        elif errno == c.EINTR:
+            raise Error("[EINTR] A signal was caught.")
+        elif errno == c.EINVAL:
+            raise Error("[EINVAL] nfds is negative or exceeds the RLIMIT_NOFILE resource limit.")
+        elif errno == c.ENOMEM:
+            raise Error("[ENOMEM] Unable to allocate memory for internal tables.")
+        else:
+            raise Error("[UNKNOWN] Unknown error occurred.")
+    elif result == 0:
+        raise Error("Select has timed out while waiting for file descriptors to become ready.")

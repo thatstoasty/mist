@@ -39,7 +39,7 @@ fn get_color_profile() -> Profile:
 
     # TODO: Remove the conversion to lower case as it is consuming a fair bit of time in the critical path.
     var term = getenv("TERM").lower()
-    var color_term = getenv("COLORTERM")
+    var color_term = getenv("COLORTERM").lower()
 
     # COLORTERM is used by some terminals to indicate TRUE_COLOR support.
     if color_term == "24bit":

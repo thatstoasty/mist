@@ -7,14 +7,60 @@ from time import sleep
 import os
 from pathlib import Path
 from memory import stack_allocation, UnsafePointer
-from collections import InlineArray
+from collections import InlineArray, BitSet
 import sys
 
+import mist._hue as hue
+from mist.color import RGBColor
 from mist.terminal.sgr import ESC, BEL, CSI, OSC, ST, _write_sequence_to_stdout
 from mist.terminal.tty import TTY
 from mist.termios.tty import is_terminal_raw
 from mist.termios.terminal import is_a_tty, tty_name
-from mist.multiplex.select import SelectSelector, Event
+from mist.termios.c import _TimeValue, select
+
+
+alias EVENT_READ = 1
+"""Bitwise mask for select read events."""
+
+
+fn _select(file_descriptor: FileDescriptor, timeout: Optional[Int] = None) raises -> Int:
+    """Perform the actual selection, until some monitored file objects are
+    ready or a timeout expires.
+
+    Args:
+        file_descriptor: The file descriptor to monitor.
+        timeout: If timeout > 0, this specifies the maximum wait time, in microseconds.
+            if timeout <= 0, the select() call won't block, and will
+            report the currently ready file objects
+            if timeout is None, select() will block until a monitored
+            file object becomes ready.
+
+    Returns:
+        List of (key, events) for ready file objects
+        `events` is a bitwise mask of `EVENT_READ`|`EVENT_WRITE`.
+    """
+    var readers = BitSet[1024]()
+    readers.set(file_descriptor.value)
+
+    var tv = _TimeValue(0, 0)
+    if timeout:
+        tv.microseconds = Int64(timeout.value())
+
+    var writers = BitSet[1024]()
+    var exceptions = BitSet[1024]()
+
+    select(
+        file_descriptor.value + 1,
+        readers,
+        writers,
+        exceptions,
+        tv,
+    )
+
+    if readers.test(0):
+        return 0 | EVENT_READ
+
+    return 0
 
 
 fn wait_for_input(file_descriptor: FileDescriptor, timeout: Int = 100000) raises -> None:
@@ -27,17 +73,13 @@ fn wait_for_input(file_descriptor: FileDescriptor, timeout: Int = 100000) raises
     Raises:
         Error: If the timeout is reached without input.
     """
-    var selector = SelectSelector()
-    selector.register(file_descriptor, Event.READ)
-
     while True:
         # Checks if the response is either `Event.READ` or `Event.READ_WRITE`
-        var status = selector.select(timeout).get(file_descriptor.value)
-        if status and status[] & Event.READ:
+        if _select(file_descriptor, timeout) & EVENT_READ:
             return
 
 
-fn parse_xterm_color(sequence: StringSlice) raises -> (UInt8, UInt8, UInt8):
+fn parse_xterm_color(sequence: StringSlice) raises -> RGBColor:
     """Parses an xterm color sequence.
 
     Args:
@@ -49,12 +91,27 @@ fn parse_xterm_color(sequence: StringSlice) raises -> (UInt8, UInt8, UInt8):
     var color = sequence.split("rgb:")[1]
     var parts = color.split("/")
     if len(parts) != 3:
-        return (UInt8(0), UInt8(0), UInt8(0))
+        return RGBColor(0)
 
-    return (UInt8(Int(parts[0][2:], base=16)), UInt8(Int(parts[1][2:], base=16)), UInt8(Int(parts[2][2:], base=16)))
+    fn convert_part_to_color(part: StringSlice) raises -> UInt8:
+        """Converts a hex color part to an UInt8.
+
+        Args:
+            part: The hex color part to convert.
+
+        Returns:
+            An UInt8 representing the color component.
+        """
+        return UInt8(Int(part[2:], base=16))
+
+    return RGBColor(
+        hue.Color(
+            R=convert_part_to_color(parts[0]), G=convert_part_to_color(parts[1]), B=convert_part_to_color(parts[2])
+        )
+    )
 
 
-fn get_background_color() raises -> (UInt8, UInt8, UInt8):
+fn get_background_color() raises -> RGBColor:
     """Queries the terminal for the background color.
 
     Returns:

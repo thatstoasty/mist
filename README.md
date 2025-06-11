@@ -2,7 +2,7 @@
 
 `mist` is an ANSI aware toolkit that enables you to style and transform text on the terminal.
 
-![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.3-orange)
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.4-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
 ![Test Status](https://github.com/thatstoasty/mist/actions/workflows/test.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -147,10 +147,22 @@ fn main():
     print(render_with_background_color("Hello, world!", 0xc9a0dc))
 ```
 
-## Positioning
+## Terminal Control
+
+...
+
+### Termios
+
+...
+
+### TTY Context Manager
+
+...
+
+### Cursor Positioning
 
 ```mojo
-from mist.terminal.screen import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
+from mist.terminal.cursor import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
 
 fn main() raises:
     # Move the cursor to a given position
@@ -183,7 +195,7 @@ fn main() raises:
     cursor_prev_line(n)
 ```
 
-## Screen
+### Screen
 
 ```mojo
 from mist.terminal.screen import reset, restore_screen, save_screen, alt_screen, exit_alt_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
@@ -240,7 +252,7 @@ Output
 
 ![Cursor](https://github.com/thatstoasty/mist/blob/main/doc/tapes/cursor.gif)
 
-## Session
+### Session
 
 ```mojo
 from mist.terminal.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
@@ -259,7 +271,7 @@ fn main() raises:
     set_cursor_color(color)
 ```
 
-## Mouse
+### Mouse
 
 ```mojo
 from mist.terminal.screen import enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
@@ -296,7 +308,7 @@ fn main() raises:
     disable_mouse_all_motion()
 ```
 
-## Bracketed Paste
+### Bracketed Paste
 
 ```mojo
 from mist.terminal.screen import enable_bracketed_paste, disable_bracketed_paste
@@ -308,6 +320,10 @@ fn main() raises:
     # Disables bracketed paste mode
     disable_bracketed_paste()
 ```
+
+### Terminal Querying
+
+...
 
 ## Text Transformation
 

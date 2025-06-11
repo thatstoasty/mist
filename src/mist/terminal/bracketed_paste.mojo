@@ -9,11 +9,11 @@ alias START_BRACKETED_PASTE_SEQ = "200~"
 alias END_BRACKETED_PASTE_SEQ = "201~"
 
 
-fn enable_bracketed_paste():
+fn enable_bracketed_paste() -> None:
     """Enables bracketed paste."""
     _write_sequence_to_stdout(ENABLE_BRACKETED_PASTE)
 
 
-fn disable_bracketed_paste():
+fn disable_bracketed_paste() -> None:
     """Disables bracketed paste."""
     _write_sequence_to_stdout(DISABLE_BRACKETED_PASTE)
