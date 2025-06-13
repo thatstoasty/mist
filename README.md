@@ -149,15 +149,27 @@ fn main():
 
 ## Terminal Control
 
-...
-
 ### Termios
 
-...
+`mist` offers a `termios` module that allows you to control terminal settings such as echo, canonical mode, and more. This is useful for creating interactive command-line applications.
+
+TODO: Example of using `termios` to change terminal settings.
 
 ### TTY Context Manager
 
-...
+In the `mist.terminal` package, you can use the `TTY` context manager as a high-level interface to manage terminal settings rather than using the `termios` module directly. This context manager allows you to temporarily change terminal settings and automatically restores them when exiting the context.
+
+```mojo
+from mist.terminal.query import get_terminal_size
+from mist.terminal.tty import TTY
+
+fn main() raises -> None:
+    var rows: UInt
+    var columns: UInt
+    with TTY():
+        rows, columns = get_terminal_size()
+    print("Terminal dimensions:", rows, "x", columns)
+```
 
 ### Cursor Positioning
 
@@ -323,7 +335,21 @@ fn main() raises:
 
 ### Terminal Querying
 
-...
+The `mist.terminal.query` module provides functions to query terminal properties such as size, color support, and more.
+
+```mojo
+from mist.terminal.query import get_terminal_size, query_osc
+from mist.terminal.tty import TTY
+from mist.color import RGBColor
+
+fn main() raises -> None:
+    var rows: UInt
+    var columns: UInt
+    with TTY():
+        var xterm_background_color = query_osc("11;?")
+        rows, columns = get_terminal_size()
+    print("Terminal dimensions:", rows, "x", columns)
+```
 
 ## Text Transformation
 

@@ -4,15 +4,22 @@ import os
 import subprocess
 import shutil
 import glob
+import logging
 from typing import Any
+from pathlib import Path
 
 
-TEMP_DIR = os.path.expandvars("$HOME/tmp")
-RECIPE_DIR = "./src"
+TEMP_DIR = Path(os.path.expandvars("$HOME/tmp"))
+RECIPE_DIR = Path("./src")
+PIXI_TOML = Path("pixi.toml")
+CONDA_BUILD_PATH = Path(os.environ.get("CONDA_BLD_PATH", os.getcwd()))
+"""If `CONDA_BLD_PATH` is set, then publish from there. Otherwise, publish from the current directory."""
+
+logger = logging.getLogger(__name__)
 
 
 def build_dependency_list(dependencies: dict[str, str]) -> list[str]:
-    """Converts the list of dependencies from the mojoproject.toml into a list of strings for the recipe."""
+    """Converts the list of dependencies from the pixi.toml into a list of strings for the recipe."""
     deps: list[str] = []
     for name, version in dependencies.items():
         start = 0
@@ -24,8 +31,6 @@ def build_dependency_list(dependencies: dict[str, str]) -> list[str]:
             else:
                 operator = version[:2]
                 start = 2
-        elif version.startswith("=="):
-            start = 2
 
         deps.append(f"    - {name} {operator} {version[start:]}")
 
@@ -33,28 +38,28 @@ def build_dependency_list(dependencies: dict[str, str]) -> list[str]:
 
 
 def load_project_config() -> dict[str, Any]:
-    """Loads the project configuration from the mojoproject.toml file."""
-    with open("mojoproject.toml", "rb") as f:
+    """Loads the project configuration from the pixi.toml file."""
+    with PIXI_TOML.open("rb") as f:
         return tomllib.load(f)
 
 
 def generate_recipe(args: Any) -> None:
-    """Generates a recipe for the project based on the project configuration in the mojoproject.toml."""
+    """Generates a recipe for the project based on the project configuration in the pixi.toml."""
     # Load the project configuration and recipe template.
     config: dict[str, Any] = load_project_config()
     recipe: str
-    with open("src/recipe.tmpl", "r") as f:
+    with Path("src/recipe.tmpl").open("r") as f:
         recipe = f.read()
 
     # Replace the placeholders in the recipe with the project configuration.
     recipe = (
-        recipe.replace("{{NAME}}", config["project"]["name"])
-        .replace("{{DESCRIPTION}}", config["project"]["description"])
-        .replace("{{LICENSE}}", config["project"]["license"])
-        .replace("{{LICENSE_FILE}}", config["project"]["license-file"])
-        .replace("{{HOMEPAGE}}", config["project"]["homepage"])
-        .replace("{{REPOSITORY}}", config["project"]["repository"])
-        .replace("{{VERSION}}", config["project"]["version"])
+        recipe.replace("{{NAME}}", config["package"]["name"])
+        .replace("{{VERSION}}", config["package"]["version"])
+        .replace("{{DESCRIPTION}}", config["workspace"]["description"])
+        .replace("{{LICENSE}}", config["workspace"]["license"])
+        .replace("{{LICENSE_FILE}}", config["workspace"]["license-file"])
+        .replace("{{HOMEPAGE}}", config["workspace"]["homepage"])
+        .replace("{{REPOSITORY}}", config["workspace"]["repository"])
     )
 
     if args.mode != "default":
@@ -74,22 +79,17 @@ def generate_recipe(args: Any) -> None:
     recipe = recipe.replace("{{DEPENDENCIES}}", "\n".join(deps))
 
     # Write the final recipe.
-    with open("src/recipe.yaml", "w+") as f:
+    with Path("recipe.yaml").open("w+") as f:
         recipe = f.write(recipe)
 
 
 def publish_to_prefix(args: Any) -> None:
     """Publishes the conda packages to the specified conda channel."""
-    # If CONDA_BLD_PATH is set, then pubilsh from there. Otherwise, publish from the current directory.
-    conda_build_path = os.environ.get("CONDA_BLD_PATH", os.getcwd())
-    if not conda_build_path:
-        raise ValueError("CONDA_BLD_PATH environment variable is not set. This ")
-
-    print(f"Publishing packages to: {args.channel}")
-    for file in glob.glob(f'{conda_build_path}/**/*.conda'):
+    logger.info(f"Publishing packages to: {args.channel}")
+    for file in glob.glob(f'{CONDA_BUILD_PATH}/**/*.conda'):
         try:
             subprocess.run(
-                ["rattler-build", "upload", "prefix", "-c", args.channel, file],
+                ["pixi", "upload", f"https://prefix.dev/api/v1/upload/{args.channel}", file],
                 check=True,
             )
         except subprocess.CalledProcessError:
@@ -99,16 +99,16 @@ def publish_to_prefix(args: Any) -> None:
 
 def remove_temp_directory() -> None:
     """Removes the temporary directory used for building the package."""
-    if os.path.exists(TEMP_DIR):
-        print("Removing temp directory.")
+    if TEMP_DIR.exists():
+        logger.info("Removing temp directory.")
         shutil.rmtree(TEMP_DIR)
 
 
 def prepare_temp_directory() -> None:
     """Creates the temporary directory used for building the package. Adds the compiled mojo package to the directory."""
-    package = load_project_config()["project"]["name"]
+    package = load_project_config()["package"]["name"]
     remove_temp_directory()
-    os.mkdir(TEMP_DIR)
+    TEMP_DIR.mkdir()
     subprocess.run(
         ["mojo", "package", f"src/{package}", "-o", f"{TEMP_DIR}/{package}.mojopkg"],
         check=True,
@@ -117,16 +117,16 @@ def prepare_temp_directory() -> None:
 
 def execute_package_tests(args: Any) -> None:
     """Executes the tests for the package."""
-    TEST_DIR = "./test"
+    TEST_DIR = Path("./src/test")
 
-    print("Building package and copying tests.")
+    logger.info("Building package and copying tests.")
     prepare_temp_directory()
     shutil.copytree(TEST_DIR, TEMP_DIR, dirs_exist_ok=True)
 
     target = TEMP_DIR
     if args.path:
-        target = f"{target}/{args.path}"
-    print(f"Running tests at {target}...")
+        target = target / args.path
+    logger.info(f"Running tests at {target}...")
     subprocess.run(["mojo", "test", target], check=True)
 
     remove_temp_directory()
@@ -134,51 +134,49 @@ def execute_package_tests(args: Any) -> None:
 
 def execute_package_examples(args: Any) -> None:
     """Executes the examples for the package."""
-    EXAMPLE_DIR = "examples"
-    if not os.path.exists("examples"):
-        print(f"Path does not exist: {EXAMPLE_DIR}.")
+    EXAMPLE_DIR = Path("examples")
+    if not EXAMPLE_DIR.exists():
+        logger.info(f"Path does not exist: {EXAMPLE_DIR}.")
         return
 
-    print("Building package and copying examples.")
+    logger.info("Building package and copying examples.")
     prepare_temp_directory()
     shutil.copytree(EXAMPLE_DIR, TEMP_DIR, dirs_exist_ok=True)
 
-    example_files = f'{EXAMPLE_DIR}/*.mojo'
+    example_files = EXAMPLE_DIR.glob("*.mojo")
     if args.path:
-        example_files = f"{EXAMPLE_DIR}/{args.path}"
+        example_files = EXAMPLE_DIR.glob(args.path)
 
-    print(f"Running examples in {example_files}...")
-    for file in glob.glob(example_files):
-        file_name = os.path.basename(file)
-        name, _ = os.path.splitext(file_name)
-        shutil.copyfile(file, f"{TEMP_DIR}/{file_name}")
-        subprocess.run(["mojo", "build", f"{TEMP_DIR}/{file_name}", "-o", f"{TEMP_DIR}/{name}"], check=True)
-        subprocess.run([f"{TEMP_DIR}/{name}"], check=True)
+    logger.info(f"Running examples in {example_files}...")
+    for file in example_files:
+        name, _ = file.name.split(".", 1)
+        shutil.copyfile(file, TEMP_DIR / file.name)
+        subprocess.run(["mojo", "build", TEMP_DIR / file.name, "-o", TEMP_DIR / name], check=True)
+        subprocess.run([TEMP_DIR / name], check=True)
 
     remove_temp_directory()
 
 
 def execute_package_benchmarks(args: Any) -> None:
-    BENCHMARK_DIR = "./benchmarks"
-    if not os.path.exists("benchmarks"):
-        print(f"Path does not exist: {BENCHMARK_DIR}.")
+    BENCHMARK_DIR = Path("./benchmarks")
+    if not BENCHMARK_DIR.exists():
+        logger.info(f"Path does not exist: {BENCHMARK_DIR}.")
         return
 
-    print("Building package and copying benchmarks.")
+    logger.info("Building package and copying benchmarks.")
     prepare_temp_directory()
     shutil.copytree(BENCHMARK_DIR, TEMP_DIR, dirs_exist_ok=True)
 
-    benchmark_files = f'{BENCHMARK_DIR}/*.mojo'
+    benchmark_files = BENCHMARK_DIR.glob("*.mojo")
     if args.path:
-        benchmark_files = f"{BENCHMARK_DIR}/{args.path}"
+        benchmark_files = BENCHMARK_DIR.glob(args.path)
 
-    print(f"Running benchmarks in {benchmark_files}...")
-    for file in glob.glob(benchmark_files):
-        file_name = os.path.basename(file)
-        name, _ = os.path.splitext(file_name)
-        shutil.copyfile(file, f"{TEMP_DIR}/{file_name}")
-        subprocess.run(["mojo", "build", f"{TEMP_DIR}/{file_name}", "-o", f"{TEMP_DIR}/{name}"], check=True)
-        subprocess.run([f"{TEMP_DIR}/{name}"], check=True)
+    logger.info(f"Running benchmarks in {benchmark_files}...")
+    for file in benchmark_files:
+        name, _ = file.name.split(".", 1)
+        shutil.copyfile(file, TEMP_DIR / file.name)
+        subprocess.run(["mojo", "build", TEMP_DIR / file.name, "-o", TEMP_DIR / name], check=True)
+        subprocess.run([TEMP_DIR / name], check=True)
 
     remove_temp_directory()
 
@@ -186,27 +184,19 @@ def execute_package_benchmarks(args: Any) -> None:
 def build_conda_package(args: Any) -> None:
     """Builds the conda package for the project."""
     # Build the conda package for the project.
-    config = load_project_config()
-    channels: list[str]
     rattler_command: list[str]
     match args.mode:
         case "default":
-            channels = config["project"]["channels"]
-            rattler_command = ["magic", "run", "rattler-build", "build"]
+            rattler_command = ["pixi", "build"]
         case _:
-            channels = config["feature"][args.mode]["channels"]
-            rattler_command = ["magic", "run", "-e", args.mode, "rattler-build", "build"]
-
-    options: list[str] = []
-    for channel in channels:
-        options.extend(["-c", channel])
+            rattler_command = ["pixi", "-e", args.mode, "build"]
 
     generate_recipe(args)
     subprocess.run(
-        [*rattler_command, "-r", RECIPE_DIR, "--skip-existing=all", *options],
+        [*rattler_command, "-o", CONDA_BUILD_PATH],
         check=True,
     )
-    os.remove(f"{RECIPE_DIR}/recipe.yaml")
+    os.remove("recipe.yaml")
 
 
 def main():
