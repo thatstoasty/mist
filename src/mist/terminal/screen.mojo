@@ -1,5 +1,5 @@
 from mist.color import AnyColor
-from mist.terminal.sgr import CSI, BEL, OSC, _write_sequence_to_stdout
+from mist.terminal.sgr import CSI, BEL, OSC, print
 
 alias RESTORE_SCREEN = CSI + "?47l"
 """Restores the screen state `CSI + ?47 + l = \\x1b[?47l`."""
@@ -16,7 +16,7 @@ alias RESET_STYLE = CSI + "0m"
 
 fn reset_terminal() -> None:
     """Reset the terminal to its default style, removing any active styles."""
-    _write_sequence_to_stdout(RESET_STYLE)
+    print(RESET_STYLE, sep="", end="")
 
 
 fn set_foreground_color(color: AnyColor) -> None:
@@ -25,7 +25,7 @@ fn set_foreground_color(color: AnyColor) -> None:
     Args:
         color: The color to set.
     """
-    _write_sequence_to_stdout(OSC, "10;", color.sequence[False](), BEL)
+    print(OSC, "10;", color.sequence[False](), BEL, sep="", end="")
 
 
 fn set_background_color(color: AnyColor) -> None:
@@ -34,27 +34,27 @@ fn set_background_color(color: AnyColor) -> None:
     Args:
         color: The color to set.
     """
-    _write_sequence_to_stdout(OSC, "11;", color.sequence[True](), BEL)
+    print(OSC, "11;", color.sequence[True](), BEL, sep="", end="")
 
 
 fn restore_screen() -> None:
     """Restores a previously saved screen state."""
-    _write_sequence_to_stdout(RESTORE_SCREEN)
+    print(RESTORE_SCREEN, sep="", end="")
 
 
 fn save_screen() -> None:
     """Saves the screen state."""
-    _write_sequence_to_stdout(SAVE_SCREEN)
+    print(SAVE_SCREEN, sep="", end="")
 
 
 fn alt_screen() -> None:
     """Switches to the alternate screen buffer. The former view can be restored with `exit_alt_screen`."""
-    _write_sequence_to_stdout(ALT_SCREEN)
+    print(ALT_SCREEN, sep="", end="")
 
 
 fn exit_alt_screen() -> None:
     """Exits the alternate screen buffer and returns to the former terminal view."""
-    _write_sequence_to_stdout(EXIT_ALT_SCREEN)
+    print(EXIT_ALT_SCREEN, sep="", end="")
 
 
 fn change_scrolling_region_sequence(top: UInt16, bottom: UInt16) -> String:
@@ -77,7 +77,7 @@ fn change_scrolling_region(top: UInt16, bottom: UInt16) -> None:
         top: The top of the scrolling region.
         bottom: The bottom of the scrolling region.
     """
-    _write_sequence_to_stdout(CSI, top, ";", bottom, "r")
+    print(CSI, top, ";", bottom, "r", sep="", end="")
 
 
 fn insert_lines_sequence(n: UInt16) -> String:
@@ -100,7 +100,7 @@ fn insert_lines(n: UInt16) -> None:
     Args:
         n: The number of lines to insert.
     """
-    _write_sequence_to_stdout(CSI, n, "L")
+    print(CSI, n, "L", sep="", end="")
 
 
 fn delete_lines_sequence(n: UInt16) -> String:
@@ -123,7 +123,7 @@ fn delete_lines(n: UInt16) -> None:
     Args:
         n: The number of lines to delete.
     """
-    _write_sequence_to_stdout(CSI, n, "M")
+    print(CSI, n, "M", sep="", end="")
 
 
 fn set_window_title(title: StringSlice) -> None:
@@ -132,4 +132,4 @@ fn set_window_title(title: StringSlice) -> None:
     Args:
         title: The title to set.
     """
-    _write_sequence_to_stdout(OSC, "2;", title, BEL)
+    print(OSC, "2;", title, BEL, sep="", end="")

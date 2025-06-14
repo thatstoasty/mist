@@ -8,88 +8,116 @@ import logging
 from typing import Any
 from pathlib import Path
 
-
-TEMP_DIR = Path(os.path.expandvars("$HOME/tmp"))
-RECIPE_DIR = Path("./src")
-PIXI_TOML = Path("pixi.toml")
-CONDA_BUILD_PATH = Path(os.environ.get("CONDA_BLD_PATH", os.getcwd()))
-"""If `CONDA_BLD_PATH` is set, then publish from there. Otherwise, publish from the current directory."""
+import yaml
+import typer
 
 logger = logging.getLogger(__name__)
 
+app = typer.Typer()
 
-def build_dependency_list(dependencies: dict[str, str]) -> list[str]:
-    """Converts the list of dependencies from the pixi.toml into a list of strings for the recipe."""
-    deps: list[str] = []
-    for name, version in dependencies.items():
-        start = 0
-        operator = "=="
-        if version[0] in {"<", ">"}:
-            if version[1] != "=":
-                operator = version[0]
-                start = 1
-            else:
-                operator = version[:2]
-                start = 2
-
-        deps.append(f"    - {name} {operator} {version[start:]}")
-
-    return deps
-
+TEMP_DIR = Path(os.path.expandvars("$HOME/tmp"))
+PIXI_TOML_PATH = Path("pixi.toml")
+RECIPE_PATH = Path("recipe.yaml")
+CONDA_BUILD_PATH = Path(os.environ.get("CONDA_BLD_PATH", os.getcwd()))
+"""If `CONDA_BLD_PATH` is set, then publish from there. Otherwise, publish from the current directory."""
 
 def load_project_config() -> dict[str, Any]:
     """Loads the project configuration from the pixi.toml file."""
-    with PIXI_TOML.open("rb") as f:
+    with PIXI_TOML_PATH.open("rb") as f:
         return tomllib.load(f)
 
+PROJECT_CONFIG = load_project_config()
 
-def generate_recipe(args: Any) -> None:
+
+class TemporaryBuildDirectory:
+    """Context manager to create a temporary build directory."""
+    def __enter__(self) -> Path:
+        TEMP_DIR.mkdir(parents=True, exist_ok=True)
+        package = PROJECT_CONFIG["package"]["name"]
+        subprocess.run(
+            ["mojo", "package", f"src/{package}", "-o", f"{TEMP_DIR}/{package}.mojopkg"],
+            check=True,
+        )
+        return TEMP_DIR
+
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        if TEMP_DIR.exists():
+            shutil.rmtree(TEMP_DIR)
+            logger.info("Temporary build directory removed.")
+
+
+def format_dependency(name: str, version: str) -> str:
+    """Converts the list of dependencies from the pixi.toml into a list of strings for the recipe."""
+    start = 0
+    operator = "=="
+    if version[0] in {"<", ">"}:
+        if version[1] != "=":
+            operator = version[0]
+            start = 1
+        else:
+            operator = version[:2]
+            start = 2
+
+    return f"{name} {operator} {version[start:]}"
+
+
+@app.command()
+def generate_recipe() -> None:
     """Generates a recipe for the project based on the project configuration in the pixi.toml."""
-    # Load the project configuration and recipe template.
-    config: dict[str, Any] = load_project_config()
-    recipe: str
-    with Path("src/recipe.tmpl").open("r") as f:
-        recipe = f.read()
-
     # Replace the placeholders in the recipe with the project configuration.
-    recipe = (
-        recipe.replace("{{NAME}}", config["package"]["name"])
-        .replace("{{VERSION}}", config["package"]["version"])
-        .replace("{{DESCRIPTION}}", config["workspace"]["description"])
-        .replace("{{LICENSE}}", config["workspace"]["license"])
-        .replace("{{LICENSE_FILE}}", config["workspace"]["license-file"])
-        .replace("{{HOMEPAGE}}", config["workspace"]["homepage"])
-        .replace("{{REPOSITORY}}", config["workspace"]["repository"])
+    recipe = {
+        "context": {"version": "13.4.2"},
+        "package": {},
+        "source": [],
+        "build": {
+            "script": [
+                "mkdir -p ${PREFIX}/lib/mojo",
+            ]
+        },
+        "requirements": {
+            "run": []
+        },
+        "about": {},
+    }
+
+    # Populate package information
+    package_name = PROJECT_CONFIG["package"]["name"]
+    recipe["package"]["name"] = package_name
+    recipe["package"]["version"] = PROJECT_CONFIG["package"]["version"]
+
+    # Populate source files
+    recipe["source"].append({"path": "src"})
+    recipe["source"].append({"path": PROJECT_CONFIG["workspace"]["license-file"]})
+
+    # Populate build script
+    recipe["build"]["script"].append(
+        f"pixi run mojo package {package_name} -o ${{PREFIX}}/lib/mojo/{package_name}.mojopkg"
     )
 
-    if args.mode != "default":
-        recipe = recipe.replace("{{ENVIRONMENT_FLAG}}", f"-e {args.mode}")
-    else:
-        recipe = recipe.replace("{{ENVIRONMENT_FLAG}}", "")
+    # Populate requirements
+    for dependency, version in PROJECT_CONFIG["dependencies"].items():
+        recipe["requirements"]["run"].append(format_dependency(dependency, version))
 
-    # Dependencies are the only notable field that changes between environments.
-    dependencies: dict[str, str]
-    match args.mode:
-        case "default":
-            dependencies = config["dependencies"]
-        case _:
-            dependencies = config["feature"][args.mode]["dependencies"]
-
-    deps = build_dependency_list(dependencies)
-    recipe = recipe.replace("{{DEPENDENCIES}}", "\n".join(deps))
+    # Populate about section
+    recipe["about"]["homepage"] = PROJECT_CONFIG["workspace"]["homepage"]
+    recipe["about"]["license"] = PROJECT_CONFIG["workspace"]["license"]
+    recipe["about"]["license_file"] = PROJECT_CONFIG["workspace"]["license-file"]
+    recipe["about"]["summary"] = PROJECT_CONFIG["workspace"]["description"]
+    recipe["about"]["repository"] = PROJECT_CONFIG["workspace"]["repository"]
 
     # Write the final recipe.
     with Path("recipe.yaml").open("w+") as f:
-        recipe = f.write(recipe)
+        yaml.dump(recipe, f)
 
 
-def publish_to_prefix(args: Any) -> None:
+@app.command()
+def publish(channel: str) -> None:
     """Publishes the conda packages to the specified conda channel."""
-    logger.info(f"Publishing packages to: {args.channel}")
+    logger.info(f"Publishing packages to: {channel}")
     for file in glob.glob(f'{CONDA_BUILD_PATH}/**/*.conda'):
         try:
             subprocess.run(
-                ["pixi", "upload", f"https://prefix.dev/api/v1/upload/{args.channel}", file],
+                ["pixi", "upload", f"https://prefix.dev/api/v1/upload/{channel}", file],
                 check=True,
             )
         except subprocess.CalledProcessError:
@@ -106,33 +134,32 @@ def remove_temp_directory() -> None:
 
 def prepare_temp_directory() -> None:
     """Creates the temporary directory used for building the package. Adds the compiled mojo package to the directory."""
-    package = load_project_config()["package"]["name"]
     remove_temp_directory()
     TEMP_DIR.mkdir()
+    package = PROJECT_CONFIG["package"]["name"]
     subprocess.run(
         ["mojo", "package", f"src/{package}", "-o", f"{TEMP_DIR}/{package}.mojopkg"],
         check=True,
     )
 
 
-def execute_package_tests(args: Any) -> None:
+@app.command()
+def run_tests(path: str | None = None) -> None:
     """Executes the tests for the package."""
-    TEST_DIR = Path("./src/test")
+    TEST_DIR = Path("src/test")
 
     logger.info("Building package and copying tests.")
-    prepare_temp_directory()
-    shutil.copytree(TEST_DIR, TEMP_DIR, dirs_exist_ok=True)
-
-    target = TEMP_DIR
-    if args.path:
-        target = target / args.path
-    logger.info(f"Running tests at {target}...")
-    subprocess.run(["mojo", "test", target], check=True)
-
-    remove_temp_directory()
+    with TemporaryBuildDirectory() as temp_directory:
+        shutil.copytree(TEST_DIR, temp_directory, dirs_exist_ok=True)
+        target = temp_directory
+        if path:
+            target = target / path
+        logger.info(f"Running tests at {target}...")
+        subprocess.run(["mojo", "test", target], check=True)
 
 
-def execute_package_examples(args: Any) -> None:
+@app.command()
+def run_examples(path: str | None = None) -> None:
     """Executes the examples for the package."""
     EXAMPLE_DIR = Path("examples")
     if not EXAMPLE_DIR.exists():
@@ -140,147 +167,55 @@ def execute_package_examples(args: Any) -> None:
         return
 
     logger.info("Building package and copying examples.")
-    prepare_temp_directory()
-    shutil.copytree(EXAMPLE_DIR, TEMP_DIR, dirs_exist_ok=True)
+    with TemporaryBuildDirectory() as temp_directory:
+        shutil.copytree(EXAMPLE_DIR, temp_directory, dirs_exist_ok=True)
+        example_files = EXAMPLE_DIR.glob("*.mojo")
+        if path:
+            example_files = EXAMPLE_DIR.glob(path)
 
-    example_files = EXAMPLE_DIR.glob("*.mojo")
-    if args.path:
-        example_files = EXAMPLE_DIR.glob(args.path)
-
-    logger.info(f"Running examples in {example_files}...")
-    for file in example_files:
-        name, _ = file.name.split(".", 1)
-        shutil.copyfile(file, TEMP_DIR / file.name)
-        subprocess.run(["mojo", "build", TEMP_DIR / file.name, "-o", TEMP_DIR / name], check=True)
-        subprocess.run([TEMP_DIR / name], check=True)
-
-    remove_temp_directory()
+        logger.info(f"Running examples in {example_files}...")
+        for file in example_files:
+            name, _ = file.name.split(".", 1)
+            shutil.copyfile(file, temp_directory / file.name)
+            subprocess.run(["mojo", "build", temp_directory / file.name, "-o", temp_directory / name], check=True)
+            subprocess.run([temp_directory / name], check=True)
 
 
-def execute_package_benchmarks(args: Any) -> None:
-    BENCHMARK_DIR = Path("./benchmarks")
+@app.command()
+def run_benchmarks(path: str | None = None) -> None:
+    BENCHMARK_DIR = Path("benchmarks")
     if not BENCHMARK_DIR.exists():
         logger.info(f"Path does not exist: {BENCHMARK_DIR}.")
         return
 
     logger.info("Building package and copying benchmarks.")
-    prepare_temp_directory()
-    shutil.copytree(BENCHMARK_DIR, TEMP_DIR, dirs_exist_ok=True)
+    with TemporaryBuildDirectory() as temp_directory:
+        shutil.copytree(BENCHMARK_DIR, temp_directory, dirs_exist_ok=True)
+        benchmark_files = BENCHMARK_DIR.glob("*.mojo")
+        if path:
+            benchmark_files = BENCHMARK_DIR.glob(path)
 
-    benchmark_files = BENCHMARK_DIR.glob("*.mojo")
-    if args.path:
-        benchmark_files = BENCHMARK_DIR.glob(args.path)
-
-    logger.info(f"Running benchmarks in {benchmark_files}...")
-    for file in benchmark_files:
-        name, _ = file.name.split(".", 1)
-        shutil.copyfile(file, TEMP_DIR / file.name)
-        subprocess.run(["mojo", "build", TEMP_DIR / file.name, "-o", TEMP_DIR / name], check=True)
-        subprocess.run([TEMP_DIR / name], check=True)
-
-    remove_temp_directory()
+        logger.info(f"Running benchmarks in {benchmark_files}...")
+        for file in benchmark_files:
+            name, _ = file.name.split(".", 1)
+            shutil.copyfile(file, temp_directory / file.name)
+            subprocess.run(["mojo", "build", temp_directory / file.name, "-o", temp_directory / name], check=True)
+            subprocess.run([temp_directory / name], check=True)
 
 
-def build_conda_package(args: Any) -> None:
+@app.command()
+def build_conda_package() -> None:
     """Builds the conda package for the project."""
-    # Build the conda package for the project.
-    rattler_command: list[str]
-    match args.mode:
-        case "default":
-            rattler_command = ["pixi", "build"]
-        case _:
-            rattler_command = ["pixi", "-e", args.mode, "build"]
+    # Generate the recipe if it does not exist already.
+    if not RECIPE_PATH.exists():
+        generate_recipe()
 
-    generate_recipe(args)
     subprocess.run(
-        [*rattler_command, "-o", CONDA_BUILD_PATH],
+        ["pixi", "build", "-o", CONDA_BUILD_PATH],
         check=True,
     )
     os.remove("recipe.yaml")
 
 
-def main():
-    # Configure the parser to receive the mode argument.
-    # create the top-level parser
-    parser = argparse.ArgumentParser(
-        prog="util", description="Generate a recipe for the project."
-    )
-    subcommands = parser.add_subparsers(help="sub-command help")
-
-    # create the parser for the "templater" command
-    templater = subcommands.add_parser("templater", help="template help")
-    templater.add_argument(
-        "-m",
-        "--mode",
-        type=str,
-        default="default",
-        help="The environment to generate the recipe for. Defaults to 'default' for the standard version.",
-    )
-    templater.set_defaults(func=generate_recipe)
-
-    # create the parser for the "build" command
-    build = subcommands.add_parser("build", help="build help")
-    build.add_argument(
-        "-m",
-        "--mode",
-        type=str,
-        default="default",
-        help="The environment to build the package using. Defaults to 'default' for the standard version.",
-    )
-    build.set_defaults(func=build_conda_package)
-
-    # create the parser for the "publish" command
-    publish = subcommands.add_parser("publish", help="publish help")
-    publish.add_argument(
-        "-c",
-        "--channel",
-        type=str,
-        default="mojo-community",
-        help="The prefix.dev conda channel to publish to. Defaults to 'mojo-community'.",
-    )
-    publish.set_defaults(func=publish_to_prefix)
-
-    # create the parser for the "run" command
-    run = subcommands.add_parser("run", help="run help")
-    run_subcommands = run.add_subparsers(help="run sub-command help")
-
-    # create the parser for the "run tests" command
-    run_tests = run_subcommands.add_parser("tests", help="tests help")
-    run_tests.add_argument(
-        "-p",
-        "--path",
-        type=str,
-        default=None,
-        help="Optional path to test file or test directory to run tests for.",
-    )
-    run_tests.set_defaults(func=execute_package_tests)
-
-    # create the parser for the "run benchmarks" command
-    run_benchmarks = run_subcommands.add_parser("benchmarks", help="benchmarks help")
-    run_benchmarks.add_argument(
-        "-p",
-        "--path",
-        type=str,
-        default=None,
-        help="Optional path to benchmark file or test directory to run tests for.",
-    )
-    run_benchmarks.set_defaults(func=execute_package_benchmarks)
-
-    # create the parser for the "run examples" command
-    run_examples = run_subcommands.add_parser("examples", help="examples help")
-    run_examples.add_argument(
-        "-p",
-        "--path",
-        type=str,
-        default=None,
-        help="Optional path to example file or test directory to run tests for.",
-    )
-    run_examples.set_defaults(func=execute_package_examples)
-
-    args = parser.parse_args()
-    if args.func:
-        args.func(args)
-
-
 if __name__ == "__main__":
-    main()
+    app()

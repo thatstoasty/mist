@@ -1,5 +1,5 @@
 from mist.color import AnyColor
-from mist.terminal.sgr import CSI, OSC, BEL, _write_sequence_to_stdout
+from mist.terminal.sgr import CSI, OSC, BEL
 
 # Cursor positioning.
 alias ERASE_DISPLAY = CSI + "2J"
@@ -48,33 +48,33 @@ fn move_cursor(row: UInt16, column: UInt16) -> None:
         row: The row to move to.
         column: The column to move to.
     """
-    _write_sequence_to_stdout(CSI, row, ";", column, "H")
+    print(CSI, row, ";", column, "H", sep="", end="")
 
 
 fn clear_screen() -> None:
     """Clears the visible portion of the terminal."""
-    _write_sequence_to_stdout(ERASE_DISPLAY)
+    print(ERASE_DISPLAY, sep="", end="")
     move_cursor(1, 1)
 
 
 fn hide_cursor() -> None:
     """TODO: Show and Hide cursor don't seem to work ATM. Hides the cursor."""
-    _write_sequence_to_stdout(HIDE_CURSOR)
+    print(HIDE_CURSOR, sep="", end="")
 
 
 fn show_cursor() -> None:
     """Shows the cursor."""
-    _write_sequence_to_stdout(SHOW_CURSOR)
+    print(SHOW_CURSOR, sep="", end="")
 
 
 fn save_cursor_position() -> None:
     """Saves the cursor position."""
-    _write_sequence_to_stdout(SAVE_CURSOR_POSITION)
+    print(SAVE_CURSOR_POSITION, sep="", end="")
 
 
 fn restore_cursor_position() -> None:
     """Restores a saved cursor position."""
-    _write_sequence_to_stdout(RESTORE_CURSOR_POSITION)
+    print(RESTORE_CURSOR_POSITION, sep="", end="")
 
 
 fn cursor_up_sequence(n: UInt16) -> String:
@@ -95,7 +95,7 @@ fn cursor_up(n: UInt16) -> None:
     Args:
         n: The number of lines to move up.
     """
-    _write_sequence_to_stdout(CSI, n, "A")
+    print(CSI, n, "A", sep="", end="")
 
 
 fn cursor_down_sequence(n: UInt16) -> String:
@@ -116,7 +116,7 @@ fn cursor_down(n: UInt16) -> None:
     Args:
         n: The number of lines to move down.
     """
-    _write_sequence_to_stdout(CSI, n, "B")
+    print(CSI, n, "B", sep="", end="")
 
 
 fn cursor_forward_sequence(n: UInt16) -> String:
@@ -137,7 +137,7 @@ fn cursor_forward(n: UInt16) -> None:
     Args:
         n: The number of cells to move forward.
     """
-    _write_sequence_to_stdout(CSI, n, "C")
+    print(CSI, n, "C", sep="", end="")
 
 
 fn cursor_back_sequence(n: UInt16) -> String:
@@ -158,7 +158,7 @@ fn cursor_back(n: UInt16) -> None:
     Args:
         n: The number of cells to move back.
     """
-    _write_sequence_to_stdout(CSI, n, "D")
+    print(CSI, n, "D", sep="", end="")
 
 
 fn cursor_next_line_sequence(n: UInt16) -> String:
@@ -180,7 +180,7 @@ fn cursor_next_line(n: UInt16) -> None:
     Args:
         n: The number of lines to move down.
     """
-    _write_sequence_to_stdout(CSI, n, "E")
+    print(CSI, n, "E", sep="", end="")
 
 
 fn cursor_prev_line_sequence(n: UInt16) -> String:
@@ -202,22 +202,22 @@ fn cursor_prev_line(n: UInt16) -> None:
     Args:
         n: The number of lines to move back.
     """
-    _write_sequence_to_stdout(CSI, n, "F")
+    print(CSI, n, "F", sep="", end="")
 
 
 fn clear_line() -> None:
     """Clears the current line."""
-    _write_sequence_to_stdout(CLEAR_LINE)
+    print(CLEAR_LINE, sep="", end="")
 
 
 fn clear_line_left() -> None:
     """Clears the line to the left of the cursor."""
-    _write_sequence_to_stdout(CLEAR_LINE_LEFT)
+    print(CLEAR_LINE_LEFT, sep="", end="")
 
 
 fn clear_line_right() -> None:
     """Clears the line to the right of the cursor."""
-    _write_sequence_to_stdout(CLEAR_LINE_RIGHT)
+    print(CLEAR_LINE_RIGHT, sep="", end="")
 
 
 fn clear_lines(n: UInt16) -> None:
@@ -227,7 +227,7 @@ fn clear_lines(n: UInt16) -> None:
         n: The number of lines to CLEAR.
     """
     var movement = (cursor_up_sequence(1) + CLEAR_LINE) * Int(n)
-    _write_sequence_to_stdout(CLEAR_LINE + movement)
+    print(CLEAR_LINE + movement, sep="", end="")
 
 
 fn set_cursor_color(color: AnyColor) -> None:
@@ -236,4 +236,4 @@ fn set_cursor_color(color: AnyColor) -> None:
     Args:
         color: The color to set.
     """
-    _write_sequence_to_stdout(OSC, "12;", color.sequence[True](), BEL)
+    print(OSC, "12;", color.sequence[True](), BEL, sep="", end="")

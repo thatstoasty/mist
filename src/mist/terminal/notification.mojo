@@ -1,4 +1,4 @@
-from mist.terminal.sgr import OSC, ST, _write_sequence_to_stdout
+from mist.terminal.sgr import OSC, ST, print
 
 
 fn notify(title: StringSlice, body: StringSlice) -> None:
@@ -8,4 +8,4 @@ fn notify(title: StringSlice, body: StringSlice) -> None:
         title: The title of the notification.
         body: The body of the notification.
     """
-    _write_sequence_to_stdout(OSC, "777;notify;", title, ";", body, ST)
+    print(OSC, "777;notify;", title, ";", body, ST, sep="", end="")

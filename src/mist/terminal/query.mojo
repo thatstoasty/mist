@@ -12,7 +12,7 @@ import sys
 
 import mist._hue as hue
 from mist.color import RGBColor
-from mist.terminal.sgr import ESC, BEL, CSI, OSC, ST, _write_sequence_to_stdout
+from mist.terminal.sgr import ESC, BEL, CSI, OSC, ST, print
 from mist.terminal.tty import TTY
 from mist.termios.tty import is_terminal_raw
 from mist.termios.terminal import is_a_tty, tty_name
@@ -122,7 +122,7 @@ fn get_background_color() raises -> RGBColor:
 
 @fieldwise_init
 @register_passable("trivial")
-struct OSCParseState(Movable, Copyable, ExplicitlyCopyable):
+struct OSCParseState(Copyable, ExplicitlyCopyable, Movable):
     """State for parsing OSC sequences."""
 
     var value: Int
@@ -200,7 +200,7 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
         query.write(ST)
 
     # Query the terminal by writing the sequence to stdout.
-    _write_sequence_to_stdout(query)
+    print(query, sep="", end="")
 
     var total_bytes_read = 0
     var start_idx = 0  # Start of the OSC query response.
@@ -222,18 +222,12 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
         var buf = Span(buffer)[total_bytes_read:]  # Unused slice of buffer.
         var bytes_read = stdin.read_bytes(buf)
 
-        # print(bytes_read, "bytes read from stdin", total_bytes_read, "total bytes read")
-        # print("Buffer content:", String(bytes=Span(buffer)[total_bytes_read:total_bytes_read + bytes_read]).__repr__())
-        # for i in range(bytes_read):
-        #     print(repr(chr(Int(buf[i]))))
-
         if bytes_read == 0:
             raise Error("EOF")
         elif buf[0] != ord(ESC):
             raise Error("Unexpected response from terminal. Did not start with ESC.")
 
         for i in range(0, bytes_read):
-            # print("State", state.value, "at index", i, "byte:", chr(Int(buf[i])).__repr__(), "total bytes read:", total_bytes_read)
             ref byte = buf[i]
             if state == OSCParseState.RESPONSE_START_SEARCH:
                 if byte == ord(ESC):
@@ -247,7 +241,6 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
                     continue
             elif state == OSCParseState.FENCE_END_SEARCH:
                 if byte == ord("R"):
-                    # print("Found R at index", i, start_idx, total_bytes_read + end_idx)
                     return String(bytes=Span(buffer)[start_idx:end_idx])
 
         total_bytes_read += bytes_read
@@ -292,7 +285,7 @@ fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineAr
             raise Error("Terminal must be in raw mode to query OSC sequences.")
 
     # Query the terminal by writing the sequence to stdout.
-    _write_sequence_to_stdout(sequence)
+    print(sequence, sep="", end="")
 
     # Read the response into the provided buffer.
     var stdin = sys.stdin

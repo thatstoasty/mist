@@ -1,4 +1,4 @@
-from mist.terminal.sgr import CSI, _write_sequence_to_stdout
+from mist.terminal.sgr import CSI
 
 alias ENABLE_MOUSE_PRESS = CSI + "?9h"
 """Enable press only (X10) `CSI + ?9 + h = \\x1b[?9h`."""
@@ -32,52 +32,52 @@ alias DISABLE_MOUSE_PIXELS_MODE = CSI + "?1016l"
 
 fn enable_mouse_press() -> None:
     """Enables X10 mouse mode. Button press events are sent only."""
-    _write_sequence_to_stdout(ENABLE_MOUSE_PRESS)
+    print(ENABLE_MOUSE_PRESS, sep="", end="")
 
 
 fn disable_mouse_press() -> None:
     """Disables X10 mouse mode."""
-    _write_sequence_to_stdout(DISABLE_MOUSE_PRESS)
+    print(DISABLE_MOUSE_PRESS, sep="", end="")
 
 
 fn enable_mouse() -> None:
     """Enables Mouse Tracking mode."""
-    _write_sequence_to_stdout(ENABLE_MOUSE)
+    print(ENABLE_MOUSE, sep="", end="")
 
 
 fn disable_mouse() -> None:
     """Disables Mouse Tracking mode."""
-    _write_sequence_to_stdout(DISABLE_MOUSE)
+    print(DISABLE_MOUSE, sep="", end="")
 
 
 fn enable_mouse_hilite() -> None:
     """Enables Hilite Mouse Tracking mode."""
-    _write_sequence_to_stdout(ENABLE_MOUSE_HILITE)
+    print(ENABLE_MOUSE_HILITE, sep="", end="")
 
 
 fn disable_mouse_hilite() -> None:
     """Disables Hilite Mouse Tracking mode."""
-    _write_sequence_to_stdout(DISABLE_MOUSE_HILITE)
+    print(DISABLE_MOUSE_HILITE, sep="", end="")
 
 
 fn enable_mouse_cell_motion() -> None:
     """Enables Cell Motion Mouse Tracking mode."""
-    _write_sequence_to_stdout(ENABLE_MOUSE_CELL_MOTION)
+    print(ENABLE_MOUSE_CELL_MOTION, sep="", end="")
 
 
 fn disable_mouse_cell_motion() -> None:
     """Disables Cell Motion Mouse Tracking mode."""
-    _write_sequence_to_stdout(DISABLE_MOUSE_CELL_MOTION)
+    print(DISABLE_MOUSE_CELL_MOTION, sep="", end="")
 
 
 fn enable_mouse_all_motion() -> None:
     """Enables All Motion Mouse mode."""
-    _write_sequence_to_stdout(ENABLE_MOUSE_ALL_MOTION)
+    print(ENABLE_MOUSE_ALL_MOTION, sep="", end="")
 
 
 fn disable_mouse_all_motion() -> None:
     """Disables All Motion Mouse mode."""
-    _write_sequence_to_stdout(DISABLE_MOUSE_ALL_MOTION)
+    print(DISABLE_MOUSE_ALL_MOTION, sep="", end="")
 
 
 fn enable_mouse_extended_mode() -> None:
@@ -85,12 +85,12 @@ fn enable_mouse_extended_mode() -> None:
 
     This should be enabled in conjunction with `enable_mouse_cell_motion`, and `enable_mouse_all_motion`.
     """
-    _write_sequence_to_stdout(ENABLE_MOUSE_EXTENDED_MODE)
+    print(ENABLE_MOUSE_EXTENDED_MODE, sep="", end="")
 
 
 fn disable_mouse_extended_mode() -> None:
     """Disables Extended Mouse mode (SGR)."""
-    _write_sequence_to_stdout(DISABLE_MOUSE_EXTENDED_MODE)
+    print(DISABLE_MOUSE_EXTENDED_MODE, sep="", end="")
 
 
 fn enable_mouse_pixels_mode() -> None:
@@ -99,9 +99,9 @@ fn enable_mouse_pixels_mode() -> None:
     This should be enabled in conjunction with `enable_mouse_cell_motion`, and
     `enable_mouse_all_motion`.
     """
-    _write_sequence_to_stdout(ENABLE_MOUSE_PIXELS_MODE)
+    print(ENABLE_MOUSE_PIXELS_MODE, sep="", end="")
 
 
 fn disable_mouse_pixels_mode() -> None:
     """Disables Pixel Motion Mouse mode (SGR-Pixels)."""
-    _write_sequence_to_stdout(DISABLE_MOUSE_PIXELS_MODE)
+    print(DISABLE_MOUSE_PIXELS_MODE, sep="", end="")
