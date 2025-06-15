@@ -93,7 +93,8 @@ alias RESET_STYLE = CSI + SGR.RESET + "m"
 """Reset all styles."""
 
 
-struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, Writable):
+@fieldwise_init
+struct Style(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable, Writable):
     """Style stores a list of styles to format text with.
     These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
@@ -131,42 +132,6 @@ struct Style(Movable, Copyable, ExplicitlyCopyable, Stringable, Representable, W
         """
         self.styles = List[String]()
         self.profile = Profile()
-
-    fn __init__(out self, other: Style):
-        """Constructs a Style from another Style.
-
-        Args:
-            other: The Style to copy.
-        """
-        self.styles = other.styles
-        self.profile = other.profile
-
-    @always_inline
-    fn copy(self) -> Self:
-        """Creates a copy of the Style.
-
-        Returns:
-            A new Style with the same styles and profile.
-        """
-        return Self(styles=self.styles, profile=self.profile)
-
-    fn __copyinit__(out self, other: Style):
-        """Constructs a Style from another Style.
-
-        Args:
-            other: The Style to copy.
-        """
-        self.styles = other.styles
-        self.profile = other.profile
-
-    fn __moveinit__(out self, owned other: Style):
-        """Constructs a Style from another Style.
-
-        Args:
-            other: The Style to move.
-        """
-        self.styles = other.styles^
-        self.profile = other.profile
 
     fn __str__(self) -> String:
         """Returns a string representation of the Style.

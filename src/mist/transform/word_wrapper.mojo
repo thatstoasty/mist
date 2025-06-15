@@ -8,7 +8,8 @@ alias DEFAULT_NEWLINE = "\n"
 alias DEFAULT_BREAKPOINT = "-"
 
 
-struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
+@fieldwise_init
+struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     """A word-wrapping writer that wraps content based on words at the given limit.
 
     Parameters:
@@ -70,21 +71,6 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
         self.word = ByteWriter()
         self.line_len = line_len
         self.ansi = ansi
-
-    fn __moveinit__(out self, owned other: Self):
-        """Constructs a new `Writer` by taking the content of the other `Writer`.
-
-        Args:
-            other: The other `Writer` to take the content from.
-        """
-        self.limit = other.limit
-        self.breakpoint = other.breakpoint
-        self.newline = other.newline
-        self.buf = other.buf^
-        self.space = other.space^
-        self.word = other.word^
-        self.line_len = other.line_len
-        self.ansi = other.ansi
 
     fn __str__(self) -> String:
         """Returns the word wrapped result as a string by copying the content of the internal buffer.

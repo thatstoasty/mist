@@ -120,6 +120,17 @@ fn get_background_color() raises -> RGBColor:
     return parse_xterm_color(query_osc("11;?"))
 
 
+fn has_dark_background() raises -> Bool:
+    """Checks if the terminal has a dark background.
+
+    Returns:
+        True if the terminal has a dark background, False otherwise.
+    """
+    var color = hue.Color(get_background_color().value)
+    _, _, luminance = color.hsl()
+    return luminance < 0.5
+
+
 @fieldwise_init
 @register_passable("trivial")
 struct OSCParseState(Copyable, ExplicitlyCopyable, Movable):

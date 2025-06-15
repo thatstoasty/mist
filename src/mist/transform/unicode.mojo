@@ -10,7 +10,7 @@ from mist.transform._table import (
 )
 
 
-@value
+@fieldwise_init
 struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool]:
     """Conditions have the flag `east_asian_width` enabled if the current locale is `CJK` or not.
 

@@ -20,8 +20,6 @@ publish = { cmd = "python scripts/util.py publish", env = { PREFIX_API_KEY = "$P
 
 [dependencies]
 max = ">=25.4.0.dev2025052905,<25.5.0"
-# max = ">=25.3.0,<25.4.0"
-# mog = ">=25.3.0,<25.4.0"
 
 [package]
 name = "mist"

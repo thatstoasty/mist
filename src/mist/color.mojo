@@ -9,7 +9,7 @@ alias FOREGROUND = "38"
 alias BACKGROUND = "48"
 
 
-trait Color(EqualityComparable, Representable, Movable, Copyable, ExplicitlyCopyable, Writable, Stringable):
+trait Color(Copyable, EqualityComparable, ExplicitlyCopyable, Movable, Representable, Stringable, Writable):
     """Represents colors that can be displayed in the terminal."""
 
     fn sequence[is_background: Bool](self) -> String:
@@ -24,29 +24,10 @@ trait Color(EqualityComparable, Representable, Movable, Copyable, ExplicitlyCopy
         ...
 
 
+@fieldwise_init
 @register_passable("trivial")
 struct NoColor(Color):
     """NoColor represents an ASCII color which is binary black or white."""
-
-    fn __init__(out self):
-        """Initializes a `NoColor` color."""
-        pass
-
-    fn __init__(out self, other: Self):
-        """Initializes a `NoColor` color with another `NoColor` color.
-
-        Args:
-            other: The `NoColor` color to copy.
-        """
-        pass
-
-    fn copy(self) -> Self:
-        """Copies the `NoColor`.
-
-        Returns:
-            A copy of the `NoColor`.
-        """
-        return self
 
     fn __eq__(self, other: NoColor) -> Bool:
         """Compares two colors for equality.
@@ -230,20 +211,13 @@ struct ANSIColor(Color):
         return String(COLOR_STRINGS[modifier + self.value - 8 + 90])
 
 
+@fieldwise_init
 @register_passable("trivial")
 struct ANSI256Color(Color):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
     var value: UInt8
     """The ANSI256 color value."""
-
-    fn __init__(out self, value: UInt8):
-        """Initializes the ANSI256Color with a value.
-
-        Args:
-            value: The ANSI256 color value.
-        """
-        self.value = value
 
     fn __init__(out self, color: hue.Color):
         """Initializes the ANSI256Color with a `hue.Color`.
@@ -252,22 +226,6 @@ struct ANSI256Color(Color):
             color: The `hue.Color` to convert to an ANSI256Color.
         """
         self.value = hex_to_ansi256(color)
-
-    fn __init__(out self, other: Self):
-        """Initializes the ANSI256Color with another ANSI256Color.
-
-        Args:
-            other: The ANSI256Color to copy.
-        """
-        self.value = other.value
-
-    fn copy(self) -> Self:
-        """Copies the `ANSI256Color`.
-
-        Returns:
-            A copy of the `ANSI256Color`.
-        """
-        return self
 
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
@@ -413,20 +371,13 @@ fn rgb_to_hex(r: UInt8, g: UInt8, b: UInt8) -> UInt32:
     return (r.cast[DType.uint32]() << 16) | (g.cast[DType.uint32]() << 8) | b.cast[DType.uint32]()
 
 
+@fieldwise_init
 @register_passable("trivial")
 struct RGBColor(Color):
     """RGBColor is a hex-encoded color, e.g. `0xabcdef`."""
 
     var value: UInt32
     """The hex-encoded color value."""
-
-    fn __init__(out self, value: UInt32):
-        """Initializes the RGBColor with a value.
-
-        Args:
-            value: The hex-encoded color value.
-        """
-        self.value = value
 
     fn __init__(out self, color: hue.Color):
         """Initializes the RGBColor with a `hue.Color`.
@@ -435,22 +386,6 @@ struct RGBColor(Color):
             color: The `hue.Color` to convert to an RGBColor.
         """
         self.value = color.hex()
-
-    fn __init__(out self, other: Self):
-        """Initializes the RGBColor with another RGBColor.
-
-        Args:
-            other: The RGBColor to copy.
-        """
-        self.value = other.value
-
-    fn copy(self) -> Self:
-        """Copies the `RGBColor`.
-
-        Returns:
-            A copy of the `RGBColor`.
-        """
-        return self
 
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
@@ -544,13 +479,11 @@ fn ansi256_to_ansi(value: UInt8) -> UInt8:
     var r: UInt8 = 0
     var md = hue.MAX_FLOAT64
     var h = ansi_to_rgb(value)
-    # var h = hex_to_rgb(ANSI_HEX_CODES[Int(value)])
     var h_color = hue.Color(R=h[0], G=h[1], B=h[2])
 
     @parameter
     for i in range(MAX_ANSI):
         var hb = ansi_to_rgb(i)
-        # var hb = hex_to_rgb(ANSI_HEX_CODES[i])
         var d = h_color.distance_HSLuv(hue.Color(R=hb[0], G=hb[1], B=hb[2]))
 
         if d < md:
@@ -601,7 +534,7 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     var gv = 8 + 10 * gray_index  # same value for r/g/b, 0..255
 
     # Calculate the represented colors back from the index
-    alias i2cv = InlineArray[UInt8, 6](0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF)
+    alias i2cv: InlineArray[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
 
     # Return the one which is nearer to the original input rgb value
     var color_dist = color.distance_HSLuv(hue.Color(R=i2cv[r], G=i2cv[g], B=i2cv[b]))
@@ -612,8 +545,8 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     return 232 + gray_index
 
 
-@value
-struct AnyColor:
+@fieldwise_init
+struct AnyColor(Copyable, ExplicitlyCopyable, Movable):
     """`AnyColor` is a `Variant` which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`."""
 
     alias _type = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]

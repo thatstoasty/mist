@@ -18,9 +18,9 @@ This project was heavily inspired by:
 
 ## Installation
 
-1. First, you'll need to configure your `mojoproject.toml` file to include my Conda channel. Add `"https://repo.prefix.dev/mojo-community"` to the list of channels.
-2. Next, add `mist` to your project's dependencies by running `magic add mist`.
-3. Finally, run `magic install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
+1. First, you'll need to configure your `pixi.toml` file to include my Conda channel. Add `"https://repo.prefix.dev/mojo-community"` to the list of channels.
+2. Next, add `mist` to your project's dependencies by running `pixi add mist`.
+3. Finally, run `pixi install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
 
 ## Colors
 

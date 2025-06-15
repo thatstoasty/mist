@@ -94,7 +94,8 @@ fn printable_rune_width(text: StringSlice) -> Int:
     return length
 
 
-struct Writer:
+@fieldwise_init
+struct Writer(Movable):
     """A writer that handles ANSI escape sequences in the content.
 
     Example Usage:
@@ -131,18 +132,6 @@ struct Writer:
         self.ansi_seq = ByteWriter(capacity=128)
         self.last_seq = ByteWriter(capacity=128)
         self.seq_changed = False
-
-    fn __moveinit__(out self, owned other: Writer):
-        """Constructs a new `Writer` by taking the content of the other `Writer`.
-
-        Args:
-            other: The other `Writer` to take the content from.
-        """
-        self.forward = other.forward^
-        self.ansi = other.ansi
-        self.ansi_seq = other.ansi_seq^
-        self.last_seq = other.last_seq^
-        self.seq_changed = other.seq_changed
 
     fn write(mut self, content: StringSlice) -> None:
         """Write content to the ANSI buffer.
