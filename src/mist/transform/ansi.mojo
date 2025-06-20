@@ -1,3 +1,4 @@
+from utils import write
 from mist.transform.unicode import string_width, char_width
 from mist.transform.bytes import ByteWriter
 
@@ -94,19 +95,19 @@ fn printable_rune_width(text: StringSlice) -> Int:
     return length
 
 
-struct Writer:
+@fieldwise_init
+struct Writer(Movable, Writable):
     """A writer that handles ANSI escape sequences in the content.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import ansi
 
     fn main():
         var writer = ansi.Writer()
         writer.write("Hello, World!")
-        print(writer.forward)
+        print(writer)
     ```
-    .
     """
 
     var forward: ByteWriter
@@ -132,17 +133,16 @@ struct Writer:
         self.last_seq = ByteWriter(capacity=128)
         self.seq_changed = False
 
-    fn __moveinit__(out self, owned other: Writer):
-        """Constructs a new `Writer` by taking the content of the other `Writer`.
+    fn write_to[W: write.Writer, //](self, mut writer: W):
+        """Writes the content to the given writer.
+
+        Parameters:
+            W: The type of the writer.
 
         Args:
-            other: The other `Writer` to take the content from.
+            writer: The writer to write to.
         """
-        self.forward = other.forward^
-        self.ansi = other.ansi
-        self.ansi_seq = other.ansi_seq^
-        self.last_seq = other.last_seq^
-        self.seq_changed = other.seq_changed
+        writer.write(self.forward)
 
     fn write(mut self, content: StringSlice) -> None:
         """Write content to the ANSI buffer.

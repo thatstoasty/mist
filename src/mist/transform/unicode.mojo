@@ -1,4 +1,3 @@
-from collections import InlineArray
 from mist.transform._table import (
     Interval,
     narrow,
@@ -10,7 +9,7 @@ from mist.transform._table import (
 )
 
 
-@value
+@fieldwise_init
 struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool]:
     """Conditions have the flag `east_asian_width` enabled if the current locale is `CJK` or not.
 
@@ -105,7 +104,7 @@ fn in_tables(codepoint: Codepoint, *tables: InlineArray[Interval]) -> Bool:
         True if the codepoint is in any of the tables, False otherwise.
     """
     for t in tables:
-        if in_table(codepoint, t[]):
+        if in_table(codepoint, t):
             return True
     return False
 

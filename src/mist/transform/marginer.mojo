@@ -6,10 +6,11 @@ from mist.transform.bytes import ByteWriter
 from mist.transform.unicode import string_width
 
 
-struct Writer(Stringable, Writable, Movable):
+@fieldwise_init
+struct Writer(Movable, Stringable, Writable):
     """A margin writer that applies a margin to the content.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import marginer as margin
 
@@ -19,7 +20,6 @@ struct Writer(Stringable, Writable, Movable):
         _ = writer.close()
         print(writer.consume())
     ```
-    .
     """
 
     var buf: ByteWriter
@@ -50,16 +50,6 @@ struct Writer(Stringable, Writable, Movable):
         self.buf = ByteWriter()
         self.pw = padding.Writer(pad)
         self.iw = indent.Writer(indentation)
-
-    fn __moveinit__(out self, owned other: Self):
-        """Constructs a new `Writer` by taking the content of the other `Writer`.
-
-        Args:
-            other: The other `Writer` to take the content from.
-        """
-        self.buf = other.buf^
-        self.pw = other.pw^
-        self.iw = other.iw^
 
     fn __str__(self) -> String:
         """Returns the result with margin applied as a string by copying the content of the internal buffer.
@@ -122,6 +112,14 @@ fn margin(text: StringSlice, width: Int, margin: Int) -> String:
 
     Returns:
         A new margin applied string.
+
+    #### Examples:
+    ```mojo
+    from mist.transform import margin
+
+    fn main():
+        print(margin("Hello, World!", width=5, margin=2))
+    ```
     """
     var writer = Writer(width, margin)
     writer.write(text)

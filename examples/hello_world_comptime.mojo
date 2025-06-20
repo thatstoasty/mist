@@ -1,7 +1,7 @@
 import mist
 
 
-alias true_color_style = mist.Style(mist.TRUE_COLOR)
+alias true_color_style = mist.Style(mist.TRUE_COLOR_PROFILE)
 
 alias bold = true_color_style.bold()
 alias faint = true_color_style.faint()

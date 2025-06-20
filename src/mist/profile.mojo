@@ -1,7 +1,5 @@
 from sys import external_call, os_is_windows, is_compile_time
 from sys.param_env import env_get_string
-from collections import InlineArray
-from collections.string import StringSlice
 from memory import UnsafePointer
 from os import abort, getenv
 import mist._hue as hue
@@ -37,9 +35,8 @@ fn get_color_profile() -> Profile:
     if getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
         return Profile.TRUE_COLOR
 
-    # TODO: Remove the conversion to lower case as it is consuming a fair bit of time in the critical path.
     var term = getenv("TERM").lower()
-    var color_term = getenv("COLORTERM")
+    var color_term = getenv("COLORTERM").lower()
 
     # COLORTERM is used by some terminals to indicate TRUE_COLOR support.
     if color_term == "24bit":
@@ -74,7 +71,7 @@ fn get_color_profile() -> Profile:
 
 
 @register_passable("trivial")
-struct Profile(Comparable, Movable, Copyable, Writable, Stringable, Representable):
+struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writable):
     """The color profile for the terminal."""
 
     var _value: Int

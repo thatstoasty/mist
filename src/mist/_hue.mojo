@@ -28,7 +28,7 @@ fn clamp01(v: Float64) -> Float64:
     Returns:
         The clamped value.
     """
-    return max(0.0, min(v, 1.0))
+    return math.clamp(v, 0.0, 1.0)
 
 
 alias MAX_FLOAT64: Float64 = max_finite[DType.float64]()
@@ -39,16 +39,16 @@ alias DELTA = 1.0 / 255.0
 """The tolerance used when comparing colors using `AlmostEqualColor`."""
 
 # This is the default reference white point.
-alias D65 = InlineArray[Float64, 3](0.95047, 1.00000, 1.08883)
+alias D65: InlineArray[Float64, 3] = [0.95047, 1.00000, 1.08883]
 """The default reference white point, D65."""
 
-alias m = InlineArray[InlineArray[Float64, 3], 3](
-    InlineArray[Float64, 3](3.2409699419045214, -1.5373831775700935, -0.49861076029300328),
-    InlineArray[Float64, 3](-0.96924363628087983, 1.8759675015077207, 0.041555057407175613),
-    InlineArray[Float64, 3](0.055630079696993609, -0.20397695888897657, 1.0569715142428786),
-)
+alias XYZ_TO_RGB_MATRIX: InlineArray[InlineArray[Float64, 3], 3] = [
+    [3.2409699419045214, -1.5373831775700935, -0.49861076029300328],
+    [-0.96924363628087983, 1.8759675015077207, 0.041555057407175613],
+    [0.055630079696993609, -0.20397695888897657, 1.0569715142428786],
+]
 """The matrix used to convert from XYZ to RGB."""
-alias hSLuvD65 = InlineArray[Float64, 3](0.95045592705167, 1.0, 1.089057750759878)
+alias hSLuvD65: InlineArray[Float64, 3] = [0.95045592705167, 1.0, 1.089057750759878]
 """The reference white point for HSLuv, D65."""
 
 alias KAPPA = 903.2962962962963
@@ -80,26 +80,31 @@ fn get_bounds(l: Float64) -> InlineArray[InlineArray[Float64, 2], 6]:
     Returns:
         The bounds for the given luminance value.
     """
-    var ret = InlineArray[InlineArray[Float64, 2], 6](
-        InlineArray[Float64, 2](0, 0),
-        InlineArray[Float64, 2](0, 0),
-        InlineArray[Float64, 2](0, 0),
-        InlineArray[Float64, 2](0, 0),
-        InlineArray[Float64, 2](0, 0),
-        InlineArray[Float64, 2](0, 0),
-    )
+    var ret: InlineArray[InlineArray[Float64, 2], 6] = [
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+    ]
 
     var sub_1 = (l + 16.0**3.0) / 1560896.0
     var sub_2 = sub_1 if sub_1 > EPSILON else l / KAPPA
 
-    for i in range(len(m)):
+    @parameter
+    for i in range(len(XYZ_TO_RGB_MATRIX)):
         var k = 0
         while k < 2:
-            var top1 = (284517.0 * m[i][0] - 94839.0 * m[i][2]) * sub_2
-            var top2 = (838422.0 * m[i][2] + 769860.0 * m[i][1] + 731718.0 * m[i][0]) * l * sub_2 - 769860.0 * Float64(
-                k
-            ) * l
-            var bottom = (632260.0 * m[i][2] - 126452.0 * m[i][1]) * sub_2 + 126452.0 * Float64(k)
+            var top1 = (284517.0 * XYZ_TO_RGB_MATRIX[i][0] - 94839.0 * XYZ_TO_RGB_MATRIX[i][2]) * sub_2
+            var top2 = (
+                838422.0 * XYZ_TO_RGB_MATRIX[i][2]
+                + 769860.0 * XYZ_TO_RGB_MATRIX[i][1]
+                + 731718.0 * XYZ_TO_RGB_MATRIX[i][0]
+            ) * l * sub_2 - 769860.0 * Float64(k) * l
+            var bottom = (
+                632260.0 * XYZ_TO_RGB_MATRIX[i][2] - 126452.0 * XYZ_TO_RGB_MATRIX[i][1]
+            ) * sub_2 + 126452.0 * Float64(k)
             ret[i * 2 + k][0] = top1 / bottom
             ret[i * 2 + k][1] = top2 / bottom
             k += 1
@@ -108,7 +113,7 @@ fn get_bounds(l: Float64) -> InlineArray[InlineArray[Float64, 2], 6]:
 
 
 @always_inline
-fn intersect_line_line(x1: Float64, y1: Float64, x2: Float64, y2: Float64) -> Float64:
+fn intersection_of_two_lines(x1: Float64, y1: Float64, x2: Float64, y2: Float64) -> Float64:
     """Returns the intersection of two lines.
 
     Args:
@@ -168,16 +173,16 @@ fn max_safe_chroma_for_l(l: Float64) -> Float64:
     Returns:
         The maximum safe chroma for the given luminance.
     """
-    var min_length = MAX_FLOAT64
+    var minimum_length = MAX_FLOAT64
     var bounds = get_bounds(l)
     for i in range(len(bounds)):
         var m1 = bounds[i][0]
         var b1 = bounds[i][1]
-        var x = intersect_line_line(m1, b1, -1.0 / m1, 0.0)
+        var x = intersection_of_two_lines(m1, b1, -1.0 / m1, 0.0)
         var dist = distance_from_pole(x, b1 + x * m1)
-        if dist < min_length:
-            min_length = dist
-    return min_length
+        if dist < minimum_length:
+            minimum_length = dist
+    return minimum_length
 
 
 fn LuvLCh_to_HPLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, Float64, Float64):
@@ -192,8 +197,8 @@ fn LuvLCh_to_HPLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, 
     Returns:
         The hue, saturation, and luminance values.
     """
-    c = c * 100.0
-    l = l * 100.0
+    c *= 100.0
+    l *= 100.0
 
     var s = 0.0 if (l > 99.9999999 or l < 0.00000001) else (c / max_safe_chroma_for_l(l) * 100.0)
     return h, s / 100.0, l / 100.0
@@ -212,8 +217,8 @@ fn LuvLch_to_HSLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, 
         The hue, saturation, and luminance values.
     """
     # [-1..1] but the code expects it to be [-100..100]
-    l = l * 100.0
-    c = c * 100.0
+    l *= 100.0
+    c *= 100.0
 
     var s = 0.0
     if l < 99.9999999 and l > 0.00000001:
@@ -222,17 +227,19 @@ fn LuvLch_to_HSLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, 
     return h, clamp01(s / 100.0), clamp01(l / 100.0)
 
 
-@value
+@fieldwise_init
 @register_passable("trivial")
-struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
-    """A color represented by red, green, and blue values."""
+struct Color(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable):
+    """A color represented by red, green, and blue values.
+    RGB values are stored internally using sRGB (standard RGB) values in the range 0-1.
+    """
 
     var R: Float64
-    """The red value."""
+    """The red value, between 0 to 1."""
     var G: Float64
-    """The green value."""
+    """The green value, between 0 to 1."""
     var B: Float64
-    """The blue value."""
+    """The blue value, between 0 to 1."""
 
     fn __init__(out self, other: Self):
         """Initializes a new `Color` by copying the values from another `Color`.
@@ -248,13 +255,13 @@ struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
         """Initializes a new `Color` with the given red, green, and blue values.
 
         Args:
-            R: The red value.
-            G: The green value.
-            B: The blue value.
+            R: The red value, between 0 and 255.
+            G: The green value, between 0 and 255.
+            B: The blue value, between 0 and 255.
         """
-        self.R = R.cast[DType.float64]()
-        self.G = G.cast[DType.float64]()
-        self.B = B.cast[DType.float64]()
+        self.R = R.cast[DType.float64]() / 255.0
+        self.G = G.cast[DType.float64]() / 255.0
+        self.B = B.cast[DType.float64]() / 255.0
 
     fn __init__(out self, rgb: Tuple[UInt8, UInt8, UInt8]):
         """Initializes a new `Color` with the given red, green, and blue values.
@@ -262,9 +269,9 @@ struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
         Args:
             rgb: The red, green, and blue values.
         """
-        self.R = rgb[0].cast[DType.float64]()
-        self.G = rgb[1].cast[DType.float64]()
-        self.B = rgb[2].cast[DType.float64]()
+        self.R = rgb[0].cast[DType.float64]() / 255.0
+        self.G = rgb[1].cast[DType.float64]() / 255.0
+        self.B = rgb[2].cast[DType.float64]() / 255.0
 
     fn __init__(out self, hex: UInt32):
         """Initializes a new `Color` with the given hex value.
@@ -274,10 +281,9 @@ struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
         """
         # Downcast to UInt8 to ensure the values are in the correct range, 0-255.
         # Better to truncate down to 255 rather than try to handle unexpectedly large values.
-        var r = (hex >> 16).cast[DType.uint8]()
-        var g = (hex >> 8 & 0xFF).cast[DType.uint8]()
-        var b = (hex & 0xFF).cast[DType.uint8]()
-        return self.__init__(r, g, b)
+        self.R = (hex >> 16).cast[DType.uint8]().cast[DType.float64]() / 255.0
+        self.G = (hex >> 8 & 0xFF).cast[DType.uint8]().cast[DType.float64]() / 255.0
+        self.B = (hex & 0xFF).cast[DType.uint8]().cast[DType.float64]() / 255.0
 
     fn __str__(self) -> String:
         """Returns the string representation of the color.
@@ -301,7 +307,7 @@ struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
         Returns:
             The hexadecimal representation of the color.
         """
-        return (Int(self.R) << 16) | (Int(self.G) << 8) | Int(self.B)
+        return (Int(self.R * 255.0) << 16) | (Int(self.G * 255.0) << 8) | Int(self.B * 255.0)
 
     fn linear_rgb(self) -> (Float64, Float64, Float64):
         """Converts the color into the linear color space (see http://www.sjbrown.co.uk/2004/05/14/gamma-correct-rendering/).
@@ -411,6 +417,7 @@ struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
         Returns:
             The distance between the two colors in linear RGB space.
         """
+        # NOTE: If we start to see unusual results, switch to `linear_rgb` instead of `fast_linear_rgb`.
         var rgb = self.linear_rgb()
         var rgb2 = c2.linear_rgb()
         return math.sqrt(sq(rgb[0] - rgb2[0]) + sq(rgb[1] - rgb2[1]) + sq(rgb[2] - rgb2[2]))
@@ -743,9 +750,13 @@ struct Color(Stringable, Representable, Movable, Copyable, ExplicitlyCopyable):
                 else:
                     hp_mean -= 180
 
-        var t = 1 - 0.17 * math.cos((hp_mean - 30) * math.pi / 180) + 0.24 * math.cos(
-            2 * hp_mean * math.pi / 180
-        ) + 0.32 * math.cos((3 * hp_mean + 6) * math.pi / 180) - 0.2 * math.cos((4 * hp_mean - 63) * math.pi / 180)
+        var t = (
+            1
+            - 0.17 * math.cos((hp_mean - 30) * math.pi / 180)
+            + 0.24 * math.cos(2 * hp_mean * math.pi / 180)
+            + 0.32 * math.cos((3 * hp_mean + 6) * math.pi / 180)
+            - 0.2 * math.cos((4 * hp_mean - 63) * math.pi / 180)
+        )
         var delta_theta = 30 * math.exp(-sq((hp_mean - 275) / 25))
         var rc = 2 * math.sqrt((cp_mean**7) / ((cp_mean**7) + (p**7)))
         var sl = 1 + (0.015 * sq(lp_mean - 50)) / math.sqrt(20 + sq(lp_mean - 50))

@@ -8,13 +8,14 @@ alias DEFAULT_NEWLINE = "\n"
 alias DEFAULT_BREAKPOINT = "-"
 
 
-struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
+@fieldwise_init
+struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     """A word-wrapping writer that wraps content based on words at the given limit.
 
     Parameters:
         keep_newlines: Whether to keep newlines in the content.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import word_wrapper as word_wrap
 
@@ -24,7 +25,6 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
         _ = writer.close()
         print(writer.consume())
     ```
-    .
     """
 
     var limit: Int
@@ -70,21 +70,6 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
         self.word = ByteWriter()
         self.line_len = line_len
         self.ansi = ansi
-
-    fn __moveinit__(out self, owned other: Self):
-        """Constructs a new `Writer` by taking the content of the other `Writer`.
-
-        Args:
-            other: The other `Writer` to take the content from.
-        """
-        self.limit = other.limit
-        self.breakpoint = other.breakpoint
-        self.newline = other.newline
-        self.buf = other.buf^
-        self.space = other.space^
-        self.word = other.word^
-        self.line_len = other.line_len
-        self.ansi = other.ansi
 
     fn __str__(self) -> String:
         """Returns the word wrapped result as a string by copying the content of the internal buffer.
@@ -236,14 +221,13 @@ fn word_wrap[
     Returns:
         A new word wrapped string.
 
+    #### Examples:
     ```mojo
     from mist import word_wrap
 
     fn main():
-        var wrapped = word_wrap("Hello, World!", 5)
-        print(wrapped)
+        print(word_wrap("Hello, World!", 5))
     ```
-    .
     """
     var writer = Writer[keep_newlines=keep_newlines](limit, newline=newline, breakpoint=breakpoint)
     writer.write(text)

@@ -2,7 +2,7 @@
 
 `mist` is an ANSI aware toolkit that enables you to style and transform text on the terminal.
 
-![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.3-orange)
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.4-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
 ![Test Status](https://github.com/thatstoasty/mist/actions/workflows/test.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -18,9 +18,9 @@ This project was heavily inspired by:
 
 ## Installation
 
-1. First, you'll need to configure your `mojoproject.toml` file to include my Conda channel. Add `"https://repo.prefix.dev/mojo-community"` to the list of channels.
-2. Next, add `mist` to your project's dependencies by running `magic add mist`.
-3. Finally, run `magic install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
+1. First, you'll need to configure your `pixi.toml` file to include my Conda channel. Add `"https://repo.prefix.dev/mojo-community"` to the list of channels.
+2. Next, add `mist` to your project's dependencies by running `pixi add mist`.
+3. Finally, run `pixi install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
 
 ## Colors
 
@@ -147,10 +147,34 @@ fn main():
     print(render_with_background_color("Hello, world!", 0xc9a0dc))
 ```
 
-## Positioning
+## Terminal Control
+
+### Termios
+
+`mist` offers a `termios` module that allows you to control terminal settings such as echo, canonical mode, and more. This is useful for creating interactive command-line applications.
+
+TODO: Example of using `termios` to change terminal settings.
+
+### TTY Context Manager
+
+In the `mist.terminal` package, you can use the `TTY` context manager as a high-level interface to manage terminal settings rather than using the `termios` module directly. This context manager allows you to temporarily change terminal settings and automatically restores them when exiting the context.
 
 ```mojo
-from mist.terminal.screen import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
+from mist.terminal.query import get_terminal_size
+from mist.terminal.tty import TTY
+
+fn main() raises -> None:
+    var rows: UInt
+    var columns: UInt
+    with TTY():
+        rows, columns = get_terminal_size()
+    print("Terminal dimensions:", rows, "x", columns)
+```
+
+### Cursor Positioning
+
+```mojo
+from mist.terminal.cursor import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
 
 fn main() raises:
     # Move the cursor to a given position
@@ -183,7 +207,7 @@ fn main() raises:
     cursor_prev_line(n)
 ```
 
-## Screen
+### Screen
 
 ```mojo
 from mist.terminal.screen import reset, restore_screen, save_screen, alt_screen, exit_alt_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
@@ -240,7 +264,7 @@ Output
 
 ![Cursor](https://github.com/thatstoasty/mist/blob/main/doc/tapes/cursor.gif)
 
-## Session
+### Session
 
 ```mojo
 from mist.terminal.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
@@ -259,7 +283,7 @@ fn main() raises:
     set_cursor_color(color)
 ```
 
-## Mouse
+### Mouse
 
 ```mojo
 from mist.terminal.screen import enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
@@ -296,7 +320,7 @@ fn main() raises:
     disable_mouse_all_motion()
 ```
 
-## Bracketed Paste
+### Bracketed Paste
 
 ```mojo
 from mist.terminal.screen import enable_bracketed_paste, disable_bracketed_paste
@@ -307,6 +331,24 @@ fn main() raises:
 
     # Disables bracketed paste mode
     disable_bracketed_paste()
+```
+
+### Terminal Querying
+
+The `mist.terminal.query` module provides functions to query terminal properties such as size, color support, and more.
+
+```mojo
+from mist.terminal.query import get_terminal_size, query_osc
+from mist.terminal.tty import TTY
+from mist.color import RGBColor
+
+fn main() raises -> None:
+    var rows: UInt
+    var columns: UInt
+    with TTY():
+        var xterm_background_color = query_osc("11;?")
+        rows, columns = get_terminal_size()
+    print("Terminal dimensions:", rows, "x", columns)
 ```
 
 ## Text Transformation

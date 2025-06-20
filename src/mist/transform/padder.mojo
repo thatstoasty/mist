@@ -5,10 +5,11 @@ from mist.transform.bytes import ByteWriter
 from mist.transform.unicode import char_width
 
 
-struct Writer(Stringable, Writable, Movable):
+@fieldwise_init
+struct Writer(Movable, Stringable, Writable):
     """A padding writer that pads content to the given printable cell width.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import padder as padding
 
@@ -50,18 +51,6 @@ struct Writer(Stringable, Writable, Movable):
         self.in_ansi = in_ansi
         self.cache = ByteWriter()
         self.ansi_writer = ansi.Writer()
-
-    fn __moveinit__(out self, owned other: Self):
-        """Constructs a new `Writer` by taking the content of the other `Writer`.
-
-        Args:
-            other: The other `Writer` to take the content from.
-        """
-        self.padding = other.padding
-        self.ansi_writer = other.ansi_writer^
-        self.cache = other.cache^
-        self.line_len = other.line_len
-        self.in_ansi = other.in_ansi
 
     fn __str__(self) -> String:
         """Returns the padded result as a string by copying the content of the internal buffer.
@@ -140,15 +129,13 @@ fn padding(text: StringSlice, width: Int) -> String:
     Returns:
         A new padded string.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist import padding
 
     fn main():
-        var padded = padding("Hello, World!", 5)
-        print(padded)
+        print(padding("Hello, World!", 5))
     ```
-    .
     """
     var writer = Writer(width)
     writer.write(text)

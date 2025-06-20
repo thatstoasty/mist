@@ -4,10 +4,11 @@ import mist.transform.ansi
 from mist.transform.ansi import SPACE, NEWLINE_BYTE
 
 
-struct Writer(Stringable, Writable, Movable):
+@fieldwise_init
+struct Writer(Movable, Stringable, Writable):
     """A writer that indents content by a given number of spaces.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import indenter as indent
 
@@ -37,17 +38,6 @@ struct Writer(Stringable, Writable, Movable):
         self.ansi_writer = ansi.Writer()
         self.skip_indent = False
         self.in_ansi = False
-
-    fn __moveinit__(out self, owned other: Self):
-        """Constructs a new `Writer` by taking the content of the other `Writer`.
-
-        Args:
-            other: The other `Writer` to take the content from.
-        """
-        self.indent = other.indent
-        self.ansi_writer = other.ansi_writer^
-        self.skip_indent = other.skip_indent
-        self.in_ansi = other.in_ansi
 
     fn __str__(self) -> String:
         """Returns the indented result as a string by copying the content of the internal buffer.
@@ -122,7 +112,6 @@ fn indent(text: StringSlice, indent: Int) -> String:
     fn main():
         print(indent("Hello, World!", 4))
     ```
-    .
     """
     var writer = Writer(indent)
     writer.write(text)

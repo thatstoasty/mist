@@ -8,13 +8,14 @@ alias DEFAULT_NEWLINE = "\n"
 alias DEFAULT_TAB_WIDTH = 4
 
 
-struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
+@fieldwise_init
+struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     """A line wrapping writer that wraps content based on the given limit.
 
     Parameters:
         keep_newlines: Whether to keep newlines in the content.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import wrapper as wrap
 
@@ -72,21 +73,6 @@ struct Writer[keep_newlines: Bool = True](Stringable, Writable, Movable):
         self.line_len = line_len
         self.ansi = ansi
         self.forceful_newline = forceful_newline
-
-    fn __moveinit__(out self, owned other: Self):
-        """Constructs a new `Writer` by taking the content of the other `Writer`.
-
-        Args:
-            other: The other `Writer` to take the content from.
-        """
-        self.limit = other.limit
-        self.newline = other.newline
-        self.preserve_space = other.preserve_space
-        self.tab_width = other.tab_width
-        self.buf = other.buf^
-        self.line_len = other.line_len
-        self.ansi = other.ansi
-        self.forceful_newline = other.forceful_newline
 
     fn __str__(self) -> String:
         """Returns the wrapped result as a string by copying the content of the internal buffer.
@@ -200,14 +186,13 @@ fn wrap[
     Returns:
         A new wrapped string.
 
+    #### Examples:
     ```mojo
     from mist import wrap
 
     fn main():
-        var wrapped = wrap("Hello, World!", 5)
-        print(wrapped)
+        print(wrap("Hello, World!", 5))
     ```
-    .
     """
     var writer = Writer[keep_newlines=keep_newlines](
         limit, newline=newline, preserve_space=preserve_space, tab_width=tab_width

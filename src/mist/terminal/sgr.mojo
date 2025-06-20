@@ -1,0 +1,11 @@
+# ANSI Operations
+alias ESC = "\x1b"
+"""Escape character."""
+alias BEL = "\x07"
+"""Bell character."""
+alias CSI = "\x1b["
+"""Control Sequence Introducer."""
+alias OSC = "\x1b]"
+"""Operating System Command."""
+alias ST = "\x1b\\"
+"""String Terminator."""

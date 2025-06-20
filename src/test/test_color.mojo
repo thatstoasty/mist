@@ -25,11 +25,6 @@ def test_color_sequence():
     testing.assert_equal(RGBColor(0xFFFFFF).sequence[True](), "48;2;255;255;255")
 
 
-def test_no_color_init():
-    var color = NoColor()
-    _ = NoColor(color)
-
-
 def test_no_color_equality():
     testing.assert_true(NoColor() == NoColor())
     testing.assert_false(NoColor() != NoColor())
@@ -84,7 +79,7 @@ def test_ansi256_color_init():
     var color = ANSI256Color(0)
     testing.assert_equal(color.value, 0)
 
-    var color2 = ANSI256Color(color)
+    var color2 = color.copy()
     testing.assert_equal(color2.value, 0)
 
     var color3 = ANSI256Color(hue.Color(UInt8(0), UInt8(0), UInt8(0)))
@@ -123,7 +118,7 @@ def test_rgb_color_init():
     var color = RGBColor(0xFFFFFF)
     testing.assert_equal(color.value, 16777215)
 
-    var color2 = RGBColor(color)
+    var color2 = color.copy()
     testing.assert_equal(color2.value, 16777215)
 
     var color3 = RGBColor(hue.Color(UInt8(0), UInt8(0), UInt8(0)))

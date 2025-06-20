@@ -1,7 +1,7 @@
-from mist.style import OSC, ST
+from mist.terminal.sgr import OSC, ST
 
 
-fn hyperlink(link: String, name: String) -> String:
+fn hyperlink(link: StringSlice, name: StringSlice) -> String:
     """Creates a hyperlink using OSC8.
 
     Args:
