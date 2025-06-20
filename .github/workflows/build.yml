@@ -41,4 +41,5 @@ jobs:
         run: |
           # Build and publish
           pixi run -e util build
+          pixi auth login prefix.dev --token "$PREFIX_API_KEY"
           pixi run -e util publish mojo-community
