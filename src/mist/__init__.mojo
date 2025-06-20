@@ -2,6 +2,8 @@ from mist.color import Color
 from mist.style import Style
 from mist.profile import (
     Profile,
+    AnyColor,
+    NoColor,
     ASCII,
     ANSI,
     ANSI256,
@@ -10,8 +12,6 @@ from mist.profile import (
     ANSI_PROFILE,
     ANSI256_PROFILE,
     TRUE_COLOR_PROFILE,
-    AnyColor,
-    NoColor,
 )
 from mist.renderers import (
     render_as_color,
