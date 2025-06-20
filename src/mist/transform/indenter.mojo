@@ -8,7 +8,7 @@ from mist.transform.ansi import SPACE, NEWLINE_BYTE
 struct Writer(Movable, Stringable, Writable):
     """A writer that indents content by a given number of spaces.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import indenter as indent
 
@@ -112,7 +112,6 @@ fn indent(text: StringSlice, indent: Int) -> String:
     fn main():
         print(indent("Hello, World!", 4))
     ```
-    .
     """
     var writer = Writer(indent)
     writer.write(text)

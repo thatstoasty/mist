@@ -9,7 +9,7 @@ from mist.transform.unicode import char_width
 struct Writer(Movable, Stringable, Writable):
     """A padding writer that pads content to the given printable cell width.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import padder as padding
 
@@ -129,15 +129,13 @@ fn padding(text: StringSlice, width: Int) -> String:
     Returns:
         A new padded string.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist import padding
 
     fn main():
-        var padded = padding("Hello, World!", 5)
-        print(padded)
+        print(padding("Hello, World!", 5))
     ```
-    .
     """
     var writer = Writer(width)
     writer.write(text)

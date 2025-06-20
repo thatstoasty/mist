@@ -15,7 +15,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     Parameters:
         keep_newlines: Whether to keep newlines in the content.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import word_wrapper as word_wrap
 
@@ -25,7 +25,6 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
         _ = writer.close()
         print(writer.consume())
     ```
-    .
     """
 
     var limit: Int
@@ -222,14 +221,13 @@ fn word_wrap[
     Returns:
         A new word wrapped string.
 
+    #### Examples:
     ```mojo
     from mist import word_wrap
 
     fn main():
-        var wrapped = word_wrap("Hello, World!", 5)
-        print(wrapped)
+        print(word_wrap("Hello, World!", 5))
     ```
-    .
     """
     var writer = Writer[keep_newlines=keep_newlines](limit, newline=newline, breakpoint=breakpoint)
     writer.write(text)

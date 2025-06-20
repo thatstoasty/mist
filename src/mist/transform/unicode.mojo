@@ -1,4 +1,3 @@
-from collections import InlineArray
 from mist.transform._table import (
     Interval,
     narrow,

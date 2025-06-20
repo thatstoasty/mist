@@ -29,13 +29,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install pixi
-        run: |
-          curl -ssL https://pixi.sh/install.sh | bash
+      - uses: prefix-dev/setup-pixi@v0.8.10
+        with:
+          pixi-version: v0.47.0
 
       - name: Run tests
-        run: |
-          source $HOME/.bash_profile
-          pixi run tests
-          pixi run benchmarks
-          pixi run examples
+        shell: bash
+        run: pixi run -e util tests

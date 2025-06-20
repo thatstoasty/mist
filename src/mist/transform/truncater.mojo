@@ -7,7 +7,7 @@ from mist.transform.unicode import char_width
 struct Writer(Movable, Stringable, Writable):
     """A truncating writer that truncates content at the given printable cell width.
 
-    Example Usage:
+    #### Examples:
     ```mojo
     from mist.transform import truncater as truncate
 
@@ -122,6 +122,7 @@ fn truncate(text: StringSlice, width: Int, tail: String = "") -> String:
     Returns:
         A new truncated string.
 
+    #### Examples:
     ```mojo
     from mist import truncate
 
@@ -129,7 +130,6 @@ fn truncate(text: StringSlice, width: Int, tail: String = "") -> String:
         var truncated = truncate("Hello, World!", 5, ".")
         print(truncated)
     ```
-    .
     """
     var writer = Writer(width, tail)
     writer.write(text)
