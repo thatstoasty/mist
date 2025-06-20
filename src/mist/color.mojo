@@ -520,9 +520,9 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     """
     # Calculate the nearest 0-based color index at 16..231
     # Originally had * 255 in each of these
-    var r = _value_to_color_index(color.R)  # 0..5 each
-    var g = _value_to_color_index(color.G)
-    var b = _value_to_color_index(color.B)
+    var r = _value_to_color_index(color.R * 255)  # 0..5 each
+    var g = _value_to_color_index(color.G * 255)
+    var b = _value_to_color_index(color.B * 255)
 
     # Calculate the nearest 0-based gray index at 232..255
     var gray_index: UInt8

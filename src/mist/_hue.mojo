@@ -281,10 +281,9 @@ struct Color(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable):
         """
         # Downcast to UInt8 to ensure the values are in the correct range, 0-255.
         # Better to truncate down to 255 rather than try to handle unexpectedly large values.
-        var r = (hex >> 16).cast[DType.uint8]()
-        var g = (hex >> 8 & 0xFF).cast[DType.uint8]()
-        var b = (hex & 0xFF).cast[DType.uint8]()
-        return self.__init__(r, g, b)
+        self.R = (hex >> 16).cast[DType.uint8]().cast[DType.float64]() / 255.0
+        self.G = (hex >> 8 & 0xFF).cast[DType.uint8]().cast[DType.float64]() / 255.0
+        self.B = (hex & 0xFF).cast[DType.uint8]().cast[DType.float64]() / 255.0
 
     fn __str__(self) -> String:
         """Returns the string representation of the color.
@@ -300,7 +299,7 @@ struct Color(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable):
         Returns:
             The string representation of the color.
         """
-        return String(self)
+        return String("Color(", self.R, ", ", self.G, ", ", self.B, ")")
 
     fn hex(self) -> UInt32:
         """Converts red, green, and blue values to a number in hexadecimal format.
@@ -324,7 +323,7 @@ struct Color(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable):
         Returns:
             The XYZ values.
         """
-        var rgb = self.fast_linear_rgb()
+        var rgb = self.linear_rgb()
         return linear_rgb_to_xyz(rgb[0], rgb[1], rgb[2])
 
     fn Luv_white_ref(self, wref: InlineArray[Float64, 3]) -> (Float64, Float64, Float64):
@@ -419,8 +418,8 @@ struct Color(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable):
             The distance between the two colors in linear RGB space.
         """
         # NOTE: If we start to see unusual results, switch to `linear_rgb` instead of `fast_linear_rgb`.
-        var rgb = self.fast_linear_rgb()
-        var rgb2 = c2.fast_linear_rgb()
+        var rgb = self.linear_rgb()
+        var rgb2 = c2.linear_rgb()
         return math.sqrt(sq(rgb[0] - rgb2[0]) + sq(rgb[1] - rgb2[1]) + sq(rgb[2] - rgb2[2]))
 
     fn distance_riemersma(self, c2: Self) -> Float64:
