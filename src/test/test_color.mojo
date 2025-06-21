@@ -4,7 +4,6 @@ from mist.color import (
     RGBColor,
     NoColor,
     AnyColor,
-    ansi_to_rgb,
     hex_to_rgb,
     rgb_to_hex,
     ansi256_to_ansi,
@@ -148,11 +147,6 @@ def test_represent_rgb_color():
 
 def test_rgb_color_to_rgb():
     var color = RGBColor(0xFFFFFF).to_rgb()
-    print(color[0], color[1], color[2])
     testing.assert_equal(color[0], 255)
     testing.assert_equal(color[1], 255)
     testing.assert_equal(color[2], 255)
-
-
-# def test_ansi_to_rgb():
-#     ansi_to_rgb()

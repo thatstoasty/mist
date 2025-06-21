@@ -187,7 +187,7 @@ struct ANSIColor(Color):
         Returns:
             The RGB Tuple.
         """
-        return ansi_to_rgb(self.value)
+        return hex_to_rgb(ANSI_HEX_CODES[Int(self.value)])
 
     fn sequence[is_background: Bool](self) -> String:
         """Converts the ANSI Color to an ANSI Sequence.
@@ -282,7 +282,7 @@ struct ANSI256Color(Color):
         Returns:
             The RGB Tuple.
         """
-        return ansi_to_rgb(self.value)
+        return hex_to_rgb(ANSI_HEX_CODES[Int(self.value)])
 
     fn sequence[is_background: Bool](self) -> String:
         """Converts the ANSI256 Color to an ANSI Sequence.
@@ -303,39 +303,6 @@ struct ANSI256Color(Color):
         output.write(";5;", COLOR_STRINGS[self.value])
 
         return output^
-
-
-fn ansi_to_rgb(ansi: UInt8) -> (UInt8, UInt8, UInt8):
-    """Converts an ANSI color to a 24-bit RGB color.
-
-    Args:
-        ansi: The ANSI color value.
-
-    Returns:
-        The RGB color tuple.
-    """
-    # Low ANSI.
-    if ansi < 16:
-        return hex_to_rgb(ANSI_HEX_CODES[Int(ansi)])
-
-    # Grays.
-    if ansi > 231:
-        var s = (ansi - 232) * 10 + 8
-        return s, s, s
-
-    # ANSI256.
-    var n = ansi - 16
-    var b = n % 6
-    var g = (n - b) / 6 % 6
-    var r = (n - b - g * 6) / 36 % 6
-    var v = r
-
-    @parameter
-    for _ in range(3):
-        if v > 0:
-            v = v * 40 + 55
-
-    return r, g, b
 
 
 fn hex_to_rgb(hex: UInt32) -> (UInt8, UInt8, UInt8):
@@ -478,13 +445,11 @@ fn ansi256_to_ansi(value: UInt8) -> UInt8:
     alias MAX_ANSI = 16
     var r: UInt8 = 0
     var md = hue.MAX_FLOAT64
-    var h = ansi_to_rgb(value)
-    var h_color = hue.Color(R=h[0], G=h[1], B=h[2])
+    var h_color = hue.Color(ANSI_HEX_CODES[Int(value)])
 
     @parameter
     for i in range(MAX_ANSI):
-        var hb = ansi_to_rgb(i)
-        var d = h_color.distance_HSLuv(hue.Color(R=hb[0], G=hb[1], B=hb[2]))
+        var d = h_color.distance_HSLuv(hue.Color(ANSI_HEX_CODES[i]))
 
         if d < md:
             md = d

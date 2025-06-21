@@ -300,19 +300,9 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
         elif color.isa[ANSIColor]():
             return color.value[ANSIColor]
         elif color.isa[ANSI256Color]():
-            if self == Self.ANSI:
-                return ANSIColor(ansi256_to_ansi(color.value[ANSI256Color].value))
-
-            return color.value[ANSI256Color]
+            return self.convert_ansi256(color.value[ANSI256Color])
         elif color.isa[RGBColor]():
-            if self != Self.TRUE_COLOR:
-                var ansi256 = hex_to_ansi256(hue.Color(hex_to_rgb(color.value[RGBColor].value)))
-                if self == Self.ANSI:
-                    return ANSIColor(ansi256_to_ansi(ansi256.value))
-
-                return ANSI256Color(ansi256)
-
-            return color.value[RGBColor]
+            return self.convert_rgb(color.value[RGBColor])
 
         # If it somehow gets here, just return No Color until I can figure out how to just return whatever color was passed in.
         return color.value[NoColor]
