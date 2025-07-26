@@ -1,4 +1,5 @@
 import mist
+from mist import Profile
 
 
 fn render_profiles():
@@ -17,19 +18,19 @@ fn render_profiles():
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    print(mist.Style(mist.ASCII).foreground(color=mist.ASCII_PROFILE.color(0xC9A0DC)).render(a))
+    print(mist.Style(Profile.ASCII).foreground(color=Profile.ASCII.color(0xC9A0DC)).render(a))
 
     # ANSI Color Support (0-15)
-    print(mist.Style(mist.ANSI).foreground(color=mist.ANSI_PROFILE.color(0xC9A0DC)).render(a))
+    print(mist.Style(Profile.ANSI).foreground(color=Profile.ANSI.color(0xC9A0DC)).render(a))
 
     # ANSI256 Color Support (16-255)
-    print(mist.Style(mist.ANSI256).foreground(color=mist.ANSI256_PROFILE.color(0xC9A0DC)).render(a))
+    print(mist.Style(Profile.ANSI256).foreground(color=Profile.ANSI256.color(0xC9A0DC)).render(a))
 
     # RGBColor Support (Hex Codes)
-    print(mist.Style(mist.TRUE_COLOR).foreground(color=mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)).render(a))
+    print(mist.Style(Profile.TRUE_COLOR).foreground(color=Profile.TRUE_COLOR.color(0xC9A0DC)).render(a))
 
     # It also supports using the Profile of the Style to instead of passing Profile().color().
-    print(mist.Style(mist.TRUE_COLOR).foreground(0xC9A0DC).render(a))
+    print(mist.Style(Profile.TRUE_COLOR).foreground(0xC9A0DC).render(a))
 
 
 fn renderers():

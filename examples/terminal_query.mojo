@@ -1,6 +1,6 @@
-from mist.terminal.query import get_terminal_size, get_background_color, has_dark_background
-from mist.terminal.tty import TTY
 from mist.color import RGBColor
+from mist.terminal.query import get_background_color, get_terminal_size, has_dark_background
+from mist.terminal.tty import TTY, Mode
 
 
 fn main() raises -> None:
@@ -8,7 +8,7 @@ fn main() raises -> None:
     var rows: UInt
     var columns: UInt
     var is_dark_background: Bool
-    with TTY():
+    with TTY[Mode.RAW]():
         color = get_background_color()
         rows, columns = get_terminal_size()
         is_dark_background = has_dark_background()
