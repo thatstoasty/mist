@@ -1,4 +1,4 @@
-from mist.terminal.cursor import cursor_back, clear_line_right
+from mist.terminal.cursor import clear_line_right, cursor_back
 
 
 fn main() raises:

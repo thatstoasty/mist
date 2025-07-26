@@ -1,11 +1,12 @@
-import benchmark
-from benchmark import ThroughputMeasure, BenchMetric, Bencher, Bench, BenchId, BenchConfig
-
 import pathlib
 import time
+
+import benchmark
+from benchmark import Bench, BenchConfig, Bencher, BenchId, BenchMetric, ThroughputMeasure
+from mist.color import ANSI256Color, ANSIColor, RGBColor
+
 import mist
-from mist.color import ANSIColor, ANSI256Color, RGBColor
-from mist import dedent, indent, margin, padding, truncate, word_wrap, wrap
+from mist import Profile, dedent, indent, margin, padding, truncate, word_wrap, wrap
 
 
 fn get_gbs_measure(input: String) raises -> ThroughputMeasure:
@@ -26,7 +27,7 @@ fn bench_render_ascii(mut b: Bencher, s: String) raises:
     @parameter
     fn do() raises:
         alias a = "Hello World!"
-        _ = mist.Style(mist.ASCII).foreground(0xC9A0DC).render(s)
+        _ = mist.Style(Profile.ASCII).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
 
@@ -37,8 +38,8 @@ fn bench_render_ascii_profile_color(mut b: Bencher, s: String) raises:
     @parameter
     fn do() raises:
         alias a = "Hello World!"
-        var color = mist.ASCII_PROFILE.color(0xC9A0DC)
-        _ = mist.Style(mist.ASCII).foreground(color=color).render(s)
+        var color = Profile.ASCII.color(0xC9A0DC)
+        _ = mist.Style(Profile.ASCII).foreground(color=color).render(s)
 
     b.iter[do]()
 
@@ -49,7 +50,7 @@ fn bench_render_ansi(mut b: Bencher, s: String) raises:
     @parameter
     fn do() raises:
         alias a = "Hello World!"
-        _ = mist.Style(mist.ANSI).foreground(0xC9A0DC).render(s)
+        _ = mist.Style(Profile.ANSI).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
 
@@ -60,8 +61,8 @@ fn bench_render_ansi_profile_color(mut b: Bencher, s: String) raises:
     @parameter
     fn do() raises:
         alias a = "Hello World!"
-        var color = mist.ANSI_PROFILE.color(0xC9A0DC)
-        _ = mist.Style(mist.ANSI_PROFILE).foreground(color=color).render(s)
+        var color = Profile.ANSI.color(0xC9A0DC)
+        _ = mist.Style(Profile.ANSI).foreground(color=color).render(s)
 
     b.iter[do]()
 
@@ -72,7 +73,7 @@ fn bench_render_ansi256(mut b: Bencher, s: String) raises:
     @parameter
     fn do() raises:
         alias a = "Hello World!"
-        _ = mist.Style(mist.ANSI256).foreground(0xC9A0DC).render(s)
+        _ = mist.Style(Profile.ANSI256).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
 
@@ -83,8 +84,8 @@ fn bench_render_ansi256_profile_color(mut b: Bencher, s: String) raises:
     @parameter
     fn do() raises:
         alias a = "Hello World!"
-        var color = mist.ANSI256_PROFILE.color(0xC9A0DC)
-        _ = mist.Style(mist.ANSI256_PROFILE).foreground(color=color).render(s)
+        var color = Profile.ANSI256.color(0xC9A0DC)
+        _ = mist.Style(Profile.ANSI256).foreground(color=color).render(s)
 
     b.iter[do]()
 
@@ -95,7 +96,7 @@ fn bench_render_true_color(mut b: Bencher, s: String) raises:
     @parameter
     fn do() raises:
         alias a = "Hello World!"
-        _ = mist.Style(mist.TRUE_COLOR).foreground(0xC9A0DC).render(s)
+        _ = mist.Style(Profile.TRUE_COLOR).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
 
@@ -106,8 +107,8 @@ fn bench_render_true_color_profile_color(mut b: Bencher, s: String) raises:
     @parameter
     fn do() raises:
         alias a = "Hello World!"
-        var color = mist.TRUE_COLOR_PROFILE.color(0xC9A0DC)
-        _ = mist.Style(mist.TRUE_COLOR_PROFILE).foreground(color=color).render(s)
+        var color = Profile.TRUE_COLOR.color(0xC9A0DC)
+        _ = mist.Style(Profile.TRUE_COLOR).foreground(color=color).render(s)
 
     b.iter[do]()
 
