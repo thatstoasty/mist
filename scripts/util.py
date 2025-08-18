@@ -2,11 +2,9 @@ import tomllib
 import os
 import subprocess
 import shutil
-import glob
 from typing import Any
 from pathlib import Path
 
-import yaml
 import typer
 
 
@@ -58,22 +56,6 @@ def format_dependency(name: str, version: str) -> str:
     return f"{name} {operator} {version[start:]}"
 
 
-@app.command()
-def publish(channel: str) -> None:
-    """Publishes the conda packages to the specified conda channel."""
-    print(f"Publishing packages to: {channel}, from {CONDA_BUILD_PATH}.")
-    for file in glob.glob(f'{CONDA_BUILD_PATH}/*.conda'):
-        print(f"Uploading {file} to {channel}...")
-        try:
-            subprocess.run(
-                ["pixi", "upload", f"https://prefix.dev/api/v1/upload/{channel}", file],
-                check=True,
-            )
-        except subprocess.CalledProcessError:
-            pass
-        os.remove(file)
-
-
 def remove_temp_directory() -> None:
     """Removes the temporary directory used for building the package."""
     if TEMP_DIR.exists():
@@ -90,21 +72,6 @@ def prepare_temp_directory() -> None:
         ["mojo", "package", f"{package}", "-o", f"{TEMP_DIR}/{package}.mojopkg"],
         check=True,
     )
-
-
-@app.command()
-def run_tests(path: str | None = None) -> None:
-    """Executes the tests for the package."""
-    TEST_DIR = Path("test")
-
-    print("Building package and copying tests.")
-    with TemporaryBuildDirectory() as temp_directory:
-        shutil.copytree(TEST_DIR, temp_directory, dirs_exist_ok=True)
-        target = temp_directory
-        if path:
-            target = target / path
-        print(f"Running tests at {target}...")
-        subprocess.run(["mojo", "test", target], check=True)
 
 
 @app.command()
