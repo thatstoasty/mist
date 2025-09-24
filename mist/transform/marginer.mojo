@@ -30,7 +30,7 @@ struct Writer(Movable, Stringable, Writable):
     var iw: indent.Writer
     """The indent `Writer`."""
 
-    fn __init__(out self, owned pw: padding.Writer, owned iw: indent.Writer):
+    fn __init__(out self, var pw: padding.Writer, var iw: indent.Writer):
         """Initializes the `Writer`.
 
         Args:

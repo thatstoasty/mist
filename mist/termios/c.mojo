@@ -1,6 +1,7 @@
 from collections import BitSet
 from sys import CompilationTarget, external_call
-from sys.ffi import c_char, c_int
+from sys._libc_errno import get_errno
+from sys.ffi import c_char, c_int, c_size_t
 from time.time import _CTimeSpec
 
 from memory import Pointer, UnsafePointer
@@ -8,9 +9,11 @@ from utils import StaticTuple
 
 
 # C types
-alias c_void = UInt8
+alias c_void = NoneType
 alias cc_t = UInt8
 alias NCCS = Int8
+alias time_t = Int64
+alias suseconds_t = Int64
 
 alias tcflag_t = SIMD[(DType.uint32, DType.uint64)[Int(CompilationTarget.is_macos())], 1]
 """If `CompilationTarget.is_macos()` is true, use `UInt64`, otherwise use `UInt32`."""
@@ -173,7 +176,7 @@ struct SpecialCharacter:
 
 @fieldwise_init
 @register_passable("trivial")
-struct Termios(Copyable, ExplicitlyCopyable, Movable, Stringable, Writable):
+struct Termios(Copyable, Movable, Stringable, Writable):
     """Termios libc."""
 
     alias _CONTROL_CHARACTER_WIDTH = 20 if CompilationTarget.is_macos() else 32
@@ -254,10 +257,13 @@ struct Termios(Copyable, ExplicitlyCopyable, Movable, Stringable, Writable):
         return String.write(self)
 
 
-fn tcgetattr(fd: c_int, termios_p: Pointer[mut=True, Termios]) -> c_int:
+fn tcgetattr[origin: MutableOrigin](fd: c_int, termios_p: Pointer[mut=True, Termios, origin]) -> c_int:
     """Libc POSIX `tcgetattr` function.
 
     Get the parameters associated with the terminal referred to by the file descriptor `fd`.
+
+    Parameters:
+        origin: The origin of the Termios pointer.
 
     Args:
         fd: File descriptor.
@@ -274,13 +280,18 @@ fn tcgetattr(fd: c_int, termios_p: Pointer[mut=True, Termios]) -> c_int:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/tcgetattr.3.html.
     """
-    return external_call["tcgetattr", c_int](fd, termios_p)
+    return external_call["tcgetattr", c_int, c_int, Pointer[mut=True, Termios, origin]](fd, termios_p)
 
 
-fn tcsetattr(fd: c_int, optional_actions: c_int, termios_p: Pointer[mut=False, Termios]) -> c_int:
+fn tcsetattr[
+    origin: ImmutableOrigin
+](fd: c_int, optional_actions: c_int, termios_p: Pointer[mut=False, Termios, origin]) -> c_int:
     """Libc POSIX `tcsetattr` function.
 
     Set the parameters associated with the terminal referred to by the file descriptor `fd`.
+
+    Parameters:
+        origin: The origin of the Termios pointer.
 
     Args:
         fd: File descriptor.
@@ -298,7 +309,9 @@ fn tcsetattr(fd: c_int, optional_actions: c_int, termios_p: Pointer[mut=False, T
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/tcsetattr.3.html.
     """
-    return external_call["tcsetattr", c_int](fd, optional_actions, termios_p)
+    return external_call["tcsetattr", c_int, c_int, c_int, Pointer[mut=False, Termios, origin]](
+        fd, optional_actions, termios_p
+    )
 
 
 fn tcsendbreak(fd: c_int, duration: c_int) -> c_int:
@@ -392,16 +405,16 @@ fn tcflow(fd: c_int, action: c_int) -> c_int:
     return external_call["tcflow", c_int, c_int, c_int](fd, action)
 
 
-fn cfmakeraw(termios_p: Pointer[Termios]) -> c_void:
+fn cfmakeraw[origin: MutableOrigin](termios_p: Pointer[mut=True, Termios, origin]):
     """Libc POSIX `cfmakeraw` function.
 
     Set the terminal attributes to raw mode.
 
+    Parameters:
+        origin: The origin of the Termios pointer.
+
     Args:
         termios_p: Reference to a Termios struct.
-
-    Returns:
-        A c_void value.
 
     #### C Function:
     ```c
@@ -411,7 +424,7 @@ fn cfmakeraw(termios_p: Pointer[Termios]) -> c_void:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/cfmakeraw.3.html.
     """
-    return external_call["cfmakeraw", c_void](termios_p)
+    external_call["cfmakeraw", c_void, Pointer[mut=True, Termios, origin]](termios_p)
 
 
 # @fieldwise_init
@@ -453,88 +466,6 @@ fn cfmakeraw(termios_p: Pointer[Termios]) -> c_void:
 #     return external_call["tcsetwinsize", c_int, c_int, UnsafePointer[winsize]](fd, winsize_p)
 
 
-fn get_errno() -> c_int:
-    """Get a copy of the current value of the `errno` global variable for
-    the current thread.
-
-    Returns:
-        A copy of the current value of `errno` for the current thread.
-    """
-
-    @parameter
-    if CompilationTarget.is_windows():
-        var errno = InlineArray[c_int, 1]()
-        _ = external_call["_get_errno", c_void](errno.unsafe_ptr())
-        return errno[0]
-    else:
-        alias loc = "__error" if CompilationTarget.is_macos() else "__errno_location"
-        return external_call[loc, UnsafePointer[c_int]]()[]
-
-
-# --- ( error.h Constants )-----------------------------------------------------
-# TODO: These are probably platform specific, we should check the values on each linux and macos.
-alias EPERM = 1
-alias ENOENT = 2
-alias ESRCH = 3
-alias EINTR = 4
-alias EIO = 5
-alias ENXIO = 6
-alias E2BIG = 7
-alias ENOEXEC = 8
-alias EBADF = 9
-alias ECHILD = 10
-alias EAGAIN = 11
-alias ENOMEM = 12
-alias EACCES = 13
-alias EFAULT = 14
-alias ENOTBLK = 15
-alias EBUSY = 16
-alias EEXIST = 17
-alias EXDEV = 18
-alias ENODEV = 19
-alias ENOTDIR = 20
-alias EISDIR = 21
-alias EINVAL = 22
-alias ENFILE = 23
-alias EMFILE = 24
-alias ENOTTY = 25
-alias ETXTBSY = 26
-alias EFBIG = 27
-alias ENOSPC = 28
-alias ESPIPE = 29
-alias EROFS = 30
-alias EMLINK = 31
-alias EPIPE = 32
-alias EDOM = 33
-alias ERANGE = 34
-alias EWOULDBLOCK = EAGAIN
-alias EINPROGRESS = 36 if CompilationTarget.is_macos() else 115
-alias EALREADY = 37 if CompilationTarget.is_macos() else 114
-alias ENOTSOCK = 38 if CompilationTarget.is_macos() else 88
-alias EDESTADDRREQ = 39 if CompilationTarget.is_macos() else 89
-alias EMSGSIZE = 40 if CompilationTarget.is_macos() else 90
-alias ENOPROTOOPT = 42 if CompilationTarget.is_macos() else 92
-alias EAFNOSUPPORT = 47 if CompilationTarget.is_macos() else 97
-alias EADDRINUSE = 48 if CompilationTarget.is_macos() else 98
-alias EADDRNOTAVAIL = 49 if CompilationTarget.is_macos() else 99
-alias ENETDOWN = 50 if CompilationTarget.is_macos() else 100
-alias ENETUNREACH = 51 if CompilationTarget.is_macos() else 101
-alias ECONNABORTED = 53 if CompilationTarget.is_macos() else 103
-alias ECONNRESET = 54 if CompilationTarget.is_macos() else 104
-alias ENOBUFS = 55 if CompilationTarget.is_macos() else 105
-alias EISCONN = 56 if CompilationTarget.is_macos() else 106
-alias ENOTCONN = 57 if CompilationTarget.is_macos() else 107
-alias ETIMEDOUT = 60 if CompilationTarget.is_macos() else 110
-alias ECONNREFUSED = 61 if CompilationTarget.is_macos() else 111
-alias ELOOP = 62 if CompilationTarget.is_macos() else 40
-alias ENAMETOOLONG = 63 if CompilationTarget.is_macos() else 36
-alias EHOSTUNREACH = 65 if CompilationTarget.is_macos() else 113
-alias EDQUOT = 69 if CompilationTarget.is_macos() else 122
-alias ENOMSG = 91 if CompilationTarget.is_macos() else 42
-alias EPROTO = 100 if CompilationTarget.is_macos() else 71
-alias EOPNOTSUPP = 102 if CompilationTarget.is_macos() else 95
-
-
 fn isatty(fd: c_int) -> Bool:
     """Libc POSIX `isatty` function.
 
@@ -554,7 +485,7 @@ fn isatty(fd: c_int) -> Bool:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/isatty.3p.html.
     """
-    return external_call["isatty", Int, c_int](fd)
+    return Bool(external_call["isatty", c_int, c_int](fd))
 
 
 fn ttyname(fd: c_int) -> UnsafePointer[c_char]:
@@ -579,7 +510,7 @@ fn ttyname(fd: c_int) -> UnsafePointer[c_char]:
     return external_call["ttyname", UnsafePointer[c_char], c_int](fd)
 
 
-fn read(fd: c_int, buf: UnsafePointer[c_void], size: UInt) -> c_int:
+fn read(fd: c_int, buf: UnsafePointer[c_void], size: c_size_t) -> c_int:
     """Libc POSIX `read` function.
 
     Read `size` bytes from file descriptor `fd` into the buffer `buf`.
@@ -592,7 +523,7 @@ fn read(fd: c_int, buf: UnsafePointer[c_void], size: UInt) -> c_int:
     Returns:
         The number of bytes read or -1 in case of failure.
 
-    #### C Function:Add commentMore actions
+    #### C Function:
     ```c
     ssize_t read(int fildes, void *buf, size_t nbyte);
     ```
@@ -600,22 +531,21 @@ fn read(fd: c_int, buf: UnsafePointer[c_void], size: UInt) -> c_int:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/read.3p.html.
     """
-    return external_call["read", Int, c_int, UnsafePointer[c_void], UInt](fd, buf, size)
+    return external_call["read", c_int, c_int, UnsafePointer[c_void], c_size_t](fd, buf, size)
 
 
 alias FileDescriptorBitSet = BitSet[1024]
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct _TimeValue(Copyable, ExplicitlyCopyable, Movable):
-    var seconds: Int64
-    var microseconds: Int64
+struct _TimeValue(Copyable, Movable):
+    var seconds: time_t
+    var microseconds: suseconds_t
 
 
 fn _select(
     nfds: c_int,
-    readfds: Pointer[mut=True, BitSet[1024]],
+    readfds: Pointer[mut=True, FileDescriptorBitSet],
     writefds: Pointer[mut=True, BitSet[1]],
     exceptfds: Pointer[mut=True, BitSet[1]],
     timeout: Pointer[mut=True, _TimeValue],
@@ -648,7 +578,7 @@ fn _select(
 
 fn select(
     highest_fd: c_int,
-    mut read_fds: BitSet[1024],
+    mut read_fds: FileDescriptorBitSet,
     mut write_fds: BitSet[1],
     mut except_fds: BitSet[1],
     mut timeout: _TimeValue,
@@ -661,6 +591,14 @@ fn select(
         write_fds: A pointer to the set of file descriptors to write to.
         except_fds: A pointer to the set of file descriptors to check for exceptions.
         timeout: A pointer to a TimeValue struct to set a timeout.
+
+    Raises:
+        Error: [EABADF] An invalid file descriptor was given in one of the sets.
+        Error: [EINTR] A signal was caught.
+        Error: [EINVAL] nfds is negative or exceeds the RLIMIT_NOFILE resource limit
+        Error: [ENOMEM] Unable to allocate memory for internal tables.
+        Error: [UNKNOWN] Unknown error occurred when calling C's `select` function.
+        Error: Select has timed out while waiting for file descriptors to become ready.
 
     #### C Function Signature:
     ```c
@@ -680,13 +618,13 @@ fn select(
 
     if result == -1:
         var errno = c.get_errno()
-        if errno == c.EBADF:
+        if errno == errno.EBADF:
             raise Error("[EBADF] An invalid file descriptor was given in one of the sets.")
-        elif errno == c.EINTR:
+        elif errno == errno.EINTR:
             raise Error("[EINTR] A signal was caught.")
-        elif errno == c.EINVAL:
+        elif errno == errno.EINVAL:
             raise Error("[EINVAL] nfds is negative or exceeds the RLIMIT_NOFILE resource limit.")
-        elif errno == c.ENOMEM:
+        elif errno == errno.ENOMEM:
             raise Error("[ENOMEM] Unable to allocate memory for internal tables.")
         else:
             raise Error("[UNKNOWN] Unknown error occurred.")

@@ -135,7 +135,7 @@ struct Direction:
 
 @fieldwise_init
 @register_passable("trivial")
-struct Area(Copyable, ExplicitlyCopyable, Movable, Writable):
+struct Area(Copyable, Movable, Writable):
     """An area in the terminal defined by its row and column length."""
 
     var rows: UInt16
@@ -216,6 +216,9 @@ struct TTY[mode: Mode = Mode.NONE]():
 
         Args:
             when: When to apply the changes, e.g., TCSADRAIN.
+
+        Raises:
+            Error: If setting the terminal attributes fails.
         """
         tcsetattr(self.fd, when, self.original_state)
 
@@ -228,7 +231,11 @@ struct TTY[mode: Mode = Mode.NONE]():
         return self
 
     fn __exit__(mut self) raises:
-        """Restore the original terminal state."""
+        """Restore the original terminal state.
+
+        Raises:
+            Error: If setting the terminal attributes fails.
+        """
         self.restore_original_state()
 
     fn set_attribute(mut self, optional_actions: WhenOption) raises -> None:
@@ -236,26 +243,45 @@ struct TTY[mode: Mode = Mode.NONE]():
 
         Args:
             optional_actions: When to apply the changes, e.g., TCSADRAIN.
+
+        Raises:
+            Error: If setting the terminal attribute fails.
         """
         tcsetattr(self.fd, optional_actions, self.state)
 
     fn disable_echo(mut self) raises -> None:
-        """Disable echoing of characters in the terminal."""
+        """Disable echoing of characters in the terminal.
+
+        Raises:
+            Error: If setting the terminal attribute fails.
+        """
         self.state.c_lflag &= ~LocalFlag.ECHO.value
         self.set_attribute(WhenOption.TCSADRAIN)
 
     fn enable_echo(mut self) raises -> None:
-        """Enable echoing of characters in the terminal."""
+        """Enable echoing of characters in the terminal.
+
+        Raises:
+            Error: If setting the terminal attribute fails.
+        """
         self.state.c_lflag |= LocalFlag.ECHO.value
         self.set_attribute(WhenOption.TCSADRAIN)
 
     fn enable_canonical_mode(mut self) raises -> None:
-        """Enable canonical mode in the terminal."""
+        """Enable canonical mode in the terminal.
+
+        Raises:
+            Error: If setting the terminal attribute fails.
+        """
         self.state.c_lflag |= LocalFlag.ICANON.value
         self.set_attribute(WhenOption.TCSADRAIN)
 
     fn disable_canonical_mode(mut self) raises -> None:
-        """Disable canonical mode in the terminal."""
+        """Disable canonical mode in the terminal.
+
+        Raises:
+            Error: If setting the terminal attribute fails.
+        """
         self.state.c_lflag &= ~LocalFlag.ICANON.value
         self.set_attribute(WhenOption.TCSADRAIN)
 
@@ -359,6 +385,9 @@ struct TTY[mode: Mode = Mode.NONE]():
     fn background_color(self) raises -> RGBColor:
         """Query the terminal for the current background color of the terminal.
 
+        Raises:
+            Error: If querying the terminal for the background color fails.
+
         Returns:
             The RGBColor representing the current background color.
         """
@@ -451,6 +480,9 @@ struct TTY[mode: Mode = Mode.NONE]():
 
     fn terminal_size(self) raises -> Area:
         """Get the current terminal size.
+
+        Raises:
+            Error: If querying the terminal for terminal size fails.
 
         Returns:
             An Area representing the current terminal size.

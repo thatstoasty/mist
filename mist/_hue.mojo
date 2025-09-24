@@ -186,7 +186,7 @@ fn max_safe_chroma_for_l(l: Float64) -> Float64:
     return minimum_length
 
 
-fn LuvLCh_to_HPLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, Float64, Float64):
+fn LuvLCh_to_HPLuv(var l: Float64, var c: Float64, h: Float64) -> (Float64, Float64, Float64):
     """Converts the given LuvLCh color to HPLuv.
     [-1..1] but the code expects it to be [-100..100].
 
@@ -205,7 +205,7 @@ fn LuvLCh_to_HPLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, 
     return h, s / 100.0, l / 100.0
 
 
-fn LuvLch_to_HSLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, Float64, Float64):
+fn LuvLch_to_HSLuv(var l: Float64, var c: Float64, h: Float64) -> (Float64, Float64, Float64):
     """Converts the given LuvLCh color to HSLuv.
     [-1..1] but the code expects it to be [-100..100].
 
@@ -230,7 +230,7 @@ fn LuvLch_to_HSLuv(owned l: Float64, owned c: Float64, h: Float64) -> (Float64, 
 
 @fieldwise_init
 @register_passable("trivial")
-struct Color(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable):
+struct Color(Copyable, Movable, Representable, Stringable):
     """A color represented by red, green, and blue values.
     RGB values are stored internally using sRGB (standard RGB) values in the range 0-1.
     """
@@ -998,7 +998,7 @@ fn hsv(h: Float64, s: Float64, v: Float64) -> Color:
 
 ## HSL ##
 #########
-fn hsl(owned h: Float64, s: Float64, l: Float64) -> Color:
+fn hsl(var h: Float64, s: Float64, l: Float64) -> Color:
     """Creates a new Color given a Hue in [0..360], a Saturation [0..1], and a Luminance (luminance) in [0..1].
 
     Args:

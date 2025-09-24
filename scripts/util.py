@@ -89,8 +89,8 @@ def run_examples(path: str | None = None) -> None:
         if path:
             example_files = EXAMPLE_DIR.glob(path)
 
-        print(f"Running examples in {example_files}...")
         for file in example_files:
+            print(f"\nRunning example: {file}")
             name, _ = file.name.split(".", 1)
             shutil.copyfile(file, temp_directory / file.name)
             subprocess.run(["mojo", "build", temp_directory / file.name, "-o", temp_directory / name], check=True)
@@ -111,8 +111,8 @@ def run_benchmarks(path: str | None = None) -> None:
         if path:
             benchmark_files = BENCHMARK_DIR.glob(path)
 
-        print(f"Running benchmarks in {benchmark_files}...")
         for file in benchmark_files:
+            print(f"\nRunning benchmark: {file}")
             name, _ = file.name.split(".", 1)
             shutil.copyfile(file, temp_directory / file.name)
             subprocess.run(["mojo", "build", temp_directory / file.name, "-o", temp_directory / name], check=True)

@@ -122,7 +122,7 @@ struct Writer(Movable, Writable):
     var seq_changed: Bool
     """Whether the ANSI escape sequence has changed."""
 
-    fn __init__(out self, owned forward: ByteWriter = ByteWriter()):
+    fn __init__(out self, var forward: ByteWriter = ByteWriter()):
         """Initializes a new ANSI-writer instance.
 
         Args:

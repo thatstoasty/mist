@@ -94,6 +94,9 @@ fn set_raw(file: FileDescriptor, when: WhenOption = WhenOption.TCSAFLUSH) raises
         file: File descriptor of the terminal.
         when: When to apply the changes. Default is TCSAFLUSH.
 
+    Raises:
+        Error: If getting or setting terminal attributes fails via C's `tcgetattr` or `tcsetattr`.
+
     Returns:
         The original terminal attributes, and an error if any.
     """
@@ -112,6 +115,9 @@ fn set_cbreak(file: FileDescriptor, when: WhenOption = WhenOption.TCSAFLUSH) rai
         file: File descriptor of the terminal.
         when: When to apply the changes. Default is TCSAFLUSH.
 
+    Raises:
+        Error: If getting or setting terminal attributes fails via C's `tcgetattr` or `tcsetattr`.
+
     Returns:
         The original terminal attributes, and an error if any.
     """
@@ -128,6 +134,9 @@ fn is_terminal_raw(file_descriptor: FileDescriptor) raises -> Bool:
 
     Args:
         file_descriptor: The file descriptor of the terminal to check.
+
+    Raises:
+        Error: If getting terminal attributes fails via C's `tcgetattr`.
 
     Returns:
         True if the terminal is in raw mode, False otherwise.

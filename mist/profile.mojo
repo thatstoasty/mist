@@ -53,7 +53,7 @@ fn get_color_profile() -> Profile:
 
 
 @register_passable("trivial")
-struct Profile(Comparable, Copyable, ExplicitlyCopyable, Movable, Representable, Stringable, Writable):
+struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writable):
     """The color profile for the terminal."""
 
     var _value: Int
@@ -266,7 +266,7 @@ struct Profile(Comparable, Copyable, ExplicitlyCopyable, Movable, Representable,
         if self != Self.TRUE_COLOR:
             var ansi256 = hex_to_ansi256(hue.Color(color.value))
             if self == Self.ANSI:
-                return ANSIColor(ansi256_to_ansi(ansi256.value))
+                return ANSIColor(ansi256_to_ansi(ansi256))
 
             return ANSI256Color(ansi256)
 

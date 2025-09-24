@@ -14,7 +14,7 @@ from memory import UnsafePointer, stack_allocation
 from mist.color import RGBColor
 from mist.terminal.sgr import BEL, CSI, ESC, OSC, ST
 from mist.terminal.tty import TTY
-from mist.termios.c import _TimeValue, select
+from mist.termios.c import FileDescriptorBitSet, _TimeValue, select
 from mist.termios.terminal import is_a_tty, tty_name
 from mist.termios.tty import is_terminal_raw
 
@@ -25,7 +25,7 @@ alias EVENT_READ = 1
 
 fn _select(
     file_descriptor: FileDescriptor,
-    mut readers: BitSet[1024],
+    mut readers: FileDescriptorBitSet,
     mut writers: BitSet[1],
     mut exceptions: BitSet[1],
     timeout: Optional[Int] = None,
@@ -44,6 +44,9 @@ fn _select(
             if timeout is None, select() will block until a monitored
             file object becomes ready.
 
+    Raises:
+        Error: If the program returns a failure when calling C's `select` function.
+
     Returns:
         List of (key, events) for ready file objects
         `events` is a bitwise mask of `EVENT_READ`|`EVENT_WRITE`.
@@ -55,7 +58,7 @@ fn _select(
         tv.microseconds = Int64(timeout.value())
 
     select(
-        file_descriptor.value + 1,
+        Int32(file_descriptor.value + 1),
         readers,
         writers,
         exceptions,
@@ -80,7 +83,7 @@ fn wait_for_input(file_descriptor: FileDescriptor, timeout: Int = 100000) raises
     Raises:
         Error: If the timeout is reached without input.
     """
-    var readers = BitSet[1024]()
+    var readers = FileDescriptorBitSet()
     var writers = BitSet[1]()
     var exceptions = BitSet[1]()
     while True:
@@ -94,6 +97,9 @@ fn parse_xterm_color(sequence: StringSlice) raises -> RGBColor:
 
     Args:
         sequence: The color sequence to parse.
+
+    Raises:
+        Error: If the sequence is not a valid xterm color sequence, it will fail to convert the hex values to UInt8.
 
     Returns:
         A tuple containing the red, green, and blue components of the color.
@@ -124,6 +130,10 @@ fn parse_xterm_color(sequence: StringSlice) raises -> RGBColor:
 fn get_background_color() raises -> RGBColor:
     """Queries the terminal for the background color.
 
+    Raises:
+        Error: Terminal does not respond with a valid background color sequence.
+        Error: Could not parse background color sequence as it is not a valid xterm color sequence.
+
     Returns:
         A tuple containing the red, green, and blue components of the background color.
     """
@@ -132,6 +142,10 @@ fn get_background_color() raises -> RGBColor:
 
 fn has_dark_background() raises -> Bool:
     """Checks if the terminal has a dark background.
+
+    Raises:
+        Error: If the terminal does not respond with a valid background color sequence.
+        Error: If the background color sequence is not a valid xterm color sequence.
 
     Returns:
         True if the terminal has a dark background, False otherwise.
@@ -143,7 +157,7 @@ fn has_dark_background() raises -> Bool:
 
 @fieldwise_init
 @register_passable("trivial")
-struct OSCParseState(Copyable, ExplicitlyCopyable, Movable):
+struct OSCParseState(Copyable, EqualityComparable, Movable):
     """State for parsing OSC sequences."""
 
     var value: Int
@@ -177,6 +191,12 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
     Args:
         sequence: The sequence to query.
         buffer: The buffer to store the response.
+
+    Raises:
+        Error: If the terminal is not in raw mode, and verify is `True`.
+        Error: If STDIN is not a terminal.
+        Error: If EOF is reached before fully parsing the terminal OSC response.
+        Error: If the OSC response from the terminal is in an unexpected format.
 
     Returns:
         The response from the terminal. This response excludes the response start (ESC) and everything before
@@ -278,6 +298,12 @@ fn query_osc[verify: Bool = True](sequence: StringSlice) raises -> String:
     Args:
         sequence: The sequence to query.
 
+    Raises:
+        Error: If the terminal is not in raw mode, and verify is `True`.
+        Error: If STDIN is not a terminal.
+        Error: If EOF is reached before fully parsing the terminal OSC response.
+        Error: If the OSC response from the terminal is in an unexpected format.
+
     Returns:
         The response from the terminal.
     """
@@ -294,6 +320,14 @@ fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineAr
     Args:
         sequence: The sequence to query.
         buffer: The buffer to store the response.
+
+    Raises:
+        Error: The terminal is not in raw mode, and verify is `True`.
+        Error: STDIN is not a terminal.
+        Error: EOF is reached before fully parsing the terminal response.
+        Error: The program returns a failure when calling C's `isatty` function.
+        Error: The program returns a failure when calling C's `select` function.
+        Error: Fails to read from stdin into the provided buffer.
 
     Returns:
         The response from the terminal.
@@ -329,6 +363,14 @@ fn query[verify: Bool = True](sequence: StringSlice) raises -> String:
     Args:
         sequence: The sequence to query.
 
+    Raises:
+        Error: The terminal is not in raw mode, and verify is `True`.
+        Error: STDIN is not a terminal.
+        Error: EOF is reached before fully parsing the terminal response.
+        Error: The program returns a failure when calling C's `isatty` function.
+        Error: The program returns a failure when calling C's `select` function.
+        Error: Fails to read from stdin into the provided buffer.
+
     Returns:
         The response from the terminal.
     """
@@ -342,6 +384,11 @@ alias TERMINAL_SIZE_SEQUENCE = CSI + "18t"
 
 fn get_terminal_size() raises -> (UInt, UInt):
     """Returns the size of the terminal.
+
+    Raises:
+        Error: If the terminal does not respond with the expected format.
+        Error: Fails to dispatch the terminal size query to the terminal.
+        Error: Fails to convert the terminal size response to UInt.
 
     Returns:
         A tuple containing the number of rows and columns of the terminal.
