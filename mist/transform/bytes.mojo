@@ -103,7 +103,7 @@ struct ByteWriter(Sized, Stringable, Writable, Writer):
         return Span[Byte, __origin_of(self)](ptr=self._data, length=self._size)
 
     fn as_string_slice(ref self) -> StringSlice[__origin_of(self)]:
-        """Return a StringSlice view of the data var by the builder.
+        """Return a StringSlice view of the data owned by the builder.
 
         Returns:
             The StringSlice view of the bytes writer. Returns an empty string if the bytes buffer is empty.
