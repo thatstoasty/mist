@@ -34,7 +34,7 @@ struct ByteWriter(Sized, Stringable, Writable, Writer):
         self._data = UnsafePointer[Byte].alloc(capacity)
         self.offset = 0
 
-    fn __init__(out self, owned buf: List[Byte, True]):
+    fn __init__(out self, var buf: List[Byte]):
         """Creates a new buffer with List buffer provided.
 
         Args:
@@ -51,13 +51,13 @@ struct ByteWriter(Sized, Stringable, Writable, Writer):
         Args:
             buf: The String to initialize the buffer with.
         """
-        var bytes = List[Byte, True](buf.as_bytes())
+        var bytes = List[Byte](buf.as_bytes())
         self._capacity = bytes.capacity
         self._size = len(bytes)
         self._data = bytes.steal_data()
         self.offset = 0
 
-    fn __init__(out self, *, owned data: UnsafePointer[Byte], capacity: Int, size: Int):
+    fn __init__(out self, *, var data: UnsafePointer[Byte], capacity: Int, size: Int):
         """Creates a new buffer with `UnsafePointer` buffer provided.
 
         Args:
@@ -70,7 +70,7 @@ struct ByteWriter(Sized, Stringable, Writable, Writer):
         self._data = data
         self.offset = 0
 
-    fn __moveinit__(out self, owned other: Self):
+    fn __moveinit__(out self, deinit other: Self):
         """Constructs a new `ByteWriter` by taking the content of the other `ByteWriter`.
 
         Args:
@@ -81,7 +81,7 @@ struct ByteWriter(Sized, Stringable, Writable, Writer):
         self._capacity = other._capacity
         self.offset = other.offset
 
-    fn __del__(owned self):
+    fn __del__(deinit self):
         """Frees the internal buffer."""
         if self._data:
             self._data.free()
@@ -103,7 +103,7 @@ struct ByteWriter(Sized, Stringable, Writable, Writer):
         return Span[Byte, __origin_of(self)](ptr=self._data, length=self._size)
 
     fn as_string_slice(ref self) -> StringSlice[__origin_of(self)]:
-        """Return a StringSlice view of the data owned by the builder.
+        """Return a StringSlice view of the data var by the builder.
 
         Returns:
             The StringSlice view of the bytes writer. Returns an empty string if the bytes buffer is empty.

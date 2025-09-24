@@ -10,7 +10,7 @@ alias FOREGROUND = "38"
 alias BACKGROUND = "48"
 
 
-trait Color(Copyable, EqualityComparable, ExplicitlyCopyable, Movable, Representable, Stringable, Writable):
+trait Color(Copyable, EqualityComparable, Movable, Representable, Stringable, Writable):
     """Represents colors that can be displayed in the terminal."""
 
     fn sequence[is_background: Bool](self) -> String:
@@ -171,17 +171,6 @@ struct ANSIColor(Color):
         """
         return self.value == other.value
 
-    fn __ne__(self, other: ANSIColor) -> Bool:
-        """Compares two colors for unequality.
-
-        Args:
-            other: The ANSIColor to compare to.
-
-        Returns:
-            True if the colors are not equal, False otherwise.
-        """
-        return self.value != other.value
-
     fn to_rgb(self) -> (UInt8, UInt8, UInt8):
         """Converts the ANSI256 Color to an RGB Tuple.
 
@@ -265,17 +254,6 @@ struct ANSI256Color(Color):
             True if the colors are equal, False otherwise.
         """
         return self.value == other.value
-
-    fn __ne__(self, other: ANSI256Color) -> Bool:
-        """Compares two colors for unequality.
-
-        Args:
-            other: The ANSI256Color to compare to.
-
-        Returns:
-            True if the colors are not equal, False otherwise.
-        """
-        return self.value != other.value
 
     fn to_rgb(self) -> (UInt8, UInt8, UInt8):
         """Converts the ANSI256 Color to an RGB Tuple.
@@ -393,17 +371,6 @@ struct RGBColor(Color):
         """
         return self.value == other.value
 
-    fn __ne__(self, other: RGBColor) -> Bool:
-        """Compares two colors for unequality.
-
-        Args:
-            other: The RGBColor to compare to.
-
-        Returns:
-            True if the colors are not equal, False otherwise.
-        """
-        return self.value != other.value
-
     fn to_rgb(self) -> (UInt8, UInt8, UInt8):
         """Converts the RGB Color to an RGB Tuple.
 
@@ -512,7 +479,7 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
 
 
 @fieldwise_init
-struct AnyColor(Copyable, ExplicitlyCopyable, Movable):
+struct AnyColor(Copyable, Movable):
     """`AnyColor` is a `Variant` which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`."""
 
     alias _type = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]

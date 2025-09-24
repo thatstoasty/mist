@@ -1,5 +1,6 @@
 import sys._libc as libc
 from sys import CompilationTarget
+from sys._libc_errno import get_errno
 
 import mist.termios.c
 
@@ -71,10 +72,10 @@ fn tcgetattr(file: FileDescriptor) raises -> c.Termios:
     # tcgetattr expects a mutable pointer, dunno why.
     var status = c.tcgetattr(file.value, Pointer(to=terminal_attributes))
     if status != 0:
-        var errno = c.get_errno()
-        if errno == c.EBADF:
+        var errno = get_errno()
+        if errno == errno.EBADF:
             raise Error("[EBADF] Failed to get tty attributes. The `file` argument is not a valid file descriptor.")
-        elif errno == c.ENOTTY:
+        elif errno == errno.ENOTTY:
             raise Error("[ENOTTY] Failed to get tty attributes. The file associated with `file` is not a terminal.")
         else:
             raise Error("Failed c.tcgetattr. Status: ", status)
@@ -106,19 +107,19 @@ fn tcsetattr(file: FileDescriptor, optional_actions: WhenOption, terminal_attrib
     """
     var status = c.tcsetattr(file.value, optional_actions.value, Pointer(to=terminal_attributes))
     if status != 0:
-        var errno = c.get_errno()
-        if errno == c.EBADF:
+        var errno = get_errno()
+        if errno == errno.EBADF:
             raise Error("[EBADF] Failed to set tty attributes. The `file` argument is not a valid file descriptor.")
-        elif errno == c.EINTR:
+        elif errno == errno.EINTR:
             raise Error("[EINTR] Failed to set tty attributes. The call was interrupted by a signal.")
-        elif errno == c.EINVAL:
+        elif errno == errno.EINVAL:
             raise Error(
                 "[EINVAL] Failed to set tty attributes. The `optional_actions` argument is not a supported value, or an"
                 " attempt was made to change an attribute represented in the termios structure to an unsupported value."
             )
-        elif errno == c.ENOTTY:
+        elif errno == errno.ENOTTY:
             raise Error("[ENOTTY] Failed to set tty attributes. The file associated with `file` is not a terminal.")
-        elif errno == c.EIO:
+        elif errno == errno.EIO:
             raise Error(
                 "[EIO] Failed to set tty attributes. The process group of the writing process is orphaned, and the"
                 " writing process is not ignoring or blocking SIGTTOU."
@@ -142,16 +143,16 @@ fn tcsendbreak(file: FileDescriptor, duration: c.c_int) raises -> None:
     """
     var status = c.tcsendbreak(file.value, duration)
     if status != 0:
-        var errno = c.get_errno()
-        if errno == c.EBADF:
+        var errno = get_errno()
+        if errno == errno.EBADF:
             raise Error(
                 "[EBADF] Failed to send break to file descriptor. The `file` argument is not a valid file descriptor."
             )
-        elif errno == c.ENOTTY:
+        elif errno == errno.ENOTTY:
             raise Error(
                 "[ENOTTY] Failed to send break to file descriptor. The file associated with `file` is not a terminal."
             )
-        elif errno == c.EIO:
+        elif errno == errno.EIO:
             raise Error(
                 "[EIO] Failed to send break to file descriptor. The process group of the writing process is orphaned,"
                 " and the writing process is not ignoring or blocking SIGTTOU."
@@ -174,18 +175,18 @@ fn tcdrain(file: FileDescriptor) raises -> None:
     """
     var status = c.tcdrain(file.value)
     if status != 0:
-        var errno = c.get_errno()
-        if errno == c.EBADF:
+        var errno = get_errno()
+        if errno == errno.EBADF:
             raise Error(
                 "[EBADF] Failed to wait for output transmission. The `file` argument is not a valid file descriptor."
             )
-        elif errno == c.EINTR:
+        elif errno == errno.EINTR:
             raise Error("[EINTR] Failed to wait for output transmission. The call was interrupted by a signal.")
-        elif errno == c.ENOTTY:
+        elif errno == errno.ENOTTY:
             raise Error(
                 "[ENOTTY] Failed to wait for output transmission. The file associated with `file` is not a terminal."
             )
-        elif errno == c.EIO:
+        elif errno == errno.EIO:
             raise Error(
                 "[EIO] Failed to wait for output transmission. The process group of the writing process is orphaned,"
                 " and the writing process is not ignoring or blocking SIGTTOU."
@@ -215,14 +216,14 @@ fn tcflush(file: FileDescriptor, queue_selector: FlushOption) raises -> None:
     """
     var status = c.tcflush(file.value, queue_selector.value)
     if status != 0:
-        var errno = c.get_errno()
-        if errno == c.EBADF:
+        var errno = get_errno()
+        if errno == errno.EBADF:
             raise Error("[EBADF] Failed to flush queued data. The `file` argument is not a valid file descriptor.")
-        elif errno == c.EINVAL:
+        elif errno == errno.EINVAL:
             raise Error("[EINVAL] Failed to flush queued data. The `queue_selector` argument is not a supported value.")
-        elif errno == c.ENOTTY:
+        elif errno == errno.ENOTTY:
             raise Error("[ENOTTY] Failed to flush queued data. The file associated with `file` is not a terminal.")
-        elif errno == c.EIO:
+        elif errno == errno.EIO:
             raise Error(
                 "[EIO] Failed to flush queued data. The process group of the writing process is orphaned, and the"
                 " writing process is not ignoring or blocking SIGTTOU."
@@ -252,14 +253,14 @@ fn tcflow(file: FileDescriptor, action: FlowOption) raises -> None:
     """
     var status = c.tcflow(file.value, action.value)
     if status != 0:
-        var errno = c.get_errno()
-        if errno == c.EBADF:
+        var errno = get_errno()
+        if errno == errno.EBADF:
             raise Error("[EBADF] Failed to suspend or resume I/O. The `file` argument is not a valid file descriptor.")
-        elif errno == c.EINVAL:
+        elif errno == errno.EINVAL:
             raise Error("[EINVAL] Failed to suspend or resume I/O. The `action` argument is not a supported value.")
-        elif errno == c.ENOTTY:
+        elif errno == errno.ENOTTY:
             raise Error("[ENOTTY] Failed to suspend or resume I/O. The file associated with `file` is not a terminal.")
-        elif errno == c.EIO:
+        elif errno == errno.EIO:
             raise Error(
                 "[EIO] Failed to suspend or resume I/O. The process group of the writing process is orphaned, and the"
                 " writing process is not ignoring or blocking SIGTTOU."
@@ -283,10 +284,10 @@ fn is_a_tty(file_descriptor: FileDescriptor) raises -> Bool:
     """
     var status = c.isatty(file_descriptor.value)
     if status == 0:
-        var errno = c.get_errno()
-        if errno == c.EBADF:
+        var errno = get_errno()
+        if errno == errno.EBADF:
             raise Error("[EBADF] The `file_descriptor` argument is not a valid file descriptor.")
-        elif errno == c.ENOTTY:
+        elif errno == errno.ENOTTY:
             raise Error("[ENOTTY] The file associated with `file_descriptor` is not a terminal.")
         else:
             return False
@@ -311,15 +312,15 @@ fn tty_name(file_descriptor: FileDescriptor) raises -> String:
     """
     var name = c.ttyname(file_descriptor.value)
     if not name:
-        var errno = c.get_errno()
-        if errno == c.EBADF:
+        var errno = get_errno()
+        if errno == errno.EBADF:
             raise Error("[EBADF] The `file_descriptor` argument is not a valid file descriptor.")
-        elif errno == c.ENODEV:
+        elif errno == errno.ENODEV:
             raise Error(
                 "[ENODEV] The file descriptor refers to a slave pseudoterminal device, but the corresponding pathname"
                 " could not be found."
             )
-        elif errno == c.ENOTTY:
+        elif errno == errno.ENOTTY:
             raise Error("[ENOTTY] The file associated with `file_descriptor` is not a terminal.")
         else:
             raise Error("Failed to get tty name. ERRNO: ", errno)

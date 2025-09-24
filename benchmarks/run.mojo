@@ -221,7 +221,7 @@ def main():
     config.verbose_timing = True
     config.flush_denormals = True
     config.show_progress = True
-    var bench_config = Bench(config)
+    var bench_config = Bench(config^)
 
     alias text = "Hello World!"
     run[bench_render_ascii, "bench_render_ascii"](bench_config, text)

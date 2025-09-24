@@ -2,7 +2,7 @@ from mist.transform._table import Interval, ambiguous, combining, doublewidth, e
 
 
 @fieldwise_init
-struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool]:
+struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, Movable):
     """Conditions have the flag `east_asian_width` enabled if the current locale is `CJK` or not.
 
     Parameters:
@@ -142,7 +142,7 @@ fn string_width(content: StringSlice) -> Int:
     Returns:
         The printable width of the string.
     """
-    return DEFAULT_CONDITION.string_width(content)
+    return materialize[DEFAULT_CONDITION]().string_width(content)
 
 
 fn char_width(codepoint: Codepoint) -> Int:
@@ -154,4 +154,4 @@ fn char_width(codepoint: Codepoint) -> Int:
     Returns:
         The printable width of the codepoint.
     """
-    return DEFAULT_CONDITION.char_width(codepoint)
+    return materialize[DEFAULT_CONDITION]().char_width(codepoint)

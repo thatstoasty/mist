@@ -93,7 +93,7 @@ alias RESET_STYLE = CSI + SGR.RESET + "m"
 
 
 @fieldwise_init
-struct Style(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable, Writable):
+struct Style(Copyable, ImplicitlyCopyable, Movable, Representable, Stringable, Writable):
     """Style stores a list of styles to format text with.
     These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
@@ -115,14 +115,14 @@ struct Style(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable, W
     var profile: Profile
     """The color profile to use for color conversion."""
 
-    fn __init__(out self, profile: Profile, styles: List[String] = List[String]()):
+    fn __init__(out self, profile: Profile, var styles: List[String] = List[String]()):
         """Constructs a Style.
 
         Args:
             profile: The color profile to use for color conversion.
             styles: The list of ANSI styles to apply to the text.
         """
-        self.styles = styles
+        self.styles = styles^
         self.profile = profile
 
     fn __init__(out self):
@@ -131,6 +131,15 @@ struct Style(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable, W
         """
         self.styles = List[String]()
         self.profile = Profile()
+
+    fn __copyinit__(out self, other: Self):
+        """Copy constructor for Style.
+
+        Args:
+            other: The Style to copy.
+        """
+        self.styles = other.styles.copy()
+        self.profile = other.profile
 
     fn __str__(self) -> String:
         """Returns a string representation of the Style.
@@ -710,4 +719,4 @@ struct Style(Copyable, ExplicitlyCopyable, Movable, Representable, Stringable, W
         if self.profile == Profile.ASCII or len(self.styles) == 0:
             return String(text)
 
-        return String(CSI, StaticString(";").join(self.styles), "m", text, RESET_STYLE)
+        return String(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
