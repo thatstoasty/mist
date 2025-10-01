@@ -25,4 +25,5 @@ from mist.renderers import (
     yellow_background,
 )
 from mist.style import Style
+
 from mist.transform import dedent, indent, margin, padding, truncate, word_wrap, wrap
