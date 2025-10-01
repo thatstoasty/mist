@@ -1,10 +1,34 @@
 from os import abort, getenv
 from sys import external_call, is_compile_time
+from sys.ffi import _get_global, _Global
 from sys.param_env import env_get_string
 
 import mist._hue as hue
 from memory import UnsafePointer
 from mist.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256, hex_to_rgb
+
+
+fn _init_global() -> UnsafePointer[NoneType]:
+    var p = UnsafePointer[Int].alloc(1)
+    p[] = get_color_profile()._value
+    return p.bitcast[NoneType]()
+
+
+fn _destroy_global(lib: UnsafePointer[NoneType]):
+    var p = lib.bitcast[Int]()
+    p.free()
+
+
+@always_inline
+fn get_profile() -> Profile:
+    """Initializes or gets the global profile value.
+
+    This is so we only query the terminal once per program execution.
+
+    Returns:
+        Terminal profile value.
+    """
+    return _get_global["profile", _init_global, _destroy_global]().bitcast[Int]()[]
 
 
 fn get_color_profile() -> Profile:
@@ -122,7 +146,7 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
         #         " set the MIST_PROFILE build parameter, or move the Profile or Style creation into a runtime context."
         #     )
 
-        self._value = get_color_profile()._value
+        self._value = get_profile()._value
 
     fn __init__(out self, other: Self):
         """Initialize a new profile using the value of an existing profile.
@@ -142,17 +166,6 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
             True if the profiles are equal, False otherwise.
         """
         return self._value == other._value
-
-    fn __ne__(self, other: Self) -> Bool:
-        """Check if two profiles are not equal.
-
-        Args:
-            other: The profile to compare against.
-
-        Returns:
-            True if the profiles are not equal, False otherwise.
-        """
-        return self._value != other._value
 
     fn __lt__(self, other: Self) -> Bool:
         """Check if the current profile is less than another profile.
@@ -232,7 +245,7 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
         Args:
             writer: The Writer to write the profile to.
         """
-        writer.write("Profile(_value=", self._value, ")")
+        writer.write("Profile(", self._value, ")")
 
     fn convert_ansi256(self, color: ANSI256Color) -> AnyColor:
         """Degrades an ANSI color based on the terminal profile.
