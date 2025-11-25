@@ -6,8 +6,8 @@ from mist.transform.bytes import ByteWriter
 from mist.transform.unicode import char_width
 
 
-alias DEFAULT_NEWLINE = "\n"
-alias DEFAULT_TAB_WIDTH = 4
+comptime DEFAULT_NEWLINE = "\n"
+comptime DEFAULT_TAB_WIDTH = 4
 
 
 @fieldwise_init
@@ -24,7 +24,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     fn main():
         var writer = wrap.Writer(5)
         writer.write("Hello, World!")
-        print(writer.consume())
+        print(String(writer))
     ```
     """
 
@@ -94,22 +94,6 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
             writer: The writer to write the content to.
         """
         writer.write(self.buf)
-
-    fn consume(mut self) -> String:
-        """Returns the wrapped result as a string by taking the data from the internal buffer.
-
-        Returns:
-            The wrapped string.
-        """
-        return self.buf.consume()
-
-    fn as_bytes(self) -> Span[Byte, __origin_of(self.buf)]:
-        """Returns the result as a byte span.
-
-        Returns:
-            The wrapped result as a byte span.
-        """
-        return self.buf.as_bytes()
 
     fn add_newline(mut self) -> None:
         """Adds a newline to the buffer and resets the line length."""
@@ -200,4 +184,4 @@ fn wrap[
         limit, newline=newline, preserve_space=preserve_space, tab_width=tab_width
     )
     writer.write(text)
-    return writer.consume()
+    return String(writer)

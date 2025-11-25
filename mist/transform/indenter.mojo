@@ -2,7 +2,6 @@ from io import write
 
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE_BYTE, SPACE
-from mist.transform.bytes import ByteWriter
 
 
 @fieldwise_init
@@ -48,6 +47,14 @@ struct Writer(Movable, Stringable, Writable):
         """
         return String(self.ansi_writer.forward)
 
+    fn as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward._data)]:
+        """Returns the indented result as a string slice by referencing the content of the internal buffer.
+
+        Returns:
+            The indented string slice.
+        """
+        return self.ansi_writer.forward.as_string_slice()
+
     fn write_to[W: write.Writer, //](self, mut writer: W):
         """Writes the content of the buffer to the specified writer.
 
@@ -58,14 +65,6 @@ struct Writer(Movable, Stringable, Writable):
             writer: The writer to write the content to.
         """
         writer.write(self.ansi_writer.forward)
-
-    fn consume(mut self) -> String:
-        """Returns the indented result as a string by taking the data from the internal buffer.
-
-        Returns:
-            The indented string.
-        """
-        return self.ansi_writer.forward.consume()
 
     fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `text`, to the writer,
@@ -116,4 +115,4 @@ fn indent(text: StringSlice, indent: Int) -> String:
     """
     var writer = Writer(indent)
     writer.write(text)
-    return writer.consume()
+    return String(writer)

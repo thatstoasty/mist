@@ -1,9 +1,10 @@
 import testing
+from testing import TestSuite
 
 from mist import wrap
 
 
-def test_wrap():
+fn test_wrap() raises:
     # Basic wrapping:
     testing.assert_equal(wrap("Hello Sekai!", 5), "Hello\nSekai\n!")
 
@@ -11,7 +12,7 @@ def test_wrap():
     testing.assert_equal(wrap("foobarfoo", 4, tab_width=0), "foob\narfo\no")
 
 
-def test_keep_newlines():
+fn test_keep_newlines() raises:
     # Newlines in the input are respected if desired
     testing.assert_equal(wrap("f\no\nobar", 3, tab_width=0), "f\no\noba\nr")
 
@@ -19,7 +20,7 @@ def test_keep_newlines():
     testing.assert_equal(wrap[keep_newlines=False]("f\no\nobar", 3, tab_width=0), "foo\nbar")
 
 
-def test_preserve_space():
+fn test_preserve_space() raises:
     # Leading whitespaces after forceful line break can be preserved if desired
     testing.assert_equal(wrap("foo bar\n  baz", 3, preserve_space=True, tab_width=0), "foo\n ba\nr\n  b\naz")
 
@@ -27,7 +28,7 @@ def test_preserve_space():
     testing.assert_equal(wrap("foo bar\n  baz", 3, tab_width=0), "foo\nbar\n  b\naz")
 
 
-def test_tab_width():
+fn test_tab_width() raises:
     # Tabs are broken up according to the configured tab_width
     testing.assert_equal(wrap("foo\tbar", 4, preserve_space=True, tab_width=3), "foo \n  ba\nr")
 
@@ -35,7 +36,7 @@ def test_tab_width():
     testing.assert_equal(wrap("foo\tbar", 4, tab_width=3), "foo \nbar")
 
 
-def test_noop():
+fn test_noop() raises:
     # No-op, should pass through, including trailing whitespace:
     testing.assert_equal(wrap("foobar\n ", 0, tab_width=0), "foobar\n ")
 
@@ -44,7 +45,7 @@ def test_noop():
 
 
 # TODO: Weirdness with the strings not being equal but length and content is identical.
-# def test_ansi_sequence():
+# fn test_ansi_sequence() raises:
 #     # ANSI sequence codes don't affect length calculation:
 #     testing.assert_equal(
 #         wrap(
@@ -66,5 +67,9 @@ def test_noop():
 #     )
 
 
-def test_unicode():
+fn test_unicode() raises:
     testing.assert_equal(wrap("Hello Sekai! 🔥", 5), "Hello\nSekai\n! 🔥")
+
+
+fn main() raises:
+    TestSuite.discover_tests[__functions_in_module()]().run()

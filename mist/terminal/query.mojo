@@ -19,7 +19,7 @@ from mist.termios.terminal import is_a_tty, tty_name
 from mist.termios.tty import is_terminal_raw
 
 
-alias EVENT_READ = 1
+comptime EVENT_READ = 1
 """Bitwise mask for select read events."""
 
 
@@ -162,11 +162,11 @@ struct OSCParseState(Copyable, EqualityComparable, Movable):
 
     var value: Int
     """The current state value."""
-    alias RESPONSE_START_SEARCH = Self(0)
+    comptime RESPONSE_START_SEARCH = Self(0)
     """State for searching the start of the response."""
-    alias RESPONSE_END_SEARCH = Self(1)
+    comptime RESPONSE_END_SEARCH = Self(1)
     """State for searching the end of the response."""
-    alias FENCE_END_SEARCH = Self(2)
+    comptime FENCE_END_SEARCH = Self(2)
     """State for searching the end of the fence."""
 
     fn __eq__(self, other: Self) -> Bool:
@@ -284,7 +284,7 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
                 if byte == ord("R"):
                     return String(bytes=Span(buffer)[start_idx:end_idx])
 
-        total_bytes_read += bytes_read
+        total_bytes_read += Int(bytes_read)
 
     raise Error("Failed to read the complete response from stdin. Expected 'R' at the end.")
 
@@ -378,11 +378,11 @@ fn query[verify: Bool = True](sequence: StringSlice) raises -> String:
     return query_buffer[verify](sequence, buffer)
 
 
-alias TERMINAL_SIZE_SEQUENCE = CSI + "18t"
+comptime TERMINAL_SIZE_SEQUENCE = CSI + "18t"
 """ANSI sequence to query the terminal size."""
 
 
-fn get_terminal_size() raises -> (UInt, UInt):
+fn get_terminal_size() raises -> Tuple[UInt, UInt]:
     """Returns the size of the terminal.
 
     Raises:
@@ -398,4 +398,4 @@ fn get_terminal_size() raises -> (UInt, UInt):
         raise Error("Unexpected response from terminal: ", result)
 
     var parts = result.as_string_slice().split(";")
-    return (Int(parts[1]), Int(parts[2].split("t")[0]))
+    return (UInt(Int(parts[1])), UInt(Int(parts[2].split("t")[0])))

@@ -48,11 +48,11 @@ struct Mode(Copyable, EqualityComparable, Movable, Stringable):
 
     var value: String
     """TTY state mode for terminal operations."""
-    alias RAW = Self("RAW")
+    comptime RAW = Self("RAW")
     """Raw mode for terminal input."""
-    alias CBREAK = Self("CBREAK")
+    comptime CBREAK = Self("CBREAK")
     """Cbreak mode for terminal input."""
-    alias NONE = Self("NONE")
+    comptime NONE = Self("NONE")
     """No special mode for terminal input. Does not change the terminal state."""
 
     fn __eq__(self, other: Self) -> Bool:
@@ -93,14 +93,14 @@ struct Direction:
 
     var value: UInt8
     """The numeric value representing the direction."""
-    alias UP = Self(0)
-    alias DOWN = Self(1)
-    alias LEFT = Self(2)
-    alias RIGHT = Self(3)
-    alias UP_LEFT = Self(4)
-    alias UP_RIGHT = Self(5)
-    alias DOWN_LEFT = Self(6)
-    alias DOWN_RIGHT = Self(7)
+    comptime UP = Self(0)
+    comptime DOWN = Self(1)
+    comptime LEFT = Self(2)
+    comptime RIGHT = Self(3)
+    comptime UP_LEFT = Self(4)
+    comptime UP_RIGHT = Self(5)
+    comptime DOWN_LEFT = Self(6)
+    comptime DOWN_RIGHT = Self(7)
 
     fn __eq__(self, other: Self) -> Bool:
         """Check if two directions are equal.
@@ -507,7 +507,7 @@ struct TTY[mode: Mode = Mode.NONE]():
         Args:
             args: The arguments to write to the terminal.
         """
-        alias length = args.__len__()
+        comptime length = args.__len__()
 
         @parameter
         for i in range(length):

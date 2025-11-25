@@ -1,13 +1,30 @@
 from collections import InlineArray
-from collections.string import StaticString
 
 import mist._hue as hue
+from builtin.globals import global_constant
 from mist._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
 from utils import Variant
 
 
-alias FOREGROUND = "38"
-alias BACKGROUND = "48"
+comptime FOREGROUND = "38"
+comptime BACKGROUND = "48"
+comptime StackArray[T: Copyable & Movable, size: Int] = InlineArray[T, size]
+
+
+@always_inline
+fn lut[A: StackArray](i: Some[Indexer]) -> A.ElementType:
+    """Returns the value at the given index from a global constant array.
+
+    Parameters:
+        A: The type of the global constant array.
+
+    Args:
+        i: The index to retrieve.
+
+    Returns:
+        The value at the given index.
+    """
+    return global_constant[A]().unsafe_get(i).copy()
 
 
 trait Color(Copyable, EqualityComparable, Movable, Representable, Stringable, Writable):
@@ -171,13 +188,13 @@ struct ANSIColor(Color):
         """
         return self.value == other.value
 
-    fn to_rgb(self) -> (UInt8, UInt8, UInt8):
+    fn to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
         """Converts the ANSI256 Color to an RGB Tuple.
 
         Returns:
             The RGB Tuple.
         """
-        return hex_to_rgb(ANSI_HEX_CODES[Int(self.value)])
+        return hex_to_rgb(lut[ANSI_HEX_CODES](Int(self.value)))
 
     fn sequence[is_background: Bool](self) -> String:
         """Converts the ANSI Color to an ANSI Sequence.
@@ -197,8 +214,8 @@ struct ANSIColor(Color):
             modifier = 0
 
         if self.value < 8:
-            return String(COLOR_STRINGS[modifier + self.value + 30])
-        return String(COLOR_STRINGS[modifier + self.value - 8 + 90])
+            return String(lut[COLOR_STRINGS](modifier + self.value + 30))
+        return String(lut[COLOR_STRINGS](modifier + self.value - 8 + 90))
 
 
 @fieldwise_init
@@ -255,13 +272,13 @@ struct ANSI256Color(Color):
         """
         return self.value == other.value
 
-    fn to_rgb(self) -> (UInt8, UInt8, UInt8):
+    fn to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
         """Converts the ANSI256 Color to an RGB Tuple.
 
         Returns:
             The RGB Tuple.
         """
-        return hex_to_rgb(ANSI_HEX_CODES[Int(self.value)])
+        return hex_to_rgb(lut[ANSI_HEX_CODES](Int(self.value)))
 
     fn sequence[is_background: Bool](self) -> String:
         """Converts the ANSI256 Color to an ANSI Sequence.
@@ -279,12 +296,12 @@ struct ANSI256Color(Color):
             output.write(BACKGROUND)
         else:
             output.write(FOREGROUND)
-        output.write(";5;", COLOR_STRINGS[self.value])
+        output.write(";5;", lut[COLOR_STRINGS](self.value))
 
         return output^
 
 
-fn hex_to_rgb(hex: UInt32) -> (UInt8, UInt8, UInt8):
+fn hex_to_rgb(hex: UInt32) -> Tuple[UInt8, UInt8, UInt8]:
     """Converts a number in hexadecimal format to red, green, and blue values.
     `r, g, b = hex_to_rgb(0x0000FF) # (0, 0, 255)`.
 
@@ -371,7 +388,7 @@ struct RGBColor(Color):
         """
         return self.value == other.value
 
-    fn to_rgb(self) -> (UInt8, UInt8, UInt8):
+    fn to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
         """Converts the RGB Color to an RGB Tuple.
 
         Returns:
@@ -396,7 +413,9 @@ struct RGBColor(Color):
         else:
             output.write(FOREGROUND)
         var rgb = hex_to_rgb(self.value)
-        output.write(";2;", COLOR_STRINGS[rgb[0]], ";", COLOR_STRINGS[rgb[1]], ";", COLOR_STRINGS[rgb[2]])
+        output.write(
+            ";2;", lut[COLOR_STRINGS](rgb[0]), ";", lut[COLOR_STRINGS](rgb[1]), ";", lut[COLOR_STRINGS](rgb[2])
+        )
 
         return output^
 
@@ -410,15 +429,14 @@ fn ansi256_to_ansi(value: UInt8) -> UInt8:
     Returns:
         The ANSI color value.
     """
-    alias MAX_ANSI = 16
+    comptime MAX_ANSI = 16
     var r: UInt8 = 0
     var md = hue.MAX_FLOAT64
-    var h_color = hue.Color(ANSI_HEX_CODES[Int(value)])
+    var h_color = hue.Color(lut[ANSI_HEX_CODES](Int(value)))
 
     @parameter
     for i in range(MAX_ANSI):
-        var d = h_color.distance_HSLuv(hue.Color(ANSI_HEX_CODES[i]))
-
+        var d = h_color.distance_HSLuv(hue.Color(lut[ANSI_HEX_CODES](i)))
         if d < md:
             md = d
             r = i
@@ -467,7 +485,7 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     var gv = 8 + 10 * gray_index  # same value for r/g/b, 0..255
 
     # Calculate the represented colors back from the index
-    alias i2cv: InlineArray[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
+    comptime i2cv: InlineArray[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
 
     # Return the one which is nearer to the original input rgb value
     var color_dist = color.distance_HSLuv(hue.Color(R=i2cv[r], G=i2cv[g], B=i2cv[b]))
@@ -482,7 +500,7 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
 struct AnyColor(Copyable, Movable):
     """`AnyColor` is a `Variant` which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`."""
 
-    alias _type = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
+    comptime _type = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
     """The internal type of the `AnyColor`."""
     var value: Self._type
     """The color value."""

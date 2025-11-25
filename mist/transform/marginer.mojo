@@ -19,7 +19,7 @@ struct Writer(Movable, Stringable, Writable):
         var writer = margin.Writer(5, 2)
         writer.write("Hello, World!")
         _ = writer.close()
-        print(writer.consume())
+        print(String(writer))
     ```
     """
 
@@ -71,15 +71,7 @@ struct Writer(Movable, Stringable, Writable):
         """
         writer.write(self.buf)
 
-    fn consume(mut self) -> String:
-        """Returns the result with margin applied as a string by taking the data from the internal buffer.
-
-        Returns:
-            The string with margin applied.
-        """
-        return self.buf.consume()
-
-    fn as_bytes(self) -> Span[Byte, __origin_of(self.buf)]:
+    fn as_bytes(self) -> Span[Byte, origin_of(self.buf._data)]:
         """Returns the result with margin applied as a Byte Span.
 
         Returns:
@@ -95,12 +87,12 @@ struct Writer(Movable, Stringable, Writable):
             text: The String to write.
         """
         self.iw.write(text)
-        self.pw.write(self.iw.consume())
+        self.pw.write(self.iw.as_string_slice())
 
     fn close(mut self):
         """Will finish the margin operation. Always call it before trying to retrieve the final result."""
         self.pw.flush()
-        self.buf.write(self.pw.consume())
+        self.buf.write(self.pw.as_string_slice())
 
 
 fn margin(text: StringSlice, width: Int, margin: Int) -> String:
@@ -125,4 +117,4 @@ fn margin(text: StringSlice, width: Int, margin: Int) -> String:
     var writer = Writer(width, margin)
     writer.write(text)
     writer.close()
-    return writer.consume()
+    return String(writer)

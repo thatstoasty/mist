@@ -12,13 +12,13 @@ struct WhenOption:
 
     var value: Int32
     """Value for the option."""
-    alias TCSANOW = Self(0)
+    comptime TCSANOW = Self(0)
     """Change attributes immediately."""
-    alias TCSADRAIN = Self(1)
+    comptime TCSADRAIN = Self(1)
     """Change attributes after transmitting all queued output."""
-    alias TCSAFLUSH = Self(2)
+    comptime TCSAFLUSH = Self(2)
     """Change attributes after transmitting all queued output and discarding all queued input."""
-    alias TCSASOFT = Self(16)
+    comptime TCSASOFT = Self(16)
     """Change attributes without changing the terminal state."""
 
 
@@ -29,13 +29,13 @@ struct FlowOption:
 
     var value: Int32
     """Value for the option."""
-    alias TCOOFF = Self(1) if CompilationTarget.is_macos() else Self(0)
+    comptime TCOOFF = Self(1) if CompilationTarget.is_macos() else Self(0)
     """Suspends output."""
-    alias TCOON = Self(2) if CompilationTarget.is_macos() else Self(1)
+    comptime TCOON = Self(2) if CompilationTarget.is_macos() else Self(1)
     """Transmits a STOP character, which stops the terminal device from transmitting data to the system."""
-    alias TCOFLUSH = Self(2) if CompilationTarget.is_macos() else Self(1)
+    comptime TCOFLUSH = Self(2) if CompilationTarget.is_macos() else Self(1)
     """Transmits a START character, which starts the terminal device transmitting data to the system."""
-    alias TCIOFLUSH = Self(3) if CompilationTarget.is_macos() else Self(2)
+    comptime TCIOFLUSH = Self(3) if CompilationTarget.is_macos() else Self(2)
     """Flushes both data received but not read, and data written but not transmitted."""
 
 
@@ -46,11 +46,11 @@ struct FlushOption:
 
     var value: Int32
     """Value for the option."""
-    alias TCIFLUSH = Self(0)
+    comptime TCIFLUSH = Self(0)
     """Flushes data received, but not read."""
-    alias TCOFLUSH = Self(1)
+    comptime TCOFLUSH = Self(1)
     """Flushes data written, but not transmitted."""
-    alias TCIOFLUSH = Self(2)
+    comptime TCIOFLUSH = Self(2)
     """Flushes both data received, but not read. And data written, but not transmitted."""
 
 

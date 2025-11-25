@@ -14,7 +14,7 @@ fn get_gbs_measure(input: String) raises -> ThroughputMeasure:
 
 
 fn run[func: fn (mut Bencher, String) raises capturing, name: String](mut m: Bench, data: String) raises:
-    m.bench_with_input[String, func](BenchId(name), data, get_gbs_measure(data))
+    m.bench_with_input[String, func](BenchId(name), data, [get_gbs_measure(data)])
 
 
 fn run[func: fn (mut Bencher) raises capturing, name: String](mut m: Bench) raises:
@@ -26,7 +26,7 @@ fn bench_render_ascii(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     fn do() raises:
-        alias a = "Hello World!"
+        comptime a = "Hello World!"
         _ = mist.Style(Profile.ASCII).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
@@ -37,7 +37,7 @@ fn bench_render_ascii_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     fn do() raises:
-        alias a = "Hello World!"
+        comptime a = "Hello World!"
         var color = Profile.ASCII.color(0xC9A0DC)
         _ = mist.Style(Profile.ASCII).foreground(color=color).render(s)
 
@@ -49,7 +49,7 @@ fn bench_render_ansi(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     fn do() raises:
-        alias a = "Hello World!"
+        comptime a = "Hello World!"
         _ = mist.Style(Profile.ANSI).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
@@ -60,7 +60,7 @@ fn bench_render_ansi_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     fn do() raises:
-        alias a = "Hello World!"
+        comptime a = "Hello World!"
         var color = Profile.ANSI.color(0xC9A0DC)
         _ = mist.Style(Profile.ANSI).foreground(color=color).render(s)
 
@@ -72,7 +72,7 @@ fn bench_render_ansi256(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     fn do() raises:
-        alias a = "Hello World!"
+        comptime a = "Hello World!"
         _ = mist.Style(Profile.ANSI256).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
@@ -83,7 +83,7 @@ fn bench_render_ansi256_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     fn do() raises:
-        alias a = "Hello World!"
+        comptime a = "Hello World!"
         var color = Profile.ANSI256.color(0xC9A0DC)
         _ = mist.Style(Profile.ANSI256).foreground(color=color).render(s)
 
@@ -95,7 +95,7 @@ fn bench_render_true_color(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     fn do() raises:
-        alias a = "Hello World!"
+        comptime a = "Hello World!"
         _ = mist.Style(Profile.TRUE_COLOR).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
@@ -106,7 +106,7 @@ fn bench_render_true_color_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     fn do() raises:
-        alias a = "Hello World!"
+        comptime a = "Hello World!"
         var color = Profile.TRUE_COLOR.color(0xC9A0DC)
         _ = mist.Style(Profile.TRUE_COLOR).foreground(color=color).render(s)
 
@@ -223,7 +223,7 @@ def main():
     config.show_progress = True
     var bench_config = Bench(config^)
 
-    alias text = "Hello World!"
+    comptime text = "Hello World!"
     run[bench_render_ascii, "bench_render_ascii"](bench_config, text)
     run[bench_render_ascii_profile_color, "bench_render_ascii_profile_color"](bench_config, text)
     run[bench_render_ansi, "bench_render_ansi"](bench_config, text)
