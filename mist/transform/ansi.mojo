@@ -4,16 +4,16 @@ from mist.transform.bytes import ByteWriter
 from mist.transform.unicode import char_width, string_width
 
 
-alias ANSI_ESCAPE = "[0m"
-alias ANSI_ESCAPE_BYTE = ord(ANSI_ESCAPE)
-alias ANSI_MARKER = "\x1b"
-alias ANSI_MARKER_BYTE = ord(ANSI_MARKER)
-alias SGR_COMMAND = ord("m")
-alias SPACE = " "
-alias NEWLINE = "\n"
-alias TAB_BYTE = ord("\t")
-alias SPACE_BYTE = ord(" ")
-alias NEWLINE_BYTE = ord("\n")
+comptime ANSI_ESCAPE = "[0m"
+comptime ANSI_ESCAPE_BYTE = ord(ANSI_ESCAPE)
+comptime ANSI_MARKER = "\x1b"
+comptime ANSI_MARKER_BYTE = ord(ANSI_MARKER)
+comptime SGR_COMMAND = ord("m")
+comptime SPACE = " "
+comptime NEWLINE = "\n"
+comptime TAB_BYTE = ord("\t")
+comptime SPACE_BYTE = ord(" ")
+comptime NEWLINE_BYTE = ord("\n")
 
 
 fn equals(left: Span[Byte], right: Span[Byte]) -> Bool:
@@ -171,7 +171,7 @@ struct Writer(Movable, Writable):
                 self.ansi = False
                 if self.ansi_seq.as_string_slice().startswith(ANSI_ESCAPE):
                     # reset sequence
-                    self.last_seq.reset()
+                    self.last_seq.clear()
                     self.seq_changed = False
                 elif codepoint.to_u32() == SGR_COMMAND:
                     # color code
@@ -181,7 +181,7 @@ struct Writer(Movable, Writable):
         else:
             self.forward.write(codepoint)
 
-    fn last_sequence(self) -> StringSlice[__origin_of(self.last_seq)]:
+    fn last_sequence(self) -> StringSlice[origin_of(self.last_seq._data)]:
         """Returns the last ANSI escape sequence.
 
         Returns:

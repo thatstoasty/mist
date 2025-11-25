@@ -1,9 +1,10 @@
 import testing
+from testing import TestSuite
 
 from mist import word_wrap
 
 
-def test_wordwrap():
+fn test_wordwrap() raises:
     # Basic wrap:
     testing.assert_equal(word_wrap("Hello Sekai!", 6), "Hello\nSekai!")
 
@@ -17,7 +18,7 @@ def test_wordwrap():
     testing.assert_equal(word_wrap("foo bar", 5), "foo\nbar")
 
 
-def test_whitespace():
+fn test_whitespace() raises:
     # Whitespace that trails a line and fits the width passes through, as does whitespace prefixing an explicit line break. A tab counts as one character:
     testing.assert_equal(word_wrap("foo\nb\t a\n bar", 4), "foo\nb\t a\n bar")
 
@@ -25,7 +26,7 @@ def test_whitespace():
     testing.assert_equal(word_wrap("foo    \nb   ar   ", 4), "foo\nb\nar")
 
 
-def test_keep_newlines():
+fn test_keep_newlines() raises:
     # An explicit line break at the end of the input is preserved:
     testing.assert_equal(word_wrap("foo bar foo\n", 4), "foo\nbar\nfoo\n")
 
@@ -42,16 +43,16 @@ def test_keep_newlines():
     )
 
 
-def test_hyphen_breakpoint():
+fn test_hyphen_breakpoint() raises:
     # Hyphen breakpoint
     testing.assert_equal(word_wrap("foo-foobar", 4), "foo-\nfoobar")
 
 
-def test_unicode():
+fn test_unicode() raises:
     testing.assert_equal(word_wrap("Hello Sekai! 🔥", 6), "Hello\nSekai!\n🔥")
 
 
-def test_noop():
+fn test_noop() raises:
     # No-op, should pass through, including trailing whitespace:
     testing.assert_equal(word_wrap("foobar\n ", 0), "foobar\n ")
 
@@ -63,7 +64,7 @@ def test_noop():
     testing.assert_equal(word_wrap("foobarfoo", 4), "foobarfoo")
 
 
-def test_ansi_sequence():
+fn test_ansi_sequence() raises:
     # ANSI sequence codes don't affect length calculation:
     testing.assert_equal(
         word_wrap("\x1B[38;2;249;38;114mfoo\x1B[0m\x1B[38;2;248;248;242m \x1B[0m\x1B[38;2;230;219;116mbar\x1B[0m", 7),
@@ -80,5 +81,9 @@ def test_ansi_sequence():
 
 
 # TODO: Weirdness with the strings not being equal but length and content is identical.
-# def test_ansi_sequence():
+# fn test_ansi_sequence() raises:
 #     testing.assert_equal(word_wrap("I really \x1B[38;2;249;38;114mlove\x1B[0m Mojo!", 8), "I really \n\x1B[38;2;249;38;114mlove\x1B[0m \nMojo!")
+
+
+fn main() raises:
+    TestSuite.discover_tests[__functions_in_module()]().run()

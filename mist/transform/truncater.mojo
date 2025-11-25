@@ -15,7 +15,7 @@ struct Writer(Movable, Stringable, Writable):
     fn main():
         var writer = truncate.Writer(4, tail=".")
         writer.write("Hello, World!")
-        print(writer.consume())
+        print(String(writer))
     ```
     .
     """
@@ -60,22 +60,6 @@ struct Writer(Movable, Stringable, Writable):
             writer: The writer to write to.
         """
         writer.write(self.ansi_writer.forward)
-
-    fn consume(mut self) -> String:
-        """Returns the truncated result as a string by taking the data from the internal buffer.
-
-        Returns:
-            The truncated string.
-        """
-        return self.ansi_writer.forward.consume()
-
-    fn as_bytes(self) -> Span[Byte, __origin_of(self.ansi_writer.forward)]:
-        """Returns the truncated result as a byte list.
-
-        Returns:
-            The truncated result as a Byte Span.
-        """
-        return self.ansi_writer.forward.as_bytes()
 
     fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, truncating content at the given printable cell width,
@@ -134,4 +118,4 @@ fn truncate(text: StringSlice, width: Int, tail: String = "") -> String:
     """
     var writer = Writer(width, tail)
     writer.write(text)
-    return writer.consume()
+    return String(writer)

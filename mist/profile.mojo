@@ -1,22 +1,21 @@
 from os import abort, getenv
 from sys import external_call, is_compile_time
-from sys.ffi import _get_global, _Global
+from sys.ffi import _get_global
 from sys.param_env import env_get_string
 
 import mist._hue as hue
-from memory import UnsafePointer
-from mist.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256, hex_to_rgb
+from mist.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
 
 
-fn _init_global() -> UnsafePointer[NoneType]:
-    var p = UnsafePointer[Int].alloc(1)
-    p[] = get_color_profile()._value
-    return p.bitcast[NoneType]()
+fn _init_global() -> OpaquePointer[MutAnyOrigin]:
+    var ptr = alloc[Int](1)
+    ptr[] = get_color_profile()._value
+    return ptr.bitcast[NoneType]()
 
 
-fn _destroy_global(lib: UnsafePointer[NoneType]):
-    var p = lib.bitcast[Int]()
-    p.free()
+fn _destroy_global(lib: OpaquePointer[MutAnyOrigin]):
+    var ptr = lib.bitcast[Int]()
+    ptr.free()
 
 
 @always_inline
@@ -59,10 +58,10 @@ fn get_color_profile() -> Profile:
         return Profile.ANSI256
 
     # TERM is used by most terminals to indicate color support.
-    alias TRUE_COLOR_TERMINALS = InlineArray[String, 6](
+    comptime TRUE_COLOR_TERMINALS = InlineArray[String, 6](
         "alacritty", "contour", "rio", "wezterm", "xterm-ghostty", "xterm-kitty"
     )
-    alias ANSI_TERMINALS = InlineArray[String, 2]("linux", "xterm")
+    comptime ANSI_TERMINALS = InlineArray[String, 2]("linux", "xterm")
     if term in TRUE_COLOR_TERMINALS:
         return Profile.TRUE_COLOR
     elif term in ANSI_TERMINALS:
@@ -82,17 +81,17 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
 
     var _value: Int
 
-    alias _TRUE_COLOR = 0
-    alias TRUE_COLOR = Self(Self._TRUE_COLOR)
+    comptime _TRUE_COLOR = 0
+    comptime TRUE_COLOR = Self(Self._TRUE_COLOR)
 
-    alias _ANSI256 = 1
-    alias ANSI256 = Self(Self._ANSI256)
+    comptime _ANSI256 = 1
+    comptime ANSI256 = Self(Self._ANSI256)
 
-    alias _ANSI = 2
-    alias ANSI = Self(Self._ANSI)
+    comptime _ANSI = 2
+    comptime ANSI = Self(Self._ANSI)
 
-    alias _ASCII = 3
-    alias ASCII = Self(Self._ASCII)
+    comptime _ASCII = 3
+    comptime ASCII = Self(Self._ASCII)
 
     @implicit
     fn __init__(out self, value: Int):
@@ -118,7 +117,7 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
             If an invalid value is passed in, the profile will default to ASCII.
             This is to workaround the virtality of raising functions.
         """
-        alias profile = env_get_string["MIST_PROFILE", ""]()
+        comptime profile = env_get_string["MIST_PROFILE", ""]()
 
         @parameter
         if profile == "TRUE_COLOR":

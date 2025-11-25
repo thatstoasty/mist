@@ -1,4 +1,5 @@
-from mist.transform._table import Interval, ambiguous, combining, doublewidth, emoji, narrow, nonprint
+from builtin.globals import global_constant
+from mist.transform._table import AMBIGUOUS, COMBINING, DOUBLE_WIDTH, EMOJI, NARROW, NON_PRINT, Interval
 
 
 @fieldwise_init
@@ -33,39 +34,39 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, M
                 return 0
             elif rune < 0x300:
                 return 1
-            elif in_table(codepoint, narrow):
+            elif in_table(codepoint, NARROW):
                 return 1
-            elif in_table(codepoint, nonprint):
+            elif in_table(codepoint, NON_PRINT):
                 return 0
-            elif in_table(codepoint, combining):
+            elif in_table(codepoint, COMBINING):
                 return 0
-            elif in_table(codepoint, doublewidth):
+            elif in_table(codepoint, DOUBLE_WIDTH):
                 return 2
             else:
                 return 1
         else:
-            if in_table(codepoint, nonprint):
+            if in_table(codepoint, NON_PRINT):
                 return 0
-            elif in_table(codepoint, combining):
+            elif in_table(codepoint, COMBINING):
                 return 0
-            elif in_table(codepoint, narrow):
+            elif in_table(codepoint, NARROW):
                 return 1
-            elif in_table(codepoint, ambiguous):
+            elif in_table(codepoint, AMBIGUOUS):
                 return 2
-            elif in_table(codepoint, doublewidth):
+            elif in_table(codepoint, DOUBLE_WIDTH):
                 return 2
-            elif in_table(codepoint, ambiguous) or in_table(codepoint, emoji):
+            elif in_table(codepoint, AMBIGUOUS) or in_table(codepoint, EMOJI):
                 return 2
 
             @parameter
             if strict_emoji_neutral:
                 return 1
 
-            if in_tables(codepoint, ambiguous):
+            if in_tables(codepoint, AMBIGUOUS):
                 return 2
-            elif in_table(codepoint, emoji):
+            elif in_table(codepoint, EMOJI):
                 return 2
-            elif in_table(codepoint, narrow):
+            elif in_table(codepoint, NARROW):
                 return 2
 
             return 1
@@ -129,7 +130,7 @@ fn in_table(codepoint: Codepoint, table: InlineArray[Interval]) -> Bool:
     return False
 
 
-alias DEFAULT_CONDITION = Condition[east_asian_width=False, strict_emoji_neutral=True]()
+comptime DEFAULT_CONDITION = Condition[east_asian_width=False, strict_emoji_neutral=True]()
 """The default configuration for calculating the width of runes and strings."""
 
 

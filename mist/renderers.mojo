@@ -2,13 +2,13 @@ from mist.profile import Profile
 from mist.style import Style
 
 
-alias RED = 0xE88388
-alias GREEN = 0xA8CC8C
-alias YELLOW = 0xDBAB79
-alias BLUE = 0x71BEF2
-alias MAGENTA = 0xD290E4
-alias CYAN = 0x66C2CD
-alias GRAY = 0xB9BFCA
+comptime RED = 0xE88388
+comptime GREEN = 0xA8CC8C
+comptime YELLOW = 0xDBAB79
+comptime BLUE = 0x71BEF2
+comptime MAGENTA = 0xD290E4
+comptime CYAN = 0x66C2CD
+comptime GRAY = 0xB9BFCA
 
 
 # Convenience functions for quick style application

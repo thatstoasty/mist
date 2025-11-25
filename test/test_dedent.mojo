@@ -1,9 +1,10 @@
 import testing
+from testing import TestSuite
 
 from mist import dedent
 
 
-def test_dedent():
+fn test_dedent() raises:
     # Dedent single line.
     testing.assert_equal(dedent("    Hello, World!"), "Hello, World!")
 
@@ -11,7 +12,7 @@ def test_dedent():
     testing.assert_equal(dedent("    Line 1!\n  Line 2!"), "  Line 1!\nLine 2!")
 
 
-def test_noop():
+fn test_noop() raises:
     # Second line has no leading space, no dendenting applied.
     testing.assert_equal(dedent("  Line 1!\nLine 2!"), "  Line 1!\nLine 2!")
 
@@ -22,5 +23,9 @@ def test_noop():
     testing.assert_equal(dedent(""), "")
 
 
-def test_unicode():
+fn test_unicode() raises:
     testing.assert_equal(dedent("    Line 1🔥!\n  Line 2🔥!"), "  Line 1🔥!\nLine 2🔥!")
+
+
+fn main() raises:
+    TestSuite.discover_tests[__functions_in_module()]().run()

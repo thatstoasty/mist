@@ -11,9 +11,10 @@ from mist.color import (
     hex_to_rgb,
     rgb_to_hex,
 )
+from testing import TestSuite
 
 
-def test_color_sequence():
+fn test_color_sequence() raises:
     testing.assert_equal(ANSIColor(1).sequence[False](), "31")
     testing.assert_equal(ANSIColor(1).sequence[True](), "41")
 
@@ -24,18 +25,18 @@ def test_color_sequence():
     testing.assert_equal(RGBColor(0xFFFFFF).sequence[True](), "48;2;255;255;255")
 
 
-def test_no_color_equality():
+fn test_no_color_equality() raises:
     testing.assert_true(NoColor() == NoColor())
     testing.assert_false(NoColor() != NoColor())
 
 
-def test_no_color_sequence():
+fn test_no_color_sequence() raises:
     var color = NoColor()
     testing.assert_equal(color.sequence[True](), "")
     testing.assert_equal(color.sequence[False](), "")
 
 
-def test_ansi_color_init():
+fn test_ansi_color_init() raises:
     var color = ANSIColor(0)
     testing.assert_equal(color.value, 0)
 
@@ -46,35 +47,35 @@ def test_ansi_color_init():
     testing.assert_equal(color3.value, 0)
 
 
-def test_ansi_color_equality():
+fn test_ansi_color_equality() raises:
     testing.assert_equal(ANSIColor(0), ANSIColor(0))
     testing.assert_not_equal(ANSIColor(0), ANSIColor(1))
 
 
-def test_ansi_color_sequence():
+fn test_ansi_color_sequence() raises:
     var color = ANSIColor(0)
     testing.assert_equal(color.sequence[False](), "30")
     testing.assert_equal(color.sequence[True](), "40")
 
 
-def test_stringify_ansi_color():
+fn test_stringify_ansi_color() raises:
     var color = ANSIColor(0)
     testing.assert_equal(String(color), "ANSIColor(0)")
 
 
-def test_represent_ansi_color():
+fn test_represent_ansi_color() raises:
     var color = ANSIColor(0)
     testing.assert_equal(repr(color), "ANSIColor(0)")
 
 
-def test_ansi_color_to_rgb():
+fn test_ansi_color_to_rgb() raises:
     var color = ANSIColor(1).to_rgb()
     testing.assert_equal(color[0], 128)
     testing.assert_equal(color[1], 0)
     testing.assert_equal(color[2], 0)
 
 
-def test_ansi256_color_init():
+fn test_ansi256_color_init() raises:
     var color = ANSI256Color(0)
     testing.assert_equal(color.value, 0)
 
@@ -85,35 +86,35 @@ def test_ansi256_color_init():
     testing.assert_equal(color3.value, 16)
 
 
-def test_ansi256_color_equality():
+fn test_ansi256_color_equality() raises:
     testing.assert_equal(ANSI256Color(0), ANSI256Color(0))
     testing.assert_not_equal(ANSI256Color(0), ANSI256Color(1))
 
 
-def test_ansi256_color_sequence():
+fn test_ansi256_color_sequence() raises:
     var color = ANSI256Color(0)
     testing.assert_equal(color.sequence[False](), "38;5;0")
     testing.assert_equal(color.sequence[True](), "48;5;0")
 
 
-def test_stringify_ansi256_color():
+fn test_stringify_ansi256_color() raises:
     var color = ANSI256Color(0)
     testing.assert_equal(String(color), "ANSI256Color(0)")
 
 
-def test_represent_ansi256_color():
+fn test_represent_ansi256_color() raises:
     var color = ANSI256Color(0)
     testing.assert_equal(repr(color), "ANSI256Color(0)")
 
 
-def test_ansi256_color_to_rgb():
+fn test_ansi256_color_to_rgb() raises:
     var color = ANSI256Color(1).to_rgb()
     testing.assert_equal(color[0], 128)
     testing.assert_equal(color[1], 0)
     testing.assert_equal(color[2], 0)
 
 
-def test_rgb_color_init():
+fn test_rgb_color_init() raises:
     var color = RGBColor(0xFFFFFF)
     testing.assert_equal(color.value, 16777215)
 
@@ -124,29 +125,33 @@ def test_rgb_color_init():
     testing.assert_equal(color3.value, 0)
 
 
-def test_rgb_color_equality():
+fn test_rgb_color_equality() raises:
     testing.assert_equal(RGBColor(0xFFFFFF), RGBColor(0xFFFFFF))
     testing.assert_not_equal(RGBColor(0xFFFFFF), RGBColor(0x000000))
 
 
-def test_rgb_color_sequence():
+fn test_rgb_color_sequence() raises:
     var color = RGBColor(0xFFFFFF)
     testing.assert_equal(color.sequence[False](), "38;2;255;255;255")
     testing.assert_equal(color.sequence[True](), "48;2;255;255;255")
 
 
-def test_stringify_rgb_color():
+fn test_stringify_rgb_color() raises:
     var color = RGBColor(0xFFFFFF)
     testing.assert_equal(String(color), "RGBColor(16777215)")
 
 
-def test_represent_rgb_color():
+fn test_represent_rgb_color() raises:
     var color = RGBColor(0xFFFFFF)
     testing.assert_equal(repr(color), "RGBColor(16777215)")
 
 
-def test_rgb_color_to_rgb():
+fn test_rgb_color_to_rgb() raises:
     var color = RGBColor(0xFFFFFF).to_rgb()
     testing.assert_equal(color[0], 255)
     testing.assert_equal(color[1], 255)
     testing.assert_equal(color[2], 255)
+
+
+fn main() raises:
+    TestSuite.discover_tests[__functions_in_module()]().run()

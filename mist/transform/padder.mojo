@@ -18,7 +18,7 @@ struct Writer(Movable, Stringable, Writable):
         var writer = padding.Writer(4)
         writer.write("Hello, World!")
         writer.flush()
-        print(writer.consume())
+        print(String(writer))
     ```
     """
 
@@ -61,6 +61,14 @@ struct Writer(Movable, Stringable, Writable):
         """
         return String(self.cache)
 
+    fn as_string_slice(self) -> StringSlice[origin_of(self.cache._data)]:
+        """Returns the padded result as a `StringSlice` by copying the content of the internal buffer.
+
+        Returns:
+            The padded `StringSlice`.
+        """
+        return self.cache.as_string_slice()
+
     fn write_to[W: write.Writer, //](self, mut writer: W):
         """Writes the content of the buffer to the specified writer.
 
@@ -71,14 +79,6 @@ struct Writer(Movable, Stringable, Writable):
             writer: The writer to write the content to.
         """
         writer.write(self.cache)
-
-    fn consume(mut self) -> String:
-        """Returns the padded result as a string by taking the data from the internal buffer.
-
-        Returns:
-            The padded string.
-        """
-        return self.cache.consume()
 
     fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer,
@@ -114,7 +114,7 @@ struct Writer(Movable, Stringable, Writable):
         if self.line_len != 0:
             self.pad()
 
-        self.cache.reset()
+        self.cache.clear()
         self.cache.write(self.ansi_writer.forward)
         self.line_len = 0
         self.in_ansi = False
@@ -141,4 +141,4 @@ fn padding(text: StringSlice, width: Int) -> String:
     var writer = Writer(width)
     writer.write(text)
     writer.flush()
-    return writer.consume()
+    return String(writer)

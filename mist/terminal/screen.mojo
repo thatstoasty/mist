@@ -2,16 +2,16 @@ from mist.color import AnyColor
 from mist.terminal.sgr import BEL, CSI, OSC, print
 
 
-alias RESTORE_SCREEN = CSI + "?47l"
+comptime RESTORE_SCREEN = CSI + "?47l"
 """Restores the screen state `CSI + ?47 + l = \\x1b[?47l`."""
-alias SAVE_SCREEN = CSI + "?47h"
+comptime SAVE_SCREEN = CSI + "?47h"
 """Saves the screen state `CSI + ?47 + h = \\x1b[?47h`."""
-alias ALT_SCREEN = CSI + "?1049h"
+comptime ALT_SCREEN = CSI + "?1049h"
 """Switches to the alternate screen buffer `CSI + ?1049 + h = \\x1b[?1049h`."""
-alias EXIT_ALT_SCREEN = CSI + "?1049l"
+comptime EXIT_ALT_SCREEN = CSI + "?1049l"
 """Exits the alternate screen buffer `CSI + ?1049 + l = \\x1b[?1049l`."""
 
-alias RESET_STYLE = CSI + "0m"
+comptime RESET_STYLE = CSI + "0m"
 """Resets the terminal style `CSI + 0 + m = \\x1b[0m`."""
 
 

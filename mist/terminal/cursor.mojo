@@ -3,25 +3,25 @@ from mist.terminal.sgr import BEL, CSI, OSC
 
 
 # Cursor positioning.
-alias ERASE_DISPLAY = CSI + "2J"
+comptime ERASE_DISPLAY = CSI + "2J"
 """Clears the visible portion of the terminal `CSI + J + 2 = \\x1b[2J`."""
-alias SAVE_CURSOR_POSITION = CSI + "s"
+comptime SAVE_CURSOR_POSITION = CSI + "s"
 """Saves the cursor position `CSI + s = \\x1b[s`."""
-alias RESTORE_CURSOR_POSITION = CSI + "u"
+comptime RESTORE_CURSOR_POSITION = CSI + "u"
 """Restores the cursor position `CSI + u = \\x1b[u`."""
 
 # Explicit values for EraseLineSeq.
-alias CLEAR_LINE_RIGHT = CSI + "0K"
+comptime CLEAR_LINE_RIGHT = CSI + "0K"
 """Clears the line to the right of the cursor `CSI + 0 + K = \\x1b[0K`."""
-alias CLEAR_LINE_LEFT = CSI + "1K"
+comptime CLEAR_LINE_LEFT = CSI + "1K"
 """Clears the line to the left of the cursor `CSI + 1 + K = \\x1b[1K`."""
-alias CLEAR_LINE = CSI + "2K"
+comptime CLEAR_LINE = CSI + "2K"
 """Clears the entire line `CSI + 2 + K = \\x1b[2K`."""
 
 # Session
-alias HIDE_CURSOR = CSI + "?25l"
+comptime HIDE_CURSOR = CSI + "?25l"
 """Hide the cursor `CSI + ?25 + l = \\x1b[?25l`."""
-alias SHOW_CURSOR = CSI + "?25h"
+comptime SHOW_CURSOR = CSI + "?25h"
 """Show the cursor `CSI + ?25 + h = \\x1b[?25h`."""
 
 # NOTE: Why UInt16? It's a best guess at how many lines a terminal can feasibly have.

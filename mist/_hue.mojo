@@ -32,29 +32,29 @@ fn clamp01(v: Float64) -> Float64:
     return math.clamp(v, 0.0, 1.0)
 
 
-alias MAX_FLOAT64: Float64 = max_finite[DType.float64]()
+comptime MAX_FLOAT64: Float64 = max_finite[DType.float64]()
 """The maximum value of a 64-bit floating-point number."""
 
 # This is the tolerance used when comparing colors using AlmostEqualColor.
-alias DELTA = 1.0 / 255.0
+comptime DELTA = 1.0 / 255.0
 """The tolerance used when comparing colors using `AlmostEqualColor`."""
 
 # This is the default reference white point.
-alias D65: InlineArray[Float64, 3] = [0.95047, 1.00000, 1.08883]
+comptime D65: InlineArray[Float64, 3] = [0.95047, 1.00000, 1.08883]
 """The default reference white point, D65."""
 
-alias XYZ_TO_RGB_MATRIX: InlineArray[InlineArray[Float64, 3], 3] = [
+comptime XYZ_TO_RGB_MATRIX: InlineArray[InlineArray[Float64, 3], 3] = [
     [3.2409699419045214, -1.5373831775700935, -0.49861076029300328],
     [-0.96924363628087983, 1.8759675015077207, 0.041555057407175613],
     [0.055630079696993609, -0.20397695888897657, 1.0569715142428786],
 ]
 """The matrix used to convert from XYZ to RGB."""
-alias hSLuvD65: InlineArray[Float64, 3] = [0.95045592705167, 1.0, 1.089057750759878]
+comptime hSLuvD65: InlineArray[Float64, 3] = [0.95045592705167, 1.0, 1.089057750759878]
 """The reference white point for HSLuv, D65."""
 
-alias KAPPA = 903.2962962962963
+comptime KAPPA = 903.2962962962963
 """The value of Kappa used in the CIE Luv color space."""
-alias EPSILON = 0.0088564516790356308
+comptime EPSILON = 0.0088564516790356308
 """The value of Epsilon used in the CIE Luv color space."""
 
 
@@ -186,7 +186,7 @@ fn max_safe_chroma_for_l(l: Float64) -> Float64:
     return minimum_length
 
 
-fn LuvLCh_to_HPLuv(var l: Float64, var c: Float64, h: Float64) -> (Float64, Float64, Float64):
+fn LuvLCh_to_HPLuv(var l: Float64, var c: Float64, h: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given LuvLCh color to HPLuv.
     [-1..1] but the code expects it to be [-100..100].
 
@@ -205,7 +205,7 @@ fn LuvLCh_to_HPLuv(var l: Float64, var c: Float64, h: Float64) -> (Float64, Floa
     return h, s / 100.0, l / 100.0
 
 
-fn LuvLch_to_HSLuv(var l: Float64, var c: Float64, h: Float64) -> (Float64, Float64, Float64):
+fn LuvLch_to_HSLuv(var l: Float64, var c: Float64, h: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given LuvLCh color to HSLuv.
     [-1..1] but the code expects it to be [-100..100].
 
@@ -310,7 +310,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         """
         return (Int(self.R * 255.0) << 16) | (Int(self.G * 255.0) << 8) | Int(self.B * 255.0)
 
-    fn linear_rgb(self) -> (Float64, Float64, Float64):
+    fn linear_rgb(self) -> Tuple[Float64, Float64, Float64]:
         """Converts the color into the linear color space (see http://www.sjbrown.co.uk/2004/05/14/gamma-correct-rendering/).
 
         Returns:
@@ -318,7 +318,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         """
         return linearize(self.R), linearize(self.G), linearize(self.B)
 
-    fn xyz(self) -> (Float64, Float64, Float64):
+    fn xyz(self) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE XYZ space using D65 as reference white.
 
         Returns:
@@ -327,7 +327,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         var rgb = self.linear_rgb()
         return linear_rgb_to_xyz(rgb[0], rgb[1], rgb[2])
 
-    fn Luv_white_ref(self, wref: InlineArray[Float64, 3]) -> (Float64, Float64, Float64):
+    fn Luv_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE L*u*v* space, taking into account
         a given reference white. (i.e. the monitor's white)
         L* is in [0..1] and both u* and v* are in about [-1..1].
@@ -341,7 +341,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         var xyz = self.xyz()
         return xyz_to_Luv_white_ref(xyz[0], xyz[1], xyz[2], wref)
 
-    fn LuvLCh_white_ref(self, wref: InlineArray[Float64, 3]) -> (Float64, Float64, Float64):
+    fn LuvLCh_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE LuvLCh space, taking into account
         a given reference white. (i.e. the monitor's white).
 
@@ -354,7 +354,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         var luv = self.Luv_white_ref(wref)
         return Luv_To_LuvLCh(luv[0], luv[1], luv[2])
 
-    fn HSLuv(self) -> (Float64, Float64, Float64):
+    fn HSLuv(self) -> Tuple[Float64, Float64, Float64]:
         """Order: sColor -> Linear Color -> CIEXYZ -> CIELUV -> LuvLCh -> HSLuv.
         HSLuv returns the Hue, Saturation and Luminance of the color in the HSLuv
         color space. Hue in [0..360], a Saturation [0..1], and a Luminance
@@ -454,7 +454,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         """
         return abs(self.R - c2.R) + abs(self.G - c2.G) + abs(self.B - c2.B) < 3.0 * DELTA
 
-    fn hsv(self) -> (Float64, Float64, Float64):
+    fn hsv(self) -> Tuple[Float64, Float64, Float64]:
         """Hsv returns the Hue [0..360], Saturation and Value [0..1] of the color.
 
         Returns:
@@ -481,7 +481,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
                 h += 360.0
         return h, s, v
 
-    fn hsl(self) -> (Float64, Float64, Float64):
+    fn hsl(self) -> Tuple[Float64, Float64, Float64]:
         """Hsl returns the Hue [0..360], Saturation [0..1], and Luminance (luminance) [0..1] of the color.
 
         Returns:
@@ -516,7 +516,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
 
         return h, s, l
 
-    fn fast_linear_rgb(self) -> (Float64, Float64, Float64):
+    fn fast_linear_rgb(self) -> Tuple[Float64, Float64, Float64]:
         """Is much faster than and almost as accurate as `linear_rgb`.
         BUT it is important to NOTE that they only produce good results for valid colors r,g,b in [0,1].
 
@@ -545,7 +545,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
             rgb[2] + t * (rgb2[2] - rgb[2]),
         )
 
-    fn xyy(self) -> (Float64, Float64, Float64):
+    fn xyy(self) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE xyY space using `D65` as reference white.
         (Note that the reference white is only used for black input.)
         x, y and Y are in [0..1].
@@ -556,7 +556,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         var XYZ = self.xyz()
         return xyz_to_xyY(XYZ[0], XYZ[1], XYZ[2])
 
-    fn xyy_white_ref(self, wref: InlineArray[Float64, 3]) -> (Float64, Float64, Float64):
+    fn xyy_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE xyY space, taking into account
         a given reference white. (i.e. the monitor's white)
         (Note that the reference white is only used for black input.)
@@ -571,7 +571,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         var XY2Z = self.xyz()
         return xyz_to_xyY_white_ref(XY2Z[0], XY2Z[1], XY2Z[2], wref)
 
-    fn lab(self) -> (Float64, Float64, Float64):
+    fn lab(self) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE L*a*b* space using D65 as reference white.
 
         Returns:
@@ -580,7 +580,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         var xyz = self.xyz()
         return xyz_to_lab(xyz[0], xyz[1], xyz[2])
 
-    fn lab_white_ref(self, wref: InlineArray[Float64, 3]) -> (Float64, Float64, Float64):
+    fn lab_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE L*a*b* space, taking into account
         a given reference white. (i.e. the monitor's white).
 
@@ -643,11 +643,11 @@ struct Color(Copyable, Movable, Representable, Stringable):
         a2 *= 100.0
         b2 *= 100.0
 
-        alias kl = 1.0  # 2.0 for textiles
-        alias kc = 1.0
-        alias kh = 1.0
-        alias k1 = 0.045  # 0.048 for textiles
-        alias k2 = 0.015  # 0.014 for textiles.
+        comptime kl = 1.0  # 2.0 for textiles
+        comptime kc = 1.0
+        comptime kh = 1.0
+        comptime k1 = 0.045  # 0.048 for textiles
+        comptime k2 = 0.015  # 0.014 for textiles.
 
         var delta_L = l1 - l2
         var c1 = math.sqrt(sq(a1) + sq(b1))
@@ -656,7 +656,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
 
         # Not taking Sqrt here for stability, and it's unnecessary.
         var deltaHab2 = sq(a1 - a2) + sq(b1 - b2) - sq(delta_Cab)
-        alias sl = 1.0
+        comptime sl = 1.0
         var sc = 1.0 + k1 * c1
         var sh = 1.0 + k2 * c1
 
@@ -791,7 +791,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
 
         return lab(LAB[0] + t * (LAB2[0] - LAB[0]), LAB[1] + t * (LAB2[1] - LAB[1]), LAB[2] + t * (LAB2[2] - LAB[2]))
 
-    fn luv(self) -> (Float64, Float64, Float64):
+    fn luv(self) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE L*u*v* space using `D65` as reference white.
         L* is in [0..1] and both u* and v* are in about [-1..1].
 
@@ -832,7 +832,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
 
         return Luv(luv[0] + t * (luv2[0] - luv[0]), luv[1] + t * (luv2[1] - luv[1]), luv[2] + t * (luv2[2] - luv[2]))
 
-    fn hcl(self) -> (Float64, Float64, Float64):
+    fn hcl(self) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to HCL space using `D65` as reference white.
         H values are in [0..360], C and L values are in [0..1] although C can overshoot 1.0.
 
@@ -841,7 +841,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         """
         return self.hcl_white_ref(D65)
 
-    fn hcl_white_ref(self, wref: InlineArray[Float64, 3]) -> (Float64, Float64, Float64):
+    fn hcl_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to HCL space, taking into account
         a given reference white. (i.e. the monitor's white)
         H values are in [0..360], C and L values are in [0..1].
@@ -877,7 +877,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         # We know that h are both in [0..360]
         return hcl(interp_angle(h1, h2, t), c1 + t * (c2 - c1), l1 + t * (l2 - l1)).clamped()
 
-    fn LuvLCh(self) -> (Float64, Float64, Float64):
+    fn LuvLCh(self) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to LuvLCh space using `D65` as reference white.
         h values are in [0..360], C and L values are in [0..1] although C can overshoot 1.0.
 
@@ -886,7 +886,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         """
         return self.Luv_LCh_white_ref(D65)
 
-    fn Luv_LCh_white_ref(self, wref: InlineArray[Float64, 3]) -> (Float64, Float64, Float64):
+    fn Luv_LCh_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to LuvLCh space, taking into account
         a given reference white. (i.e. the monitor's white)
         h values are in [0..360], c and l values are in [0..1].
@@ -919,7 +919,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
             lch[0] + t * (lch2[0] - lch[0]), lch[1] + t * (lch2[1] - lch[1]), interp_angle(lch2[2], lch[2], t)
         )
 
-    fn HPLuv(self) -> (Float64, Float64, Float64):
+    fn HPLuv(self) -> Tuple[Float64, Float64, Float64]:
         """HPLuv returns the Hue, Saturation and Luminance of the color in the HSLuv
         color space. Hue in [0..360], a Saturation [0..1], and a Luminance
         (luminance) in [0..1].
@@ -1173,7 +1173,7 @@ fn fast_linear_rgb(r: Float64, g: Float64, b: Float64) -> Color:
     return Color(delinearize_fast(r), delinearize_fast(g), delinearize_fast(b))
 
 
-fn xyz_to_xyY(X: Float64, Y: Float64, Z: Float64) -> (Float64, Float64, Float64):
+fn xyz_to_xyY(X: Float64, Y: Float64, Z: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given XYZ color to CIE xyY space.
 
     Args:
@@ -1189,7 +1189,7 @@ fn xyz_to_xyY(X: Float64, Y: Float64, Z: Float64) -> (Float64, Float64, Float64)
 
 fn xyz_to_xyY_white_ref(
     X: Float64, Y: Float64, Z: Float64, wref: InlineArray[Float64, 3]
-) -> (Float64, Float64, Float64):
+) -> Tuple[Float64, Float64, Float64]:
     """Converts the given XYZ color to CIE xyY space, taking into account
     a given reference white. (i.e. the monitor's white).
 
@@ -1216,7 +1216,7 @@ fn xyz_to_xyY_white_ref(
     return x, y, Yout
 
 
-fn xyy_to_xyz(x: Float64, y: Float64, Y: Float64) -> (Float64, Float64, Float64):
+fn xyy_to_xyz(x: Float64, y: Float64, Y: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given CIE xyY color to XYZ space.
 
     Args:
@@ -1270,7 +1270,7 @@ fn lab_f(t: Float64) -> Float64:
     return t / 3.0 * 29.0 / 6.0 * 29.0 / 6.0 + 4.0 / 29.0
 
 
-fn xyz_to_lab(x: Float64, y: Float64, z: Float64) -> (Float64, Float64, Float64):
+fn xyz_to_lab(x: Float64, y: Float64, z: Float64) -> Tuple[Float64, Float64, Float64]:
     """Use `D65` white as reference point by default.
     http://www.fredmiranda.com/forum/tomath.pic/1035332
     http://en.wikipedia.org/wiki/Standard_illuminant.
@@ -1288,7 +1288,7 @@ fn xyz_to_lab(x: Float64, y: Float64, z: Float64) -> (Float64, Float64, Float64)
 
 fn xyz_to_lab_white_ref(
     x: Float64, y: Float64, z: Float64, wref: InlineArray[Float64, 3]
-) -> (Float64, Float64, Float64):
+) -> Tuple[Float64, Float64, Float64]:
     """Use a given reference white point to convert the given XYZ color to L*a*b* space.
 
     Args:
@@ -1321,7 +1321,7 @@ fn lab_finv(t: Float64) -> Float64:
     return 3.0 * 6.0 / 29.0 * 6.0 / 29.0 * (t - 4.0 / 29.0)
 
 
-fn lab_to_xyz(l: Float64, a: Float64, b: Float64) -> (Float64, Float64, Float64):
+fn lab_to_xyz(l: Float64, a: Float64, b: Float64) -> Tuple[Float64, Float64, Float64]:
     """`D65` white (see above).
 
     Args:
@@ -1337,7 +1337,7 @@ fn lab_to_xyz(l: Float64, a: Float64, b: Float64) -> (Float64, Float64, Float64)
 
 fn lab_to_xyz_white_ref(
     l: Float64, a: Float64, b: Float64, wref: InlineArray[Float64, 3]
-) -> (Float64, Float64, Float64):
+) -> Tuple[Float64, Float64, Float64]:
     """Use a given reference white point to convert the given L*a*b* color to XYZ space.
 
     Args:
@@ -1394,7 +1394,7 @@ fn lab_white_ref(l: Float64, a: Float64, b: Float64, wref: InlineArray[Float64, 
 #######
 # http://en.wikipedia.org/wiki/CIELUV#XYZ_.E2.86.92_CIELUV_and_CIELUV_.E2.86.92_XYZ_conversions
 # For L*u*v*, we need to L*u*v*<->XYZ<->RGB and the first one is device dependent.
-fn xyz_to_Luv(x: Float64, y: Float64, z: Float64) -> (Float64, Float64, Float64):
+fn xyz_to_Luv(x: Float64, y: Float64, z: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given XYZ color to CIE L*u*v* space using `D65` as reference white.
 
     Args:
@@ -1408,7 +1408,7 @@ fn xyz_to_Luv(x: Float64, y: Float64, z: Float64) -> (Float64, Float64, Float64)
     return xyz_to_Luv_white_ref(x, y, z, D65)
 
 
-fn luv_to_xyz(l: Float64, u: Float64, v: Float64) -> (Float64, Float64, Float64):
+fn luv_to_xyz(l: Float64, u: Float64, v: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given CIE L*u*v* color to XYZ space using `D65` as reference white.
     Use D65 white as reference point by default.
 
@@ -1467,7 +1467,7 @@ fn Luv_white_ref(l: Float64, u: Float64, v: Float64, wref: InlineArray[Float64, 
 # http://www.hunterlab.com/appnotes/an09_96a.pdf
 
 
-fn lab_to_hcl(L: Float64, a: Float64, b: Float64) -> (Float64, Float64, Float64):
+fn lab_to_hcl(L: Float64, a: Float64, b: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given L*a*b* color to HCL space.
 
     Args:
@@ -1504,7 +1504,7 @@ fn hcl(h: Float64, c: Float64, l: Float64) -> Color:
     return hcl_white_ref(h, c, l, D65)
 
 
-fn hcl_to_Lab(h: Float64, c: Float64, l: Float64) -> (Float64, Float64, Float64):
+fn hcl_to_Lab(h: Float64, c: Float64, l: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given HCL color to L*a*b* space.
 
     Args:
@@ -1556,7 +1556,7 @@ fn LuvLCh(l: Float64, c: Float64, h: Float64) -> Color:
     return LuvLCh_white_ref(l, c, h, D65)
 
 
-fn LuvLChToLuv(l: Float64, c: Float64, h: Float64) -> (Float64, Float64, Float64):
+fn LuvLChToLuv(l: Float64, c: Float64, h: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given LuvLCh color to Luv space.
 
     Args:
@@ -1615,7 +1615,7 @@ fn linearize(v: Float64) -> Float64:
     return ((v + 0.055) / 1.055) ** 2.4
 
 
-fn linear_rgb_to_xyz(r: Float64, g: Float64, b: Float64) -> (Float64, Float64, Float64):
+fn linear_rgb_to_xyz(r: Float64, g: Float64, b: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts from Linear Color space to CIE XYZ-space.
 
     Args:
@@ -1635,7 +1635,7 @@ fn linear_rgb_to_xyz(r: Float64, g: Float64, b: Float64) -> (Float64, Float64, F
 
 fn luv_to_xyz_white_ref(
     l: Float64, u: Float64, v: Float64, wref: InlineArray[Float64, 3]
-) -> (Float64, Float64, Float64):
+) -> Tuple[Float64, Float64, Float64]:
     """Converts the given CIE L*u*v* color to XYZ space, taking into account
     a given reference white. (i.e. the monitor's white).
 
@@ -1654,7 +1654,7 @@ fn luv_to_xyz_white_ref(
     else:
         y = wref[1] * ((l + 0.16) / 1.16) ** 3
 
-    un, vn = xyz_to_uv(wref[0], wref[1], wref[2])
+    var un, vn = xyz_to_uv(wref[0], wref[1], wref[2])
 
     var x = 0.0
     var z = 0.0
@@ -1669,7 +1669,7 @@ fn luv_to_xyz_white_ref(
     return x, y, z
 
 
-fn xyz_to_uv(x: Float64, y: Float64, z: Float64) -> (Float64, Float64):
+fn xyz_to_uv(x: Float64, y: Float64, z: Float64) -> Tuple[Float64, Float64]:
     """For this part, we do as R's graphics.hcl does, not as wikipedia does.
     Or is it the same.
 
@@ -1699,7 +1699,7 @@ fn xyz_to_uv(x: Float64, y: Float64, z: Float64) -> (Float64, Float64):
 
 fn xyz_to_Luv_white_ref(
     x: Float64, y: Float64, z: Float64, wref: InlineArray[Float64, 3]
-) -> (Float64, Float64, Float64):
+) -> Tuple[Float64, Float64, Float64]:
     """Converts the given XYZ color to CIE L*u*v* space, taking into account.
 
     Args:
@@ -1719,15 +1719,15 @@ fn xyz_to_Luv_white_ref(
         #     abort("Cannot call `math.cbrt` at compile time. Please execute it at runtime.")
         l = 1.16 * math.cbrt(y / wref[1]) - 0.16
 
-    ubis, vbis = xyz_to_uv(x, y, z)
-    un, vn = xyz_to_uv(wref[0], wref[1], wref[2])
+    var ubis, vbis = xyz_to_uv(x, y, z)
+    var un, vn = xyz_to_uv(wref[0], wref[1], wref[2])
     var u = 13.0 * l * (ubis - un)
     var v = 13.0 * l * (vbis - vn)
 
     return l, u, v
 
 
-fn Luv_To_LuvLCh(L: Float64, u: Float64, v: Float64) -> (Float64, Float64, Float64):
+fn Luv_To_LuvLCh(L: Float64, u: Float64, v: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts the given Luv color to LuvLCh space.
 
     Args:
@@ -1751,7 +1751,7 @@ fn Luv_To_LuvLCh(L: Float64, u: Float64, v: Float64) -> (Float64, Float64, Float
     return l, c, h
 
 
-fn xyz_to_linear_rgb(x: Float64, y: Float64, z: Float64) -> (Float64, Float64, Float64):
+fn xyz_to_linear_rgb(x: Float64, y: Float64, z: Float64) -> Tuple[Float64, Float64, Float64]:
     """Converts from CIE XYZ-space to Linear Color space.
 
     Args:
