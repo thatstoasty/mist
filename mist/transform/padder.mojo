@@ -22,22 +22,22 @@ struct Writer(Movable, Stringable, Writable):
     ```
     """
 
-    var padding: Int
+    var padding: UInt
     """Padding width to apply to each line."""
     var ansi_writer: ansi.Writer
     """The ANSI aware writer that stores intermediary text content."""
     var cache: ByteWriter
     """The buffer that stores the padded content after it's been flushed."""
-    var line_len: Int
+    var line_len: UInt
     """The current line length."""
     var in_ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
 
     fn __init__(
         out self,
-        padding: Int,
+        padding: UInt,
         *,
-        line_len: Int = 0,
+        line_len: UInt = 0,
         in_ansi: Bool = False,
     ):
         """Initializes a new padding-writer instance.
@@ -107,7 +107,7 @@ struct Writer(Movable, Stringable, Writable):
     fn pad(mut self):
         """Pads the current line with spaces to the given width."""
         if self.padding > 0 and self.line_len < self.padding:
-            self.ansi_writer.write(SPACE * (self.padding - self.line_len))
+            self.ansi_writer.write(SPACE * Int(self.padding - self.line_len))
 
     fn flush(mut self):
         """Finishes the padding operation. Always call it before trying to retrieve the final result."""
@@ -120,7 +120,7 @@ struct Writer(Movable, Stringable, Writable):
         self.in_ansi = False
 
 
-fn padding(text: StringSlice, width: Int) -> String:
+fn padding(text: StringSlice, width: UInt) -> String:
     """Right pads `text` with a `width` number of spaces.
 
     Args:

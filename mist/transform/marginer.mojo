@@ -41,7 +41,7 @@ struct Writer(Movable, Stringable, Writable):
         self.pw = pw^
         self.iw = iw^
 
-    fn __init__(out self, pad: Int, indentation: Int):
+    fn __init__(out self, pad: UInt, indentation: UInt):
         """Initializes a new `Writer`.
 
         Args:
@@ -95,13 +95,13 @@ struct Writer(Movable, Stringable, Writable):
         self.buf.write(self.pw.as_string_slice())
 
 
-fn margin(text: StringSlice, width: Int, margin: Int) -> String:
+fn margin(text: StringSlice, pad: UInt, indent: UInt) -> String:
     """Right pads `text` with a `width` number of spaces, and indents it with `margin` spaces.
 
     Args:
         text: The content to apply the margin to.
-        width: The width of the margin.
-        margin: The margin to apply.
+        pad: The width of the padding.
+        indent: The width of the indentation to apply.
 
     Returns:
         A new margin applied string.
@@ -111,10 +111,10 @@ fn margin(text: StringSlice, width: Int, margin: Int) -> String:
     from mist.transform import margin
 
     fn main():
-        print(margin("Hello, World!", width=5, margin=2))
+        print(margin("Hello, World!", pad=5, indent=2))
     ```
     """
-    var writer = Writer(width, margin)
+    var writer = Writer(pad, indent)
     writer.write(text)
     writer.close()
     return String(writer)

@@ -11,7 +11,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, M
         strict_emoji_neutral: Whether to treat emoji as double-width characters.
     """
 
-    fn char_width(self, codepoint: Codepoint) -> Int:
+    fn char_width(self, codepoint: Codepoint) -> UInt:
         """Returns the number of cells in `codepoint`.
         See http://www.unicode.org/reports/tr11/.
 
@@ -71,7 +71,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, M
 
             return 1
 
-    fn string_width(self, content: StringSlice) -> Int:
+    fn string_width(self, content: StringSlice) -> UInt:
         """Return width as you can see.
 
         Args:
@@ -80,7 +80,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, M
         Returns:
             The printable width of the string.
         """
-        var width = 0
+        var width: UInt = 0
         for codepoint in content.codepoints():
             width += self.char_width(codepoint)
         return width
@@ -134,7 +134,7 @@ comptime DEFAULT_CONDITION = Condition[east_asian_width=False, strict_emoji_neut
 """The default configuration for calculating the width of runes and strings."""
 
 
-fn string_width(content: StringSlice) -> Int:
+fn string_width(content: StringSlice) -> UInt:
     """Return width as you can see.
 
     Args:
@@ -146,7 +146,7 @@ fn string_width(content: StringSlice) -> Int:
     return materialize[DEFAULT_CONDITION]().string_width(content)
 
 
-fn char_width(codepoint: Codepoint) -> Int:
+fn char_width(codepoint: Codepoint) -> UInt:
     """Return width as you can see.
 
     Args:

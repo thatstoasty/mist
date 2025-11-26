@@ -28,17 +28,17 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     ```
     """
 
-    var limit: Int
+    var limit: UInt
     """The maximum number of characters per line."""
     var newline: String
     """The character to use as a newline."""
     var preserve_space: Bool
     """Whether to preserve space characters."""
-    var tab_width: Int
+    var tab_width: UInt
     """The width of a tab character."""
     var buf: ByteWriter
     """The buffer that stores the wrapped content."""
-    var line_len: Int
+    var line_len: UInt
     """The current line length."""
     var ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
@@ -47,12 +47,12 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
 
     fn __init__(
         out self,
-        limit: Int,
+        limit: UInt,
         *,
         newline: String = DEFAULT_NEWLINE,
         preserve_space: Bool = False,
-        tab_width: Int = DEFAULT_TAB_WIDTH,
-        line_len: Int = 0,
+        tab_width: UInt = DEFAULT_TAB_WIDTH,
+        line_len: UInt = 0,
         ansi: Bool = False,
         forceful_newline: Bool = False,
     ):
@@ -107,7 +107,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
             text: The text to write to the writer.
         """
         var content = String(text)
-        var tab_space = SPACE * self.tab_width
+        var tab_space = SPACE * Int(self.tab_width)
         content = content.replace("\t", tab_space)
 
         @parameter
@@ -151,11 +151,11 @@ fn wrap[
     keep_newlines: Bool = True
 ](
     text: StringSlice,
-    limit: Int,
+    limit: UInt,
     *,
     newline: String = DEFAULT_NEWLINE,
     preserve_space: Bool = False,
-    tab_width: Int = DEFAULT_TAB_WIDTH,
+    tab_width: UInt = DEFAULT_TAB_WIDTH,
 ) -> String:
     """Wraps `text` at `limit` characters per line.
 
