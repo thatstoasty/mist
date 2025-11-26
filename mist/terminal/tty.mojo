@@ -38,7 +38,7 @@ from mist.terminal.screen import (
 )
 from mist.termios.c import LocalFlag
 
-from mist.termios import Termios, WhenOption, is_a_tty, set_cbreak, set_raw, tcgetattr, tcsetattr
+from mist.termios import Termios, WhenOption, set_cbreak, set_raw, tcgetattr, tcsetattr
 
 
 # TTY State modes
@@ -192,7 +192,7 @@ struct TTY[mode: Mode = Mode.NONE]():
         Raises:
             Error: If STDIN is not a terminal.
         """
-        if not is_a_tty(sys.stdin):
+        if not sys.stdin.isatty():
             raise Error("STDIN is not a terminal.")
         self.fd = sys.stdin
         self.original_state = tcgetattr(self.fd)

@@ -28,7 +28,7 @@ build_and_publish = [{ task = "build" }, { task = "publish" }]
 
 [package]
 name = "mist"
-version = "25.7.1"
+version = "25.7.2"
 
 [package.build]
 backend = { name = "pixi-build-mojo", version = "*" }

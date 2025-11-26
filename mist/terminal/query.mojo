@@ -7,15 +7,12 @@ import os
 import sys
 from collections import BitSet, InlineArray
 from pathlib import Path
-from time import sleep
 
 import mist._hue as hue
-from memory import UnsafePointer, stack_allocation
 from mist.color import RGBColor
 from mist.terminal.sgr import BEL, CSI, ESC, OSC, ST
 from mist.terminal.tty import TTY
 from mist.termios.c import FileDescriptorBitSet, _TimeValue, select
-from mist.termios.terminal import is_a_tty, tty_name
 from mist.termios.tty import is_terminal_raw
 
 
@@ -252,7 +249,7 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
     # An ESC + ST.
     # And the cursor position response, which should end with 'R'.
     var stdin = sys.stdin
-    if not is_a_tty(stdin):
+    if not stdin.isatty():
         raise Error("STDIN is not a terminal.")
 
     var state = OSCParseState.RESPONSE_START_SEARCH
@@ -344,7 +341,7 @@ fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineAr
 
     # Read the response into the provided buffer.
     var stdin = sys.stdin
-    if not is_a_tty(stdin):
+    if not stdin.isatty():
         raise Error("STDIN is not a terminal.")
 
     wait_for_input(stdin)

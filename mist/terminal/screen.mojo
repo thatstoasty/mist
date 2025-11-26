@@ -1,5 +1,5 @@
 from mist.color import AnyColor
-from mist.terminal.sgr import BEL, CSI, OSC, print
+from mist.terminal.sgr import BEL, CSI, OSC
 
 
 comptime RESTORE_SCREEN = CSI + "?47l"

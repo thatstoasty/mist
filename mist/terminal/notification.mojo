@@ -1,4 +1,4 @@
-from mist.terminal.sgr import OSC, ST, print
+from mist.terminal.sgr import OSC, ST
 
 
 fn notify(title: StringSlice, body: StringSlice) -> None:

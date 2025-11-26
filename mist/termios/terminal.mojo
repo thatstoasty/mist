@@ -269,32 +269,6 @@ fn tcflow(file: FileDescriptor, action: FlowOption) raises -> None:
             raise Error("[UNKNOWN] Failed to suspend or resume I/O. ERRNO: ", errno)
 
 
-fn is_a_tty(file_descriptor: FileDescriptor) raises -> Bool:
-    """Check if the file descriptor is a terminal.
-
-    Args:
-        file_descriptor: File descriptor to check.
-
-    Raises:
-        * Error: [EBADF] If the file descriptor is invalid or not a terminal.
-        * Error: [ENOTTY] If the file associated with `file_descriptor` is not a terminal.
-
-    Returns:
-        True if the file descriptor is a terminal, False otherwise.
-    """
-    var status = c.isatty(file_descriptor.value)
-    if status == 0:
-        var errno = get_errno()
-        if errno == errno.EBADF:
-            raise Error("[EBADF] The `file_descriptor` argument is not a valid file descriptor.")
-        elif errno == errno.ENOTTY:
-            raise Error("[ENOTTY] The file associated with `file_descriptor` is not a terminal.")
-        else:
-            return False
-
-    return True
-
-
 fn tty_name(file_descriptor: FileDescriptor) raises -> String:
     """Return the name of the terminal associated with the file descriptor.
 

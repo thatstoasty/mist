@@ -468,28 +468,6 @@ fn cfmakeraw[origin: MutOrigin](termios_p: Pointer[mut=True, Termios, origin]):
 #     return external_call["tcsetwinsize", c_int, c_int, UnsafePointer[winsize]](fd, winsize_p)
 
 
-fn isatty(fd: c_int) -> Bool:
-    """Libc POSIX `isatty` function.
-
-    Check if the file descriptor `fd` refers to a terminal.
-
-    Args:
-        fd: File descriptor.
-
-    Returns:
-        True if `fd` refers to a terminal, False otherwise.
-
-    #### C Function:
-    ```c
-    int isatty(int fd);
-    ```
-
-    #### Notes:
-    Reference: https://man7.org/linux/man-pages/man3/isatty.3p.html.
-    """
-    return Bool(external_call["isatty", c_int, c_int](fd))
-
-
 fn ttyname(fd: c_int) -> ExternalMutPointer[c_char]:
     """Libc POSIX `ttyname` function.
 

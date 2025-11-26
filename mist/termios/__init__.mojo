@@ -15,5 +15,5 @@ including their handling of input (stdin) and output (stdout and stderr) by mani
 the termios structure and using functions like `tcgetattr()` and `tcsetattr()`.
 """
 from mist.termios.c import ControlFlag, InputFlag, LocalFlag, OutputFlag, SpecialCharacter, Termios
-from mist.termios.terminal import is_a_tty, tcdrain, tcflow, tcflush, tcgetattr, tcsendbreak, tcsetattr, tty_name
+from mist.termios.terminal import tcdrain, tcflow, tcflush, tcgetattr, tcsendbreak, tcsetattr, tty_name
 from mist.termios.tty import FlowOption, FlushOption, WhenOption, cfmakecbreak, cfmakeraw, set_cbreak, set_raw
