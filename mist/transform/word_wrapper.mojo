@@ -28,7 +28,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     ```
     """
 
-    var limit: Int
+    var limit: UInt
     """The maximum number of characters per line."""
     var breakpoint: Codepoint
     """The character to use as a breakpoint."""
@@ -40,18 +40,18 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     """The buffer that stores the space between words."""
     var word: ByteWriter
     """The buffer that stores the current word."""
-    var line_len: Int
+    var line_len: UInt
     """The current line length."""
     var ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
 
     fn __init__(
         out self,
-        limit: Int,
+        limit: UInt,
         *,
         breakpoint: String = DEFAULT_BREAKPOINT,
         newline: String = DEFAULT_NEWLINE,
-        line_len: Int = 0,
+        line_len: UInt = 0,
         ansi: Bool = False,
     ):
         """Initializes a new word wrap writer.
@@ -93,7 +93,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
 
     fn add_space(mut self):
         """Write the content of the space buffer to the word-wrap buffer."""
-        self.line_len += len(self.space)
+        self.line_len += UInt(len(self.space))
         self.buf.write(self.space)
         self.space.clear()
 
@@ -146,7 +146,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
             # see if we can add the content of the space buffer to the current line
             elif codepoint == self.newline:
                 if len(self.word) == 0:
-                    if self.line_len + len(self.space) > self.limit:
+                    if self.line_len + UInt(len(self.space)) > self.limit:
                         self.line_len = 0
 
                     # preserve whitespace
@@ -174,7 +174,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
                 # add a line break if the current word would exceed the line's
                 # character limit
                 var word_width = ansi.printable_rune_width(self.word.as_string_slice())
-                if word_width < self.limit and self.line_len + len(self.space) + word_width > self.limit:
+                if word_width < self.limit and self.line_len + UInt(len(self.space)) + word_width > self.limit:
                     self.add_newline()
 
     fn close(mut self):
@@ -186,7 +186,7 @@ fn word_wrap[
     keep_newlines: Bool = True
 ](
     text: StringSlice,
-    limit: Int,
+    limit: UInt,
     *,
     newline: String = DEFAULT_NEWLINE,
     breakpoint: String = DEFAULT_BREAKPOINT,

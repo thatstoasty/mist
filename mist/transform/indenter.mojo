@@ -19,7 +19,7 @@ struct Writer(Movable, Stringable, Writable):
     ```
     """
 
-    var indent: Int
+    var indent: UInt
     """The number of spaces to indent each line."""
     var ansi_writer: ansi.Writer
     """The ANSI aware writer that stores the text content."""
@@ -28,7 +28,7 @@ struct Writer(Movable, Stringable, Writable):
     var in_ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
 
-    fn __init__(out self, indent: Int):
+    fn __init__(out self, indent: UInt):
         """Initializes a new indent-writer instance.
 
         Args:
@@ -84,7 +84,7 @@ struct Writer(Movable, Stringable, Writable):
             else:
                 if not self.skip_indent:
                     self.ansi_writer.reset_ansi()
-                    self.ansi_writer.write(SPACE * self.indent)
+                    self.ansi_writer.write(SPACE * Int(self.indent))
                     self.skip_indent = True
                     self.ansi_writer.restore_ansi()
 
@@ -95,7 +95,7 @@ struct Writer(Movable, Stringable, Writable):
             self.ansi_writer.write(codepoint)
 
 
-fn indent(text: StringSlice, indent: Int) -> String:
+fn indent(text: StringSlice, indent: UInt) -> String:
     """Indents `text` with a `indent` number of spaces.
 
     Args:

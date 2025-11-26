@@ -17,10 +17,9 @@ struct Writer(Movable, Stringable, Writable):
         writer.write("Hello, World!")
         print(String(writer))
     ```
-    .
     """
 
-    var width: Int
+    var width: UInt
     """The maximum printable cell width."""
     var tail: String
     """The tail to append to the truncated content."""
@@ -29,7 +28,7 @@ struct Writer(Movable, Stringable, Writable):
     var in_ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
 
-    fn __init__(out self, width: Int, tail: String, *, in_ansi: Bool = False):
+    fn __init__(out self, width: UInt, tail: String, *, in_ansi: Bool = False):
         """Initializes a new truncate-writer instance.
 
         Args:
@@ -74,7 +73,7 @@ struct Writer(Movable, Stringable, Writable):
             return
 
         self.width -= tw
-        var cur_width = 0
+        var cur_width: UInt = 0
 
         for codepoint in text.codepoints():
             if codepoint.to_u32() == ansi.ANSI_MARKER_BYTE:
@@ -96,7 +95,7 @@ struct Writer(Movable, Stringable, Writable):
             self.ansi_writer.write(codepoint)
 
 
-fn truncate(text: StringSlice, width: Int, tail: String = "") -> String:
+fn truncate(text: StringSlice, width: UInt, tail: String = "") -> String:
     """Truncates `text` at `width` characters. A tail is then added to the end of the string.
 
     Args:

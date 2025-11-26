@@ -66,7 +66,7 @@ fn is_terminator(c: Codepoint) -> Bool:
     return (rune >= 0x40 and rune <= 0x5A) or (rune >= 0x61 and rune <= 0x7A)
 
 
-fn printable_rune_width(text: StringSlice) -> Int:
+fn printable_rune_width(text: StringSlice) -> UInt:
     """Returns the cell width of the given string.
 
     Args:
@@ -75,7 +75,7 @@ fn printable_rune_width(text: StringSlice) -> Int:
     Returns:
         The printable cell width of the string.
     """
-    var length = 0
+    var length: UInt = 0
     var ansi = False
 
     for codepoint in text.codepoints():

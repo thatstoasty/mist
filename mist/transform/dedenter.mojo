@@ -1,4 +1,4 @@
-fn _calculate_minimum_indentation(text: StringSlice) -> Int:
+fn _calculate_minimum_indentation(text: StringSlice) -> UInt:
     """Detects the indentation level shared by all lines.
 
     Args:
@@ -7,8 +7,8 @@ fn _calculate_minimum_indentation(text: StringSlice) -> Int:
     Returns:
         The minimum indentation level.
     """
-    var cur_indent = 0
-    var min_indent = 0
+    var cur_indent: UInt = 0
+    var min_indent: UInt = 0
     var should_append = True
 
     for codepoint in text.codepoint_slices():
@@ -27,7 +27,7 @@ fn _calculate_minimum_indentation(text: StringSlice) -> Int:
     return min_indent
 
 
-fn _apply_dedent(text: StringSlice, indent: Int) -> String:
+fn _apply_dedent(text: StringSlice, indent: UInt) -> String:
     """Returns a copy `text` that's been dedented
     by removing the shared indentation level.
 
@@ -39,7 +39,7 @@ fn _apply_dedent(text: StringSlice, indent: Int) -> String:
         A new dedented string.
     """
     var should_omit = True
-    var omitted = 0
+    var omitted: UInt = 0
     var buf = String(capacity=Int(text.byte_length() * 1.25))
 
     for codepoint in text.codepoint_slices():
