@@ -4,22 +4,29 @@ from sys._libc_errno import get_errno
 from sys.ffi import c_char, c_int, c_size_t
 from time.time import _CTimeSpec
 
-from memory import Pointer, UnsafePointer
 from utils import StaticTuple
 
 
 # C types
 comptime c_void = NoneType
+"""C void type."""
 comptime cc_t = UInt8
+"""C control character type."""
 comptime NCCS = Int8
+"""Number of control characters."""
 comptime time_t = Int64
+"""C time type."""
 comptime suseconds_t = Int64
-comptime ExternalMutPointer = UnsafePointer[origin = MutOrigin.external]
-comptime ExternalImmutPointer = UnsafePointer[origin = ImmutOrigin.external]
+"""C microsecond time type."""
+comptime MutExternalPointer = UnsafePointer[origin=MutExternalOrigin]
+"""A mutable external pointer type."""
+comptime ImmutExternalPointer = UnsafePointer[origin=ImmutExternalOrigin]
+"""An immutable external pointer type."""
 
 comptime tcflag_t = SIMD[(DType.uint32, DType.uint64)[Int(CompilationTarget.is_macos())], 1]
 """If `CompilationTarget.is_macos()` is true, use `UInt64`, otherwise use `UInt32`."""
 comptime c_speed_t = UInt64
+"""C speed type."""
 
 
 @fieldwise_init
@@ -103,6 +110,7 @@ struct InputFlag:
     reads as a null byte ('\\0'), except when PARMRK is set, in
     which case it reads as the sequence \\377 \\0 \\0."""
     comptime BRKINT = Self(2)
+    """Signal interrupt on BREAK."""
     comptime IGNPAR = Self(4)
     """Ignore framing errors and parity errors.
     If this bit is set, input bytes with parity or framing
@@ -130,7 +138,7 @@ struct InputFlag:
     comptime IXON = Self(512) if CompilationTarget.is_macos() else Self(1024)
     """Enable XON/XOFF flow control on output."""
     comptime IXANY = Self(2048)
-    """(XSI) Typing any character will restart stopped output. (The default is to allow just the START character to restart output.)"""
+    """(XSI) Typing any character will restart stopped output. (The default is to allow just the START character to restart output)."""
     comptime IXOFF = Self(1024) if CompilationTarget.is_macos() else Self(4096)
     """Enable XON/XOFF flow control on input."""
 
@@ -153,32 +161,32 @@ struct SpecialCharacter:
     """Special control characters."""
 
     comptime VEOF = Self(0) if CompilationTarget.is_macos() else Self(4)
-    """Signal End-Of-Input `Ctrl-D`"""
+    """Signal End-Of-Input `Ctrl-D`."""
     comptime VEOL = Self(1) if CompilationTarget.is_macos() else Self(11)
-    """Signal End-Of-Line `Disabled`"""
+    """Signal End-Of-Line `Disabled`."""
     comptime VERASE = Self(3) if CompilationTarget.is_macos() else Self(2)
-    """Delete previous character `Backspace`"""
+    """Delete previous character `Backspace`."""
     comptime VINTR = Self(8) if CompilationTarget.is_macos() else Self(0)
-    """Generate SIGINT `Ctrl-C`"""
+    """Generate SIGINT `Ctrl-C`."""
     comptime VKILL = Self(5) if CompilationTarget.is_macos() else Self(3)
-    """Erase current line `Ctrl-U`"""
+    """Erase current line `Ctrl-U`."""
     comptime VMIN = Self(16) if CompilationTarget.is_macos() else Self(6)
-    """The MIN value `1`"""
+    """The MIN value `1`."""
     comptime VQUIT = Self(9) if CompilationTarget.is_macos() else Self(1)
-    """Generate SIGQUIT `Ctrl-\\`"""
+    """Generate SIGQUIT `Ctrl-\\`."""
     comptime VSTART = Self(12) if CompilationTarget.is_macos() else Self(8)
-    """Resume output `Ctrl-Q`"""
+    """Resume output `Ctrl-Q`."""
     comptime VSTOP = Self(13) if CompilationTarget.is_macos() else Self(9)
-    """Suspend output `Ctrl-S`"""
+    """Suspend output `Ctrl-S`."""
     comptime VSUSP = Self(10)
-    """Suspend program `Ctrl-Z`"""
+    """Suspend program `Ctrl-Z`."""
     comptime VTIME = Self(17) if CompilationTarget.is_macos() else Self(5)
-    """The TIME value `0`"""
+    """The TIME value `0`."""
 
 
 @fieldwise_init
 @register_passable("trivial")
-struct Termios(Copyable, Movable, Stringable, Writable):
+struct Termios(Copyable, Stringable, Writable):
     """Termios libc."""
 
     comptime _CONTROL_CHARACTER_WIDTH = 20 if CompilationTarget.is_macos() else 32
@@ -468,7 +476,7 @@ fn cfmakeraw[origin: MutOrigin](termios_p: Pointer[mut=True, Termios, origin]):
 #     return external_call["tcsetwinsize", c_int, c_int, UnsafePointer[winsize]](fd, winsize_p)
 
 
-fn ttyname(fd: c_int) -> ExternalMutPointer[c_char]:
+fn ttyname(fd: c_int) -> MutExternalPointer[c_char]:
     """Libc POSIX `ttyname` function.
 
     Get the name of the terminal associated with the file descriptor `fd`.
@@ -487,10 +495,10 @@ fn ttyname(fd: c_int) -> ExternalMutPointer[c_char]:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/ttyname.3p.html.
     """
-    return external_call["ttyname", ExternalMutPointer[c_char], c_int](fd)
+    return external_call["ttyname", MutExternalPointer[c_char], c_int](fd)
 
 
-fn read(fd: c_int, buf: ExternalMutPointer[c_void], size: c_size_t) -> c_int:
+fn read(fd: c_int, buf: MutExternalPointer[c_void], size: c_size_t) -> c_int:
     """Libc POSIX `read` function.
 
     Read `size` bytes from file descriptor `fd` into the buffer `buf`.
@@ -511,10 +519,11 @@ fn read(fd: c_int, buf: ExternalMutPointer[c_void], size: c_size_t) -> c_int:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/read.3p.html.
     """
-    return external_call["read", c_int, c_int, ExternalMutPointer[c_void], c_size_t](fd, buf, size)
+    return external_call["read", c_int, c_int, MutExternalPointer[c_void], c_size_t](fd, buf, size)
 
 
 comptime FileDescriptorBitSet = BitSet[1024]
+"""A BitSet type for file descriptors."""
 
 
 @fieldwise_init

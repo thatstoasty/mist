@@ -1,19 +1,26 @@
 from io import write
 
-from mist.transform.bytes import ByteWriter
 from mist.transform.unicode import char_width, string_width
 
 
 comptime ANSI_ESCAPE = "[0m"
-comptime ANSI_ESCAPE_BYTE = ord(ANSI_ESCAPE)
+"""The ANSI escape sequence for resetting formatting."""
 comptime ANSI_MARKER = "\x1b"
+"""The ANSI escape sequence marker."""
 comptime ANSI_MARKER_BYTE = ord(ANSI_MARKER)
+"""The byte value of the ANSI escape sequence marker."""
 comptime SGR_COMMAND = ord("m")
+"""The byte value of the SGR command."""
 comptime SPACE = " "
+"""A single space character."""
 comptime NEWLINE = "\n"
+"""A newline character."""
 comptime TAB_BYTE = ord("\t")
+"""The byte value of the tab character."""
 comptime SPACE_BYTE = ord(" ")
+"""The byte value of the space character."""
 comptime NEWLINE_BYTE = ord("\n")
+"""The byte value of the newline character."""
 
 
 fn equals(left: Span[Byte], right: Span[Byte]) -> Bool:
@@ -111,18 +118,18 @@ struct Writer(Movable, Writable):
     ```
     """
 
-    var forward: ByteWriter
+    var forward: String
     """The buffer that stores the text content."""
     var ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
-    var ansi_seq: ByteWriter
+    var ansi_seq: String
     """The buffer that stores the ANSI escape sequence."""
-    var last_seq: ByteWriter
+    var last_seq: String
     """The buffer that stores the last ANSI escape sequence."""
     var seq_changed: Bool
     """Whether the ANSI escape sequence has changed."""
 
-    fn __init__(out self, var forward: ByteWriter = ByteWriter()):
+    fn __init__(out self, var forward: String = String()):
         """Initializes a new ANSI-writer instance.
 
         Args:
@@ -130,8 +137,8 @@ struct Writer(Movable, Writable):
         """
         self.forward = forward^
         self.ansi = False
-        self.ansi_seq = ByteWriter(capacity=128)
-        self.last_seq = ByteWriter(capacity=128)
+        self.ansi_seq = String(capacity=128)
+        self.last_seq = String(capacity=128)
         self.seq_changed = False
 
     fn write_to[W: write.Writer, //](self, mut writer: W):
@@ -171,7 +178,7 @@ struct Writer(Movable, Writable):
                 self.ansi = False
                 if self.ansi_seq.as_string_slice().startswith(ANSI_ESCAPE):
                     # reset sequence
-                    self.last_seq.clear()
+                    self.last_seq = String(capacity=self.last_seq.capacity())
                     self.seq_changed = False
                 elif codepoint.to_u32() == SGR_COMMAND:
                     # color code
@@ -181,13 +188,13 @@ struct Writer(Movable, Writable):
         else:
             self.forward.write(codepoint)
 
-    fn last_sequence(self) -> StringSlice[origin_of(self.last_seq._data)]:
+    fn last_sequence(self) -> StringSlice[origin_of(self.last_seq)]:
         """Returns the last ANSI escape sequence.
 
         Returns:
             The last ANSI escape sequence.
         """
-        return self.last_seq.as_string_slice()
+        return StringSlice(self.last_seq)
 
     fn reset_ansi(mut self) -> None:
         """Resets the ANSI escape sequence."""

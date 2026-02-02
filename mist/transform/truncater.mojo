@@ -1,19 +1,17 @@
-from io import write
-
 import mist.transform.ansi
 from mist.transform.unicode import char_width
 
 
 @fieldwise_init
-struct Writer(Movable, Stringable, Writable):
+struct TruncateWriter(Movable, Stringable):
     """A truncating writer that truncates content at the given printable cell width.
 
     #### Examples:
     ```mojo
-    from mist.transform import truncater as truncate
+    from mist.transform import TruncateWriter
 
     fn main():
-        var writer = truncate.Writer(4, tail=".")
+        var writer = TruncateWriter(4, tail=".")
         writer.write("Hello, World!")
         print(String(writer))
     ```
@@ -49,16 +47,13 @@ struct Writer(Movable, Stringable, Writable):
         """
         return String(self.ansi_writer.forward)
 
-    fn write_to[W: write.Writer, //](self, mut writer: W):
-        """Writes the content of the buffer to the specified writer.
+    fn as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
+        """Returns the truncated result as a string slice by referencing the content of the internal buffer.
 
-        Parameters:
-            W: The type of the writer to write to.
-
-        Args:
-            writer: The writer to write to.
+        Returns:
+            The truncated string slice.
         """
-        writer.write(self.ansi_writer.forward)
+        return StringSlice(self.ansi_writer.forward)
 
     fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, truncating content at the given printable cell width,
@@ -111,10 +106,9 @@ fn truncate(text: StringSlice, width: UInt, tail: String = "") -> String:
     from mist import truncate
 
     fn main():
-        var truncated = truncate("Hello, World!", 5, ".")
-        print(truncated)
+        print(truncate("Hello, World!", 5, "."))
     ```
     """
-    var writer = Writer(width, tail)
+    var writer = TruncateWriter(width, tail)
     writer.write(text)
     return String(writer)

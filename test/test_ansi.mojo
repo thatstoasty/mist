@@ -1,6 +1,5 @@
 import testing
 from mist.transform.ansi import Writer, is_terminator, printable_rune_width
-from mist.transform.bytes import ByteWriter
 from testing import TestSuite
 
 
@@ -38,7 +37,7 @@ fn test_reset_ansi() raises:
 
 fn test_restore_ansi() raises:
     var writer = Writer()
-    writer.last_seq = ByteWriter("\x1b[38;2;249;38;114m")
+    writer.last_seq = String("\x1b[38;2;249;38;114m")
     writer.restore_ansi()
     testing.assert_equal(writer.forward.as_string_slice(), "\x1b[38;2;249;38;114m")
 

@@ -1,33 +1,16 @@
-from collections import InlineArray
-
 import mist._hue as hue
-from builtin.globals import global_constant
 from mist._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
+from mist._utils import lut
 from utils import Variant
 
 
 comptime FOREGROUND = "38"
+"""ANSI code for foreground colors."""
 comptime BACKGROUND = "48"
-comptime StackArray[T: Copyable & Movable, size: Int] = InlineArray[T, size]
+"""ANSI code for background colors."""
 
 
-@always_inline
-fn lut[A: StackArray](i: Some[Indexer]) -> A.ElementType:
-    """Returns the value at the given index from a global constant array.
-
-    Parameters:
-        A: The type of the global constant array.
-
-    Args:
-        i: The index to retrieve.
-
-    Returns:
-        The value at the given index.
-    """
-    return global_constant[A]().unsafe_get(i).copy()
-
-
-trait Color(Copyable, EqualityComparable, Movable, Representable, Stringable, Writable):
+trait Color(Copyable, Equatable, Representable, Stringable, Writable):
     """Represents colors that can be displayed in the terminal."""
 
     fn sequence[is_background: Bool](self) -> String:
@@ -47,7 +30,7 @@ trait Color(Copyable, EqualityComparable, Movable, Representable, Stringable, Wr
 struct NoColor(Color):
     """NoColor represents an ASCII color which is binary black or white."""
 
-    fn __eq__(self, other: NoColor) -> Bool:
+    fn __eq__(self, other: Self) -> Bool:
         """Compares two colors for equality.
 
         Args:
@@ -57,17 +40,6 @@ struct NoColor(Color):
             True if the colors are equal, False otherwise.
         """
         return True
-
-    fn __ne__(self, other: NoColor) -> Bool:
-        """Compares two colors for unequality.
-
-        Args:
-            other: The `NoColor` color to compare to.
-
-        Returns:
-            True if the colors are not equal, False otherwise.
-        """
-        return False
 
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
@@ -141,14 +113,6 @@ struct ANSIColor(Color):
             other: The ANSIColor to copy.
         """
         self.value = other.value
-
-    fn copy(self) -> Self:
-        """Copies the `ANSIColor`.
-
-        Returns:
-            A copy of the `ANSIColor`.
-        """
-        return self
 
     fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the representation to the writer.
@@ -488,7 +452,7 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     comptime i2cv: InlineArray[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
 
     # Return the one which is nearer to the original input rgb value
-    var color_dist = color.distance_HSLuv(hue.Color(R=i2cv[r], G=i2cv[g], B=i2cv[b]))
+    var color_dist = color.distance_HSLuv(hue.Color(R=lut[i2cv](r), G=lut[i2cv](g), B=lut[i2cv](b)))
     var gray_dist = color.distance_HSLuv(hue.Color(R=gv, G=gv, B=gv))
 
     if color_dist <= gray_dist:
@@ -497,12 +461,10 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
 
 
 @fieldwise_init
-struct AnyColor(Copyable, Movable):
+struct AnyColor(Copyable):
     """`AnyColor` is a `Variant` which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`."""
 
-    comptime _type = Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
-    """The internal type of the `AnyColor`."""
-    var value: Self._type
+    var value: Variant[NoColor, ANSIColor, ANSI256Color, RGBColor]
     """The color value."""
 
     @implicit
@@ -568,7 +530,7 @@ struct AnyColor(Copyable, Movable):
 
         return self.value[NoColor].sequence[is_background]()
 
-    fn isa[T: Movable & Copyable](self) -> Bool:
+    fn isa[T: Color](self) -> Bool:
         """Checks if the value is of the given type.
 
         Parameters:
@@ -579,7 +541,7 @@ struct AnyColor(Copyable, Movable):
         """
         return self.value.isa[T]()
 
-    fn __getitem__[T: Movable & Copyable](ref self) -> ref [self.value] T:
+    fn __getitem__[T: Color](ref self) -> ref [self.value] T:
         """Gets the value as the given type.
 
         Parameters:

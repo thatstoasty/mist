@@ -1,16 +1,16 @@
-from io import write
-
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE, SPACE, SPACE_BYTE
-from mist.transform.bytes import ByteWriter
 
 
 comptime DEFAULT_NEWLINE = "\n"
+"""The default newline character."""
 comptime DEFAULT_BREAKPOINT = "-"
+"""The default breakpoint character."""
 
 
 @fieldwise_init
-struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
+@explicit_destroy("Call finish() to retrieve the final result and destroy the writer.")
+struct WordWrapWriter[keep_newlines: Bool = True](Movable):
     """A word-wrapping writer that wraps content based on words at the given limit.
 
     Parameters:
@@ -18,13 +18,12 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
 
     #### Examples:
     ```mojo
-    from mist.transform import word_wrapper as word_wrap
+    from mist.transform import WordWrapWriter
 
     fn main():
-        var writer = word_wrap.Writer(5)
+        var writer = WordWrapWriter(5)
         writer.write("Hello, World!")
-        _ = writer.close()
-        print(String(writer))
+        print(writer^.finish())
     ```
     """
 
@@ -34,11 +33,11 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     """The character to use as a breakpoint."""
     var newline: Codepoint
     """The character to use as a newline."""
-    var buf: ByteWriter
+    var buf: String
     """The buffer that stores the word-wrapped content."""
-    var space: ByteWriter
+    var space: String
     """The buffer that stores the space between words."""
-    var word: ByteWriter
+    var word: String
     """The buffer that stores the current word."""
     var line_len: UInt
     """The current line length."""
@@ -66,36 +65,17 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
         self.limit = limit
         self.breakpoint = Codepoint(ord(breakpoint))
         self.newline = Codepoint(ord(newline))
-        self.buf = ByteWriter()
-        self.space = ByteWriter()
-        self.word = ByteWriter()
+        self.buf = String()
+        self.space = String()
+        self.word = String()
         self.line_len = line_len
         self.ansi = ansi
-
-    fn __str__(self) -> String:
-        """Returns the word wrapped result as a string by copying the content of the internal buffer.
-
-        Returns:
-            The word wrapped string.
-        """
-        return String(self.buf)
-
-    fn write_to[W: write.Writer, //](self, mut writer: W):
-        """Writes the content of the buffer to the specified writer.
-
-        Parameters:
-            W: The type of the writer.
-
-        Args:
-            writer: The writer to write the content to.
-        """
-        writer.write(self.buf)
 
     fn add_space(mut self):
         """Write the content of the space buffer to the word-wrap buffer."""
         self.line_len += UInt(len(self.space))
         self.buf.write(self.space)
-        self.space.clear()
+        self.space = String(capacity=self.space.capacity())
 
     fn add_word(mut self):
         """Write the content of the word buffer to the word-wrap buffer."""
@@ -103,13 +83,13 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
             self.add_space()
             self.line_len += ansi.printable_rune_width(self.word.as_string_slice())
             self.buf.write(self.word)
-            self.word.clear()
+            self.word = String(capacity=self.word.capacity())
 
     fn add_newline(mut self):
         """Write a newline to the word-wrap buffer and reset the line length & space buffer."""
         self.buf.write(NEWLINE)
         self.line_len = 0
-        self.space.clear()
+        self.space = String(capacity=self.space.capacity())
 
     fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
@@ -125,7 +105,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
         var content: String
 
         @parameter
-        if not keep_newlines:
+        if not Self.keep_newlines:
             content = String(text.strip()).replace("\n", " ")
         else:
             content = String(text)
@@ -152,7 +132,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
                     # preserve whitespace
                     else:
                         self.buf.write(self.space)
-                    self.space.clear()
+                    self.space = String(capacity=self.space.capacity())
                 self.add_word()
                 self.add_newline()
 
@@ -177,9 +157,14 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
                 if word_width < self.limit and self.line_len + UInt(len(self.space)) + word_width > self.limit:
                     self.add_newline()
 
-    fn close(mut self):
-        """Finishes the word-wrap operation. Always call it before trying to retrieve the final result."""
+    fn finish(deinit self) -> String:
+        """Finishes the word-wrap operation. Always call it before trying to retrieve the final result.
+
+        Returns:
+            The final word-wrapped string.
+        """
         self.add_word()
+        return self.buf^
 
 
 fn word_wrap[
@@ -214,7 +199,6 @@ fn word_wrap[
         print(word_wrap("Hello, World!", 5))
     ```
     """
-    var writer = Writer[keep_newlines=keep_newlines](limit, newline=newline, breakpoint=breakpoint)
+    var writer = WordWrapWriter[keep_newlines](limit, newline=newline, breakpoint=breakpoint)
     writer.write(text)
-    writer.close()
-    return String(writer)
+    return writer^.finish()

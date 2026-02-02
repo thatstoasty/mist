@@ -1,8 +1,8 @@
 import math
-from collections import InlineArray
 from os import abort
 from sys import is_compile_time
 
+from mist._utils import lut
 from utils.numerics import max_finite
 
 
@@ -97,14 +97,14 @@ fn get_bounds(l: Float64) -> InlineArray[InlineArray[Float64, 2], 6]:
     for i in range(len(XYZ_TO_RGB_MATRIX)):
         var k = 0
         while k < 2:
-            var top1 = (284517.0 * XYZ_TO_RGB_MATRIX[i][0] - 94839.0 * XYZ_TO_RGB_MATRIX[i][2]) * sub_2
+            var top1 = (284517.0 * lut[XYZ_TO_RGB_MATRIX](i)[0] - 94839.0 * lut[XYZ_TO_RGB_MATRIX](i)[2]) * sub_2
             var top2 = (
-                838422.0 * XYZ_TO_RGB_MATRIX[i][2]
-                + 769860.0 * XYZ_TO_RGB_MATRIX[i][1]
-                + 731718.0 * XYZ_TO_RGB_MATRIX[i][0]
+                838422.0 * lut[XYZ_TO_RGB_MATRIX](i)[2]
+                + 769860.0 * lut[XYZ_TO_RGB_MATRIX](i)[1]
+                + 731718.0 * lut[XYZ_TO_RGB_MATRIX](i)[0]
             ) * l * sub_2 - 769860.0 * Float64(k) * l
             var bottom = (
-                632260.0 * XYZ_TO_RGB_MATRIX[i][2] - 126452.0 * XYZ_TO_RGB_MATRIX[i][1]
+                632260.0 * lut[XYZ_TO_RGB_MATRIX](i)[2] - 126452.0 * lut[XYZ_TO_RGB_MATRIX](i)[1]
             ) * sub_2 + 126452.0 * Float64(k)
             ret[i * 2 + k][0] = top1 / bottom
             ret[i * 2 + k][1] = top2 / bottom
@@ -363,7 +363,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         Returns:
             The Hue, Saturation, and Luminance values.
         """
-        var lch = self.LuvLCh_white_ref(hSLuvD65)
+        var lch = self.LuvLCh_white_ref(materialize[hSLuvD65]())
         return LuvLch_to_HSLuv(lch[0], lch[1], lch[2])
 
     fn distance_HSLuv(self, c2: Self) -> Float64:
@@ -839,7 +839,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         Returns:
             The Hue, Chroma, and Luminance values.
         """
-        return self.hcl_white_ref(D65)
+        return self.hcl_white_ref(materialize[D65]())
 
     fn hcl_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to HCL space, taking into account
@@ -884,7 +884,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         Returns:
             The Luminance, Chroma, and Hue values.
         """
-        return self.Luv_LCh_white_ref(D65)
+        return self.Luv_LCh_white_ref(materialize[D65]())
 
     fn Luv_LCh_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to LuvLCh space, taking into account
@@ -930,7 +930,7 @@ struct Color(Copyable, Movable, Representable, Stringable):
         Returns:
             The Hue, Saturation, and Luminance values.
         """
-        var lch = self.LuvLCh_white_ref(hSLuvD65)
+        var lch = self.LuvLCh_white_ref(materialize[hSLuvD65]())
         return LuvLCh_to_HPLuv(lch[0], lch[1], lch[2])
 
 
@@ -1184,7 +1184,7 @@ fn xyz_to_xyY(X: Float64, Y: Float64, Z: Float64) -> Tuple[Float64, Float64, Flo
     Returns:
         The xyY values.
     """
-    return xyz_to_xyY_white_ref(X, Y, Z, D65)
+    return xyz_to_xyY_white_ref(X, Y, Z, materialize[D65]())
 
 
 fn xyz_to_xyY_white_ref(
@@ -1283,7 +1283,7 @@ fn xyz_to_lab(x: Float64, y: Float64, z: Float64) -> Tuple[Float64, Float64, Flo
     Returns:
         The L*, a*, and b* values.
     """
-    return xyz_to_lab_white_ref(x, y, z, D65)
+    return xyz_to_lab_white_ref(x, y, z, materialize[D65]())
 
 
 fn xyz_to_lab_white_ref(
@@ -1332,7 +1332,7 @@ fn lab_to_xyz(l: Float64, a: Float64, b: Float64) -> Tuple[Float64, Float64, Flo
     Returns:
         The X, Y, and Z values.
     """
-    return lab_to_xyz_white_ref(l, a, b, D65)
+    return lab_to_xyz_white_ref(l, a, b, materialize[D65]())
 
 
 fn lab_to_xyz_white_ref(
@@ -1405,7 +1405,7 @@ fn xyz_to_Luv(x: Float64, y: Float64, z: Float64) -> Tuple[Float64, Float64, Flo
     Returns:
         The L*, u*, and v* values.
     """
-    return xyz_to_Luv_white_ref(x, y, z, D65)
+    return xyz_to_Luv_white_ref(x, y, z, materialize[D65]())
 
 
 fn luv_to_xyz(l: Float64, u: Float64, v: Float64) -> Tuple[Float64, Float64, Float64]:
@@ -1420,7 +1420,7 @@ fn luv_to_xyz(l: Float64, u: Float64, v: Float64) -> Tuple[Float64, Float64, Flo
     Returns:
         The X, Y, and Z values.
     """
-    return luv_to_xyz_white_ref(l, u, v, D65)
+    return luv_to_xyz_white_ref(l, u, v, materialize[D65]())
 
 
 fn Luv(l: Float64, u: Float64, v: Float64) -> Color:
@@ -1501,7 +1501,7 @@ fn hcl(h: Float64, c: Float64, l: Float64) -> Color:
     Returns:
         The new Color.
     """
-    return hcl_white_ref(h, c, l, D65)
+    return hcl_white_ref(h, c, l, materialize[D65]())
 
 
 fn hcl_to_Lab(h: Float64, c: Float64, l: Float64) -> Tuple[Float64, Float64, Float64]:
@@ -1553,7 +1553,7 @@ fn LuvLCh(l: Float64, c: Float64, h: Float64) -> Color:
     Returns:
         The new Color.
     """
-    return LuvLCh_white_ref(l, c, h, D65)
+    return LuvLCh_white_ref(l, c, h, materialize[D65]())
 
 
 fn LuvLChToLuv(l: Float64, c: Float64, h: Float64) -> Tuple[Float64, Float64, Float64]:

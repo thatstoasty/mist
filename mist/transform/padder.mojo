@@ -1,24 +1,20 @@
-from io import write
-
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE_BYTE, SPACE
-from mist.transform.bytes import ByteWriter
 from mist.transform.unicode import char_width
 
 
-@fieldwise_init
-struct Writer(Movable, Stringable, Writable):
+@explicit_destroy("Call finish() to retrieve the final result and destroy the writer.")
+struct PaddingWriter(Movable):
     """A padding writer that pads content to the given printable cell width.
 
     #### Examples:
     ```mojo
-    from mist.transform import padder as padding
+    from mist.transform import PaddingWriter
 
     fn main():
-        var writer = padding.Writer(4)
+        var writer = PaddingWriter(4)
         writer.write("Hello, World!")
-        writer.flush()
-        print(String(writer))
+        print(writer^.finish())
     ```
     """
 
@@ -26,7 +22,7 @@ struct Writer(Movable, Stringable, Writable):
     """Padding width to apply to each line."""
     var ansi_writer: ansi.Writer
     """The ANSI aware writer that stores intermediary text content."""
-    var cache: ByteWriter
+    var cache: String
     """The buffer that stores the padded content after it's been flushed."""
     var line_len: UInt
     """The current line length."""
@@ -50,35 +46,16 @@ struct Writer(Movable, Stringable, Writable):
         self.padding = padding
         self.line_len = line_len
         self.in_ansi = in_ansi
-        self.cache = ByteWriter()
+        self.cache = String()
         self.ansi_writer = ansi.Writer()
 
-    fn __str__(self) -> String:
-        """Returns the padded result as a string by copying the content of the internal buffer.
-
-        Returns:
-            The padded string.
-        """
-        return String(self.cache)
-
-    fn as_string_slice(self) -> StringSlice[origin_of(self.cache._data)]:
-        """Returns the padded result as a `StringSlice` by copying the content of the internal buffer.
+    fn as_string_slice(self) -> StringSlice[origin_of(self.cache)]:
+        """Returns the padded result as a `StringSlice`.
 
         Returns:
             The padded `StringSlice`.
         """
         return self.cache.as_string_slice()
-
-    fn write_to[W: write.Writer, //](self, mut writer: W):
-        """Writes the content of the buffer to the specified writer.
-
-        Parameters:
-            W: The type of the writer.
-
-        Args:
-            writer: The writer to write the content to.
-        """
-        writer.write(self.cache)
 
     fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer,
@@ -109,15 +86,17 @@ struct Writer(Movable, Stringable, Writable):
         if self.padding > 0 and self.line_len < self.padding:
             self.ansi_writer.write(SPACE * Int(self.padding - self.line_len))
 
-    fn flush(mut self):
-        """Finishes the padding operation. Always call it before trying to retrieve the final result."""
+    fn finish(deinit self) -> String:
+        """Finishes the padding operation. Always call it before trying to retrieve the final result.
+
+        Returns:
+            The final padded string.
+        """
         if self.line_len != 0:
             self.pad()
 
-        self.cache.clear()
         self.cache.write(self.ansi_writer.forward)
-        self.line_len = 0
-        self.in_ansi = False
+        return self.cache^
 
 
 fn padding(text: StringSlice, width: UInt) -> String:
@@ -138,7 +117,6 @@ fn padding(text: StringSlice, width: UInt) -> String:
         print(padding("Hello, World!", 5))
     ```
     """
-    var writer = Writer(width)
+    var writer = PaddingWriter(width)
     writer.write(text)
-    writer.flush()
-    return String(writer)
+    return writer^.finish()
