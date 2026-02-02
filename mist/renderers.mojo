@@ -3,12 +3,19 @@ from mist.style import Style
 
 
 comptime RED = 0xE88388
+"""Red color constant."""
 comptime GREEN = 0xA8CC8C
+"""Green color constant."""
 comptime YELLOW = 0xDBAB79
+"""Yellow color constant."""
 comptime BLUE = 0x71BEF2
+"""Blue color constant."""
 comptime MAGENTA = 0xD290E4
+"""Magenta color constant."""
 comptime CYAN = 0x66C2CD
+"""Cyan color constant."""
 comptime GRAY = 0xB9BFCA
+"""Gray color constant."""
 
 
 # Convenience functions for quick style application

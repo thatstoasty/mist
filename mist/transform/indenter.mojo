@@ -1,11 +1,9 @@
-from io import write
-
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE_BYTE, SPACE
 
 
 @fieldwise_init
-struct Writer(Movable, Stringable, Writable):
+struct IndentWriter(Movable, Stringable, Writable):
     """A writer that indents content by a given number of spaces.
 
     #### Examples:
@@ -13,7 +11,7 @@ struct Writer(Movable, Stringable, Writable):
     from mist.transform import indenter as indent
 
     fn main():
-        var writer = indent.Writer(4)
+        var writer = indent.IndentWriter(4)
         writer.write("Hello, World!")
         print(writer)
     ```
@@ -45,17 +43,17 @@ struct Writer(Movable, Stringable, Writable):
         Returns:
             The indented string.
         """
-        return String(self.ansi_writer.forward)
+        return self.ansi_writer.forward
 
-    fn as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward._data)]:
+    fn as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
         """Returns the indented result as a string slice by referencing the content of the internal buffer.
 
         Returns:
             The indented string slice.
         """
-        return self.ansi_writer.forward.as_string_slice()
+        return StringSlice(self.ansi_writer.forward)
 
-    fn write_to[W: write.Writer, //](self, mut writer: W):
+    fn write_to[W: Writer, //](self, mut writer: W):
         """Writes the content of the buffer to the specified writer.
 
         Parameters:
@@ -113,6 +111,6 @@ fn indent(text: StringSlice, indent: UInt) -> String:
         print(indent("Hello, World!", 4))
     ```
     """
-    var writer = Writer(indent)
+    var writer = IndentWriter(indent)
     writer.write(text)
     return String(writer)

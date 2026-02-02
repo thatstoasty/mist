@@ -1,17 +1,16 @@
-from io import write
-
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE_BYTE, SPACE, SPACE_BYTE
-from mist.transform.bytes import ByteWriter
 from mist.transform.unicode import char_width
 
 
 comptime DEFAULT_NEWLINE = "\n"
+"""The default newline character."""
 comptime DEFAULT_TAB_WIDTH = 4
+"""The default tab width."""
 
 
 @fieldwise_init
-struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
+struct WrapWriter[keep_newlines: Bool = True](Movable, Stringable):
     """A line wrapping writer that wraps content based on the given limit.
 
     Parameters:
@@ -19,10 +18,10 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
 
     #### Examples:
     ```mojo
-    from mist.transform import wrapper as wrap
+    from mist.transform import WrapWriter
 
     fn main():
-        var writer = wrap.Writer(5)
+        var writer = WrapWriter(5)
         writer.write("Hello, World!")
         print(String(writer))
     ```
@@ -36,7 +35,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
     """Whether to preserve space characters."""
     var tab_width: UInt
     """The width of a tab character."""
-    var buf: ByteWriter
+    var buf: String
     """The buffer that stores the wrapped content."""
     var line_len: UInt
     """The current line length."""
@@ -71,7 +70,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
         self.newline = newline
         self.preserve_space = preserve_space
         self.tab_width = tab_width
-        self.buf = ByteWriter()
+        self.buf = String()
         self.line_len = line_len
         self.ansi = ansi
         self.forceful_newline = forceful_newline
@@ -83,17 +82,6 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
             The wrapped string.
         """
         return String(self.buf)
-
-    fn write_to[W: write.Writer, //](self, mut writer: W):
-        """Writes the content of the buffer to the specified writer.
-
-        Parameters:
-            W: The type of the writer.
-
-        Args:
-            writer: The writer to write the content to.
-        """
-        writer.write(self.buf)
 
     fn add_newline(mut self) -> None:
         """Adds a newline to the buffer and resets the line length."""
@@ -111,7 +99,7 @@ struct Writer[keep_newlines: Bool = True](Movable, Stringable, Writable):
         content = content.replace("\t", tab_space)
 
         @parameter
-        if not keep_newlines:
+        if not Self.keep_newlines:
             content = content.replace("\n", "")
 
         var width = ansi.printable_rune_width(content)
@@ -180,8 +168,6 @@ fn wrap[
         print(wrap("Hello, World!", 5))
     ```
     """
-    var writer = Writer[keep_newlines=keep_newlines](
-        limit, newline=newline, preserve_space=preserve_space, tab_width=tab_width
-    )
+    var writer = WrapWriter[keep_newlines](limit, newline=newline, preserve_space=preserve_space, tab_width=tab_width)
     writer.write(text)
     return String(writer)

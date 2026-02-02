@@ -148,22 +148,22 @@ struct EnvVar(Copyable, ImplicitlyCopyable, Movable):
 
 # fn test_get_color_profile() raises:
 #     with EnvVar("GOOGLE_CLOUD_SHELL", "true"):
-#         testing.assert_equal(get_color_profile(), TRUE_COLOR)
+#         testing.assert_equal(get_color_profile(), Profile.TRUE_COLOR)
 
 #     with EnvVar("COLOR_TERM", "24bit"):
-#         testing.assert_equal(get_color_profile(), ANSI256)
+#         testing.assert_equal(get_color_profile(), Profile.ANSI256)
 
 #         with EnvVar("TERM", "xterm-kitty"):
-#             testing.assert_equal(get_color_profile(), TRUE_COLOR)
+#             testing.assert_equal(get_color_profile(), Profile.TRUE_COLOR)
 #         with EnvVar("TERM", "wezterm"):
-#             testing.assert_equal(get_color_profile(), TRUE_COLOR)
+#             testing.assert_equal(get_color_profile(), Profile.TRUE_COLOR)
 #         with EnvVar("TERM", "xterm-ghostty"):
-#             testing.assert_equal(get_color_profile(), TRUE_COLOR)
+#             testing.assert_equal(get_color_profile(), Profile.TRUE_COLOR)
 #         with EnvVar("TERM", "linux"):
-#             testing.assert_equal(get_color_profile(), ANSI)
+#             testing.assert_equal(get_color_profile(), Profile.ANSI)
 
 #     with EnvVar("COLOR_TERM", "true"):
-#         testing.assert_equal(get_color_profile(), ANSI256)
+#         testing.assert_equal(get_color_profile(), Profile.ANSI256)
 
 
 fn main() raises:

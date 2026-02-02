@@ -7,14 +7,14 @@ import mist._hue as hue
 from mist.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
 
 
-fn _init_global() -> OpaquePointer[MutAnyOrigin]:
-    var ptr = alloc[Int](1)
+fn _init_global() -> UnsafePointer[NoneType, origin=MutExternalOrigin]:
+    var ptr = alloc[UInt8](1)
     ptr[] = get_color_profile()._value
     return ptr.bitcast[NoneType]()
 
 
-fn _destroy_global(lib: OpaquePointer[MutAnyOrigin]):
-    var ptr = lib.bitcast[Int]()
+fn _destroy_global(lib: UnsafePointer[NoneType, origin=MutExternalOrigin]):
+    var ptr = lib.bitcast[UInt8]()
     ptr.free()
 
 
@@ -27,7 +27,7 @@ fn get_profile() -> Profile:
     Returns:
         Terminal profile value.
     """
-    return _get_global["profile", _init_global, _destroy_global]().bitcast[Int]()[]
+    return _get_global["profile", _init_global, _destroy_global]().bitcast[UInt8]()[]
 
 
 fn get_color_profile() -> Profile:
@@ -58,10 +58,10 @@ fn get_color_profile() -> Profile:
         return Profile.ANSI256
 
     # TERM is used by most terminals to indicate color support.
-    comptime TRUE_COLOR_TERMINALS = InlineArray[String, 6](
+    var TRUE_COLOR_TERMINALS = InlineArray[String, 6](
         "alacritty", "contour", "rio", "wezterm", "xterm-ghostty", "xterm-kitty"
     )
-    comptime ANSI_TERMINALS = InlineArray[String, 2]("linux", "xterm")
+    var ANSI_TERMINALS = InlineArray[String, 2]("linux", "xterm")
     if term in TRUE_COLOR_TERMINALS:
         return Profile.TRUE_COLOR
     elif term in ANSI_TERMINALS:
@@ -76,25 +76,21 @@ fn get_color_profile() -> Profile:
 
 
 @register_passable("trivial")
-struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writable):
+struct Profile(Comparable, ImplicitlyCopyable, Representable, Stringable, Writable):
     """The color profile for the terminal."""
 
-    var _value: Int
-
-    comptime _TRUE_COLOR = 0
-    comptime TRUE_COLOR = Self(Self._TRUE_COLOR)
-
-    comptime _ANSI256 = 1
-    comptime ANSI256 = Self(Self._ANSI256)
-
-    comptime _ANSI = 2
-    comptime ANSI = Self(Self._ANSI)
-
-    comptime _ASCII = 3
-    comptime ASCII = Self(Self._ASCII)
+    var _value: UInt8
+    comptime TRUE_COLOR = Self(0)
+    """The terminal supports true color (24-bit color)."""
+    comptime ANSI256 = Self(1)
+    """The terminal supports 256 colors (8-bit color)."""
+    comptime ANSI = Self(2)
+    """The terminal supports basic ANSI colors (16 colors)."""
+    comptime ASCII = Self(3)
+    """The terminal supports no colors (ASCII only)."""
 
     @implicit
-    fn __init__(out self, value: Int):
+    fn __init__(out self, value: UInt8):
         """Initialize a new profile with the given profile type.
 
         Args:
@@ -104,8 +100,8 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
             If an invalid value is passed in, the profile will default to ASCII.
             This is to workaround the virtality of raising functions.
         """
-        if value < 0 or value > 3:
-            self._value = self._ASCII
+        if value > 3:
+            self._value = 0
             return
 
         self._value = value
@@ -121,16 +117,16 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
 
         @parameter
         if profile == "TRUE_COLOR":
-            self._value = self._TRUE_COLOR
+            self = Self.TRUE_COLOR
             return
         elif profile == "ANSI256":
-            self._value = self._ANSI256
+            self = Self.ANSI256
             return
         elif profile == "ANSI":
-            self._value = self._ANSI
+            self = Self.ANSI
             return
         elif profile == "ASCII":
-            self._value = self._ASCII
+            self = Self.ASCII
             return
         elif profile != "":
             # A profile was passed, but was invalid. If none passed, move on to `get_color_profile`
@@ -145,7 +141,7 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
         #         " set the MIST_PROFILE build parameter, or move the Profile or Style creation into a runtime context."
         #     )
 
-        self._value = get_profile()._value
+        self = get_profile()
 
     fn __init__(out self, other: Self):
         """Initialize a new profile using the value of an existing profile.
@@ -156,13 +152,13 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
         self._value = other._value
 
     fn __eq__(self, other: Self) -> Bool:
-        """Check if two profiles are equal.
+        """Check if the current profile is equal to another profile.
 
         Args:
             other: The profile to compare against.
 
         Returns:
-            True if the profiles are equal, False otherwise.
+            True if the current profile is equal to the other profile, False otherwise.
         """
         return self._value == other._value
 
@@ -176,39 +172,6 @@ struct Profile(Comparable, Copyable, Movable, Representable, Stringable, Writabl
             True if the current profile is less than the other profile, False otherwise.
         """
         return self._value < other._value
-
-    fn __le__(self, other: Self) -> Bool:
-        """Check if the current profile is less than or equal to another profile.
-
-        Args:
-            other: The profile to compare against.
-
-        Returns:
-            True if the current profile is less than or equal to the other profile, False otherwise.
-        """
-        return self._value <= other._value
-
-    fn __gt__(self, other: Self) -> Bool:
-        """Check if the current profile is greater than another profile.
-
-        Args:
-            other: The profile to compare against.
-
-        Returns:
-            True if the current profile is greater than the other profile, False otherwise.
-        """
-        return self._value > other._value
-
-    fn __ge__(self, other: Self) -> Bool:
-        """Check if the current profile is greater than or equal to another profile.
-
-        Args:
-            other: The profile to compare against.
-
-        Returns:
-            True if the current profile is greater than or equal to the other profile, False otherwise.
-        """
-        return self._value >= other._value
 
     fn __str__(self) -> String:
         """Returns a string representation of the profile.

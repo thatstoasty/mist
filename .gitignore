@@ -163,8 +163,6 @@ cython_debug/
 .pixi
 *.egg-info
 
-# magic environments
-.magic
 
 # Rattler
 output
@@ -175,3 +173,4 @@ output
 # Mojo
 *.mojopkg
 *.dSYM
+kgen.*

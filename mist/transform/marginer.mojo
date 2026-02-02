@@ -1,14 +1,11 @@
-from io import write
-
 import mist.transform.ansi
-import mist.transform.indenter as indent
-import mist.transform.padder as padding
-from mist.transform.bytes import ByteWriter
+from mist.transform.indenter import IndentWriter
+from mist.transform.padder import PaddingWriter
 from mist.transform.unicode import string_width
 
 
-@fieldwise_init
-struct Writer(Movable, Stringable, Writable):
+@explicit_destroy("Call finish() to retrieve the final result and destroy the writer.")
+struct MarginWriter(Movable):
     """A margin writer that applies a margin to the content.
 
     #### Examples:
@@ -16,28 +13,27 @@ struct Writer(Movable, Stringable, Writable):
     from mist.transform import marginer as margin
 
     fn main():
-        var writer = margin.Writer(5, 2)
+        var writer = margin.MarginWriter(5, 2)
         writer.write("Hello, World!")
-        _ = writer.close()
-        print(String(writer))
+        print(writer^.finish())
     ```
     """
 
-    var buf: ByteWriter
+    var buf: String
     """The buffer that stores the margin applied content."""
-    var pw: padding.Writer
+    var pw: PaddingWriter
     """The padding `Writer`."""
-    var iw: indent.Writer
+    var iw: IndentWriter
     """The indent `Writer`."""
 
-    fn __init__(out self, var pw: padding.Writer, var iw: indent.Writer):
+    fn __init__(out self, var pw: PaddingWriter, var iw: IndentWriter):
         """Initializes the `Writer`.
 
         Args:
             pw: The padding `Writer` instance.
             iw: The indent `Writer` instance.
         """
-        self.buf = ByteWriter()
+        self.buf = String()
         self.pw = pw^
         self.iw = iw^
 
@@ -46,38 +42,11 @@ struct Writer(Movable, Stringable, Writable):
 
         Args:
             pad: Width of the padding of the padding `Writer` instance.
-            indentation: Width of the indentation of the padding `Writer` instance.
+            indentation: Width of the indentation of the indent `IndentWriter` instance.
         """
-        self.buf = ByteWriter()
-        self.pw = padding.Writer(pad)
-        self.iw = indent.Writer(indentation)
-
-    fn __str__(self) -> String:
-        """Returns the result with margin applied as a string by copying the content of the internal buffer.
-
-        Returns:
-            The string with margin applied.
-        """
-        return String(self.buf)
-
-    fn write_to[W: write.Writer, //](self, mut writer: W):
-        """Writes the content of the buffer to the specified writer.
-
-        Parameters:
-            W: The type of the writer to write to.
-
-        Args:
-            writer: The writer to write the content to.
-        """
-        writer.write(self.buf)
-
-    fn as_bytes(self) -> Span[Byte, origin_of(self.buf._data)]:
-        """Returns the result with margin applied as a Byte Span.
-
-        Returns:
-            The result with margin applied as a Byte Span.
-        """
-        return self.buf.as_bytes()
+        self.buf = String()
+        self.pw = PaddingWriter(pad)
+        self.iw = IndentWriter(indentation)
 
     fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, with the
@@ -89,10 +58,14 @@ struct Writer(Movable, Stringable, Writable):
         self.iw.write(text)
         self.pw.write(self.iw.as_string_slice())
 
-    fn close(mut self):
-        """Will finish the margin operation. Always call it before trying to retrieve the final result."""
-        self.pw.flush()
-        self.buf.write(self.pw.as_string_slice())
+    fn finish(deinit self) -> String:
+        """Will finish the margin operation. Always call it before trying to retrieve the final result.
+
+        Returns:
+            The final margin applied string.
+        """
+        self.buf.write(self.pw^.finish())
+        return self.buf^
 
 
 fn margin(text: StringSlice, pad: UInt, indent: UInt) -> String:
@@ -114,7 +87,6 @@ fn margin(text: StringSlice, pad: UInt, indent: UInt) -> String:
         print(margin("Hello, World!", pad=5, indent=2))
     ```
     """
-    var writer = Writer(pad, indent)
+    var writer = MarginWriter(pad, indent)
     writer.write(text)
-    writer.close()
-    return String(writer)
+    return writer^.finish()

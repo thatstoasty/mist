@@ -43,7 +43,7 @@ from mist.termios import Termios, WhenOption, set_cbreak, set_raw, tcgetattr, tc
 
 # TTY State modes
 @fieldwise_init
-struct Mode(Copyable, EqualityComparable, Movable, Stringable):
+struct Mode(Copyable, Equatable, Stringable):
     """TTY state modes for terminal operations."""
 
     var value: String
@@ -66,17 +66,6 @@ struct Mode(Copyable, EqualityComparable, Movable, Stringable):
         """
         return self.value == other.value
 
-    fn __ne__(self, other: Self) -> Bool:
-        """Check if two modes are not equal.
-
-        Args:
-            other: The other mode to compare with.
-
-        Returns:
-            True if the modes are not equal, False otherwise.
-        """
-        return self.value != other.value
-
     fn __str__(self) -> String:
         """Return a string representation of the mode.
 
@@ -88,19 +77,27 @@ struct Mode(Copyable, EqualityComparable, Movable, Stringable):
 
 @fieldwise_init
 @register_passable("trivial")
-struct Direction:
+struct Direction(Equatable, ImplicitlyCopyable):
     """Direction values for cursor movement."""
 
     var value: UInt8
     """The numeric value representing the direction."""
     comptime UP = Self(0)
+    """Direction value for moving the cursor up."""
     comptime DOWN = Self(1)
+    """Direction value for moving the cursor down."""
     comptime LEFT = Self(2)
+    """Direction value for moving the cursor left."""
     comptime RIGHT = Self(3)
+    """Direction value for moving the cursor right."""
     comptime UP_LEFT = Self(4)
+    """Direction value for moving the cursor up and left."""
     comptime UP_RIGHT = Self(5)
+    """Direction value for moving the cursor up and right."""
     comptime DOWN_LEFT = Self(6)
+    """Direction value for moving the cursor down and left."""
     comptime DOWN_RIGHT = Self(7)
+    """Direction value for moving the cursor down and right."""
 
     fn __eq__(self, other: Self) -> Bool:
         """Check if two directions are equal.
@@ -113,17 +110,6 @@ struct Direction:
         """
         return self.value == other.value
 
-    fn __ne__(self, other: Self) -> Bool:
-        """Check if two directions are not equal.
-
-        Args:
-            other: The other direction to compare with.
-
-        Returns:
-            Bool: True if the directions are not equal, False otherwise.
-        """
-        return self.value != other.value
-
     fn __str__(self) -> String:
         """Return a string representation of the direction.
 
@@ -135,7 +121,7 @@ struct Direction:
 
 @fieldwise_init
 @register_passable("trivial")
-struct Area(Copyable, Movable, Writable):
+struct Area(Copyable, Writable):
     """An area in the terminal defined by its row and column length."""
 
     var rows: UInt16
@@ -206,9 +192,9 @@ struct TTY[mode: Mode = Mode.NONE]():
         self.scrolling_region = Area(0, 0)
 
         @parameter
-        if mode == Mode.RAW:
+        if Self.mode == Mode.RAW:
             self.state = set_raw(self.fd)
-        elif mode == Mode.CBREAK:
+        elif Self.mode == Mode.CBREAK:
             self.state = set_cbreak(self.fd)
 
     fn restore_original_state(mut self, when: WhenOption = WhenOption.TCSADRAIN) raises:

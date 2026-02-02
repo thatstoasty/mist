@@ -115,7 +115,7 @@ fn parse_xterm_color(sequence: StringSlice) raises -> RGBColor:
         Returns:
             An UInt8 representing the color component.
         """
-        return UInt8(Int(part[2:], base=16))
+        return UInt8(atol(part[2:], base=16))
 
     return RGBColor(
         hue.Color(
@@ -154,7 +154,7 @@ fn has_dark_background() raises -> Bool:
 
 @fieldwise_init
 @register_passable("trivial")
-struct OSCParseState(Copyable, EqualityComparable, Movable):
+struct OSCParseState(Copyable, Equatable):
     """State for parsing OSC sequences."""
 
     var value: Int
@@ -279,7 +279,7 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
                     continue
             elif state == OSCParseState.FENCE_END_SEARCH:
                 if byte == ord("R"):
-                    return String(bytes=Span(buffer)[start_idx:end_idx])
+                    return String(from_utf8=Span(buffer)[start_idx:end_idx])
 
         total_bytes_read += Int(bytes_read)
 
@@ -345,10 +345,11 @@ fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineAr
         raise Error("STDIN is not a terminal.")
 
     wait_for_input(stdin)
-    if stdin.read_bytes(buffer) == 0:
+    var bytes_read = stdin.read_bytes(buffer)
+    if bytes_read == 0:
         raise Error("EOF")
 
-    return String(bytes=buffer)
+    return String(from_utf8=Span(buffer)[0 : Int(bytes_read)])
 
 
 fn query[verify: Bool = True](sequence: StringSlice) raises -> String:
@@ -379,7 +380,7 @@ comptime TERMINAL_SIZE_SEQUENCE = CSI + "18t"
 """ANSI sequence to query the terminal size."""
 
 
-fn get_terminal_size() raises -> Tuple[UInt, UInt]:
+fn get_terminal_size() raises -> Tuple[UInt16, UInt16]:
     """Returns the size of the terminal.
 
     Raises:
@@ -395,4 +396,4 @@ fn get_terminal_size() raises -> Tuple[UInt, UInt]:
         raise Error("Unexpected response from terminal: ", result)
 
     var parts = result.as_string_slice().split(";")
-    return (UInt(Int(parts[1])), UInt(Int(parts[2].split("t")[0])))
+    return (UInt16(Int(parts[1])), UInt16(Int(parts[2].split("t")[0])))

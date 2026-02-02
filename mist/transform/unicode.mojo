@@ -1,4 +1,4 @@
-from builtin.globals import global_constant
+from mist._utils import lut
 from mist.transform._table import AMBIGUOUS, COMBINING, DOUBLE_WIDTH, EMOJI, NARROW, NON_PRINT, Interval
 
 
@@ -26,7 +26,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, M
             return 0
 
         @parameter
-        if not east_asian_width:
+        if not Self.east_asian_width:
             if rune < 0x20:
                 return 0
             # nonprint
@@ -34,39 +34,39 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, M
                 return 0
             elif rune < 0x300:
                 return 1
-            elif in_table(codepoint, NARROW):
+            elif in_table[NARROW](codepoint):
                 return 1
-            elif in_table(codepoint, NON_PRINT):
+            elif in_table[NON_PRINT](codepoint):
                 return 0
-            elif in_table(codepoint, COMBINING):
+            elif in_table[COMBINING](codepoint):
                 return 0
-            elif in_table(codepoint, DOUBLE_WIDTH):
+            elif in_table[DOUBLE_WIDTH](codepoint):
                 return 2
             else:
                 return 1
         else:
-            if in_table(codepoint, NON_PRINT):
+            if in_table[NON_PRINT](codepoint):
                 return 0
-            elif in_table(codepoint, COMBINING):
+            elif in_table[COMBINING](codepoint):
                 return 0
-            elif in_table(codepoint, NARROW):
+            elif in_table[NARROW](codepoint):
                 return 1
-            elif in_table(codepoint, AMBIGUOUS):
+            elif in_table[AMBIGUOUS](codepoint):
                 return 2
-            elif in_table(codepoint, DOUBLE_WIDTH):
+            elif in_table[DOUBLE_WIDTH](codepoint):
                 return 2
-            elif in_table(codepoint, AMBIGUOUS) or in_table(codepoint, EMOJI):
+            elif in_table[AMBIGUOUS](codepoint) or in_table[EMOJI](codepoint):
                 return 2
 
             @parameter
-            if strict_emoji_neutral:
+            if Self.strict_emoji_neutral:
                 return 1
 
-            if in_tables(codepoint, AMBIGUOUS):
+            if in_table[AMBIGUOUS](codepoint):
                 return 2
-            elif in_table(codepoint, EMOJI):
+            elif in_table[EMOJI](codepoint):
                 return 2
-            elif in_table(codepoint, NARROW):
+            elif in_table[NARROW](codepoint):
                 return 2
 
             return 1
@@ -86,44 +86,32 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, M
         return width
 
 
-fn in_tables(codepoint: Codepoint, *tables: InlineArray[Interval]) -> Bool:
-    """Check if the codepoint is in any of the tables.
-
-    Args:
-        codepoint: The rune to check.
-        tables: The tables to check.
-
-    Returns:
-        True if the codepoint is in any of the tables, False otherwise.
-    """
-    for t in tables:
-        if in_table(codepoint, t):
-            return True
-    return False
-
-
-fn in_table(codepoint: Codepoint, table: InlineArray[Interval]) -> Bool:
+fn in_table[table: InlineArray[Interval]](codepoint: Codepoint) -> Bool:
     """Check if the rune is in the table.
+
+    Parameters:
+        table: The table to check.
 
     Args:
         codepoint: The codepoint to check.
-        table: The table to check.
 
     Returns:
         True if the codepoint is in the table, False otherwise.
     """
     var rune = codepoint.to_u32()
-    if rune < table[0][0]:
+    if rune < lut[table](0)[0]:
         return False
 
+    # Check if the rune is in the table using binary search.
     var bot = 0
-    var top = len(table) - 1
-    while top >= bot:
-        var mid = (bot + top) >> 1
-        if table[mid][1] < rune:
+    comptime top = len(table) - 1
+    var top_n = top
+    while top_n >= bot:
+        var mid = (bot + top_n) >> 1
+        if lut[table](mid)[1] < rune:
             bot = mid + 1
-        elif table[mid][0] > rune:
-            top = mid - 1
+        elif lut[table](mid)[0] > rune:
+            top_n = mid - 1
         else:
             return True
 

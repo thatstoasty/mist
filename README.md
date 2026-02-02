@@ -2,7 +2,7 @@
 
 `mist` is an ANSI aware toolkit that enables you to style and transform text on the terminal.
 
-![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-25.7-orange)
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-26.1-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
 ![Test Status](https://github.com/thatstoasty/mist/actions/workflows/test.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -16,11 +16,41 @@ This project was heavily inspired by:
 - <https://github.com/muesli/termenv/tree/master>
 - <https://github.com/muesli/reflow/tree/master>
 
-## Installation
+## Adding the `mist` package to your project
 
-1. First, you'll need to configure your `pixi.toml` file to include my Conda channel. Add `"https://repo.prefix.dev/mojo-community"` to the list of channels.
-2. Next, add `mist` to your project's dependencies by running `pixi add mist`.
-3. Finally, run `pixi install` to install in `mist` and its dependencies. You should see the `.mojopkg` files in `$CONDA_PREFIX/lib/mojo/`.
+First, you'll need to configure your `pixi.toml` file to include the Modular community Conda channel. Add `"https://repo.prefix.dev/modular-community"` to the list of channels.
+
+### Installing it from the `modular-community` Conda channel
+
+Run the following commands in your terminal:
+
+```bash
+pixi add mist && pixi install
+```
+
+This will add `mist` to your project's dependencies and install it along with its dependencies.
+
+### Building it from source
+
+There's two ways to build `mist` from source: directly from the Git repository or by cloning the repository locally.
+
+#### Building from source: Git
+
+Run the following commands in your terminal:
+
+```bash
+pixi add -g "https://github.com/thatstoasty/mist.git" && pixi install
+```
+
+#### Building from source: Local
+
+```bash
+# Clone the repository to your local machine
+git clone https://github.com/thatstoasty/mist.git
+
+# Add the package to your project from the local path
+pixi add -s ./path/to/mist && pixi install
+```
 
 ## Colors
 
@@ -164,8 +194,8 @@ from mist.terminal.query import get_terminal_size
 from mist.terminal.tty import TTY
 
 fn main() raises -> None:
-    var rows: UInt
-    var columns: UInt
+    var rows: UInt16
+    var columns: UInt16
     with TTY():
         rows, columns = get_terminal_size()
     print("Terminal dimensions:", rows, "x", columns)
@@ -338,17 +368,13 @@ fn main() raises:
 The `mist.terminal.query` module provides functions to query terminal properties such as size, color support, and more.
 
 ```mojo
-from mist.terminal.query import get_terminal_size, query_osc
+from mist.terminal.query import query_osc
 from mist.terminal.tty import TTY
 from mist.color import RGBColor
 
 fn main() raises -> None:
-    var rows: UInt
-    var columns: UInt
     with TTY():
         var xterm_background_color = query_osc("11;?")
-        rows, columns = get_terminal_size()
-    print("Terminal dimensions:", rows, "x", columns)
 ```
 
 ## Text Transformation
@@ -496,4 +522,3 @@ Color chart lifted from <https://github.com/muesli/termenv>, give their projects
 ## TODO
 
 - Enable terminal querying for platforms other than UNIX based.
-- Support querying terminal background color and if it's light or dark.
