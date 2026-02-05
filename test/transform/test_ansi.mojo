@@ -4,7 +4,7 @@ from testing import TestSuite
 
 
 fn test_is_terminator() raises:
-    for codepoint in "m".as_string_slice().codepoints():
+    for codepoint in "m".codepoints():
         testing.assert_true(is_terminator(codepoint))
 
 
@@ -39,7 +39,7 @@ fn test_restore_ansi() raises:
     var writer = Writer()
     writer.last_seq = String("\x1b[38;2;249;38;114m")
     writer.restore_ansi()
-    testing.assert_equal(writer.forward.as_string_slice(), "\x1b[38;2;249;38;114m")
+    testing.assert_equal(writer.forward, "\x1b[38;2;249;38;114m")
 
 
 fn main() raises:

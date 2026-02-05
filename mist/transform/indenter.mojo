@@ -53,11 +53,8 @@ struct IndentWriter(Movable, Stringable, Writable):
         """
         return StringSlice(self.ansi_writer.forward)
 
-    fn write_to[W: Writer, //](self, mut writer: W):
+    fn write_to(self, mut writer: Some[Writer]):
         """Writes the content of the buffer to the specified writer.
-
-        Parameters:
-            W: The type of the writer.
 
         Args:
             writer: The writer to write the content to.

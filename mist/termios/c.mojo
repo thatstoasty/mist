@@ -1,9 +1,8 @@
 from collections import BitSet
-from sys import CompilationTarget, external_call
-from sys._libc_errno import get_errno
-from sys.ffi import c_char, c_int, c_size_t
+from sys import CompilationTarget
 from time.time import _CTimeSpec
 
+from sys.ffi import c_char, c_int, c_size_t, external_call, get_errno
 from utils import StaticTuple
 
 
@@ -221,11 +220,8 @@ struct Termios(Copyable, Stringable, Writable):
         self.c_ispeed = 0
         self.c_ospeed = 0
 
-    fn write_to[W: Writer, //](self, mut writer: W):
+    fn write_to(self, mut writer: Some[Writer]):
         """Writes the contents of the buffer to the writer.
-
-        Parameters:
-            W: The type of writer to write the contents to.
 
         Args:
             writer: The writer to write the contents to.
@@ -498,7 +494,7 @@ fn ttyname(fd: c_int) -> MutExternalPointer[c_char]:
     return external_call["ttyname", MutExternalPointer[c_char], c_int](fd)
 
 
-fn read(fd: c_int, buf: MutExternalPointer[c_void], size: c_size_t) -> c_int:
+fn read(fd: c_int, buf: MutUnsafePointer[NoneType], size: c_size_t) -> c_int:
     """Libc POSIX `read` function.
 
     Read `size` bytes from file descriptor `fd` into the buffer `buf`.
@@ -519,7 +515,7 @@ fn read(fd: c_int, buf: MutExternalPointer[c_void], size: c_size_t) -> c_int:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/read.3p.html.
     """
-    return external_call["read", c_int, c_int, MutExternalPointer[c_void], c_size_t](fd, buf, size)
+    return external_call["read", c_int, type_of(fd), type_of(buf), type_of(size)](fd, buf, size)
 
 
 comptime FileDescriptorBitSet = BitSet[1024]
@@ -527,6 +523,7 @@ comptime FileDescriptorBitSet = BitSet[1024]
 
 
 @fieldwise_init
+@register_passable("trivial")
 struct _TimeValue(Copyable, Movable):
     var seconds: time_t
     var microseconds: suseconds_t

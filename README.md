@@ -13,8 +13,9 @@
 
 This project was heavily inspired by:
 
-- <https://github.com/muesli/termenv/tree/master>
-- <https://github.com/muesli/reflow/tree/master>
+- [Termenv](https://github.com/muesli/termenv/tree/master)
+- [Reflow](https://github.com/muesli/reflow/tree/master)
+- [Crossterm](https://github.com/crossterm-rs/crossterm)
 
 ## Adding the `mist` package to your project
 
@@ -516,9 +517,12 @@ Sekai
 
 ## Color Chart
 
-Color chart lifted from <https://github.com/muesli/termenv>, give their projects a star if you like this!
+Color chart lifted from [termenv](https://github.com/muesli/termenv), give their projects a star if you like this!
 ![ANSI color chart](https://github.com/thatstoasty/mist/blob/main/doc/images/color-chart.png)
 
 ## TODO
 
-- Enable terminal querying for platforms other than UNIX based.
+- Get terminal resizing to work.
+- Alternate screen buffer example.
+- Add more terminal query examples.
+- Fix show/hide cursor.

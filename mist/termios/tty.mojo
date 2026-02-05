@@ -1,4 +1,5 @@
 import mist.termios.c
+from sys.ffi import external_call
 from mist.termios.c import ControlFlag, InputFlag, LocalFlag, OutputFlag, SpecialCharacter
 from mist.termios.terminal import FlowOption, FlushOption, WhenOption, tcgetattr, tcsetattr
 
@@ -63,6 +64,10 @@ fn cfmakeraw(mut mode: c.Termios) -> None:
     # or a signal is received.
     mode.c_cc[SpecialCharacter.VMIN.value] = 1
     mode.c_cc[SpecialCharacter.VTIME.value] = 0
+
+
+# fn cfmakeraw(mut mode: c.Termios):
+#     external_call["cfmakeraw", NoneType](Pointer(to=mode))
 
 
 fn cfmakecbreak(mut mode: c.Termios):

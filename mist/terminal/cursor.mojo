@@ -1,4 +1,5 @@
-from mist.color import AnyColor
+from mist.style.color import AnyColor
+from mist.terminal.query import get_cursor_color
 from mist.terminal.sgr import BEL, CSI, OSC
 
 
@@ -58,8 +59,9 @@ fn clear_screen() -> None:
     move_cursor(1, 1)
 
 
+# TODO: Show and Hide cursor don't seem to work ATM.
 fn hide_cursor() -> None:
-    """TODO: Show and Hide cursor don't seem to work ATM. Hides the cursor."""
+    """Hides the cursor."""
     print(HIDE_CURSOR, sep="", end="")
 
 
@@ -231,10 +233,91 @@ fn clear_lines(n: UInt16) -> None:
     print(CLEAR_LINE + movement, sep="", end="")
 
 
+struct Cursor:
+    @staticmethod
+    fn up(n: UInt16) -> None:
+        """Moves the cursor up a given number of lines.
+
+        Args:
+            n: The number of lines to move up.
+        """
+        cursor_up(n)
+
+    @staticmethod
+    fn down(n: UInt16) -> None:
+        """Moves the cursor down a given number of lines.
+
+        Args:
+            n: The number of lines to move down.
+        """
+        cursor_down(n)
+
+    @staticmethod
+    fn forward(n: UInt16) -> None:
+        """Moves the cursor forward a given number of cells.
+
+        Args:
+            n: The number of cells to move forward.
+        """
+        cursor_forward(n)
+
+    @staticmethod
+    fn back(n: UInt16) -> None:
+        """Moves the cursor backwards a given number of cells.
+
+        Args:
+            n: The number of cells to move back.
+        """
+        cursor_back(n)
+
+    @staticmethod
+    fn next_line(n: UInt16) -> None:
+        """Moves the cursor down a given number of lines and places it at the beginning of the line.
+
+        Args:
+            n: The number of lines to move down.
+        """
+        cursor_next_line(n)
+
+    @staticmethod
+    fn previous_line(n: UInt16) -> None:
+        """Moves the cursor up a given number of lines and places it at the beginning of the line.
+
+        Args:
+            n: The number of lines to move back.
+        """
+        cursor_prev_line(n)
+
+    @staticmethod
+    fn set_color(color: AnyColor, *, initial_color: AnyColor = NoColor()) raises -> CursorColor:
+        """Sets the cursor color and returns a `CursorColor` instance, which will reset the cursor color to its original value on destruction.
+
+        Terminal must be in raw mode to query the initial color.
+
+        Args:
+            color: The color to set.
+            initial_color: The initial color of the cursor. If not provided, it will be queried from the terminal. Providing this can be useful if you want to avoid the overhead of querying the terminal for the cursor color, which can be slow.
+        """
+        var original_color = get_cursor_color() if initial_color.isa[NoColor]() else initial_color.copy()
+        set_cursor_color(color)
+        return CursorColor(original_color^)
+
+
 fn set_cursor_color(color: AnyColor) -> None:
     """Sets the cursor color.
 
     Args:
         color: The color to set.
     """
-    print(OSC, "12;", color.sequence[True](), BEL, sep="", end="")
+    print(OSC, "12;#", color.as_hex_string(), BEL, sep="", end="")
+
+
+@fieldwise_init
+@explicit_destroy("Calling `reset()` is required to reset the cursor color to its original value.")
+struct CursorColor:
+    var original_color: AnyColor
+    """The original color of the cursor before it was changed."""
+
+    fn reset(deinit self) -> None:
+        """Resets the cursor color to its original value."""
+        set_cursor_color(self.original_color)

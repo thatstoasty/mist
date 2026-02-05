@@ -1,10 +1,10 @@
 from os import abort, getenv
-from sys import external_call, is_compile_time
-from sys.ffi import _get_global
+from sys import is_compile_time
 from sys.param_env import env_get_string
+from sys.ffi import _get_global, external_call
 
-import mist._hue as hue
-from mist.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
+import mist.style._hue as hue
+from mist.style.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
 
 
 fn _init_global() -> UnsafePointer[NoneType, origin=MutExternalOrigin]:
@@ -58,10 +58,15 @@ fn get_color_profile() -> Profile:
         return Profile.ANSI256
 
     # TERM is used by most terminals to indicate color support.
-    var TRUE_COLOR_TERMINALS = InlineArray[String, 6](
-        "alacritty", "contour", "rio", "wezterm", "xterm-ghostty", "xterm-kitty"
-    )
-    var ANSI_TERMINALS = InlineArray[String, 2]("linux", "xterm")
+    var TRUE_COLOR_TERMINALS: InlineArray[String, 6] = [
+        "alacritty",
+        "contour",
+        "rio",
+        "wezterm",
+        "xterm-ghostty",
+        "xterm-kitty",
+    ]
+    var ANSI_TERMINALS: InlineArray[String, 2] = ["linux", "xterm"]
     if term in TRUE_COLOR_TERMINALS:
         return Profile.TRUE_COLOR
     elif term in ANSI_TERMINALS:
@@ -198,11 +203,8 @@ struct Profile(Comparable, ImplicitlyCopyable, Representable, Stringable, Writab
         """
         return String.write(self)
 
-    fn write_to[W: Writer, //](self, mut writer: W) -> None:
+    fn write_to(self, mut writer: Some[Writer]) -> None:
         """Writes the profile to a Writer.
-
-        Parameters:
-            W: The type of the Writer to write to.
 
         Args:
             writer: The Writer to write the profile to.

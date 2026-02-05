@@ -8,12 +8,14 @@ import sys
 from collections import BitSet, InlineArray
 from pathlib import Path
 
-import mist._hue as hue
-from mist.color import RGBColor
+from mist.style.color import RGBColor
 from mist.terminal.sgr import BEL, CSI, ESC, OSC, ST
 from mist.terminal.tty import TTY
+from mist.terminal.xterm import XTermColor
 from mist.termios.c import FileDescriptorBitSet, _TimeValue, select
 from mist.termios.tty import is_terminal_raw
+
+from mist.style import _hue as hue
 
 
 comptime EVENT_READ = 1
@@ -89,41 +91,6 @@ fn wait_for_input(file_descriptor: FileDescriptor, timeout: Int = 100000) raises
             return
 
 
-fn parse_xterm_color(sequence: StringSlice) raises -> RGBColor:
-    """Parses an xterm color sequence.
-
-    Args:
-        sequence: The color sequence to parse.
-
-    Raises:
-        Error: If the sequence is not a valid xterm color sequence, it will fail to convert the hex values to UInt8.
-
-    Returns:
-        A tuple containing the red, green, and blue components of the color.
-    """
-    var color = sequence.split("rgb:")[1]
-    var parts = color.split("/")
-    if len(parts) != 3:
-        return RGBColor(0)
-
-    fn convert_part_to_color(part: StringSlice) raises -> UInt8:
-        """Converts a hex color part to an UInt8.
-
-        Args:
-            part: The hex color part to convert.
-
-        Returns:
-            An UInt8 representing the color component.
-        """
-        return UInt8(atol(part[2:], base=16))
-
-    return RGBColor(
-        hue.Color(
-            R=convert_part_to_color(parts[0]), G=convert_part_to_color(parts[1]), B=convert_part_to_color(parts[2])
-        )
-    )
-
-
 fn get_background_color() raises -> RGBColor:
     """Queries the terminal for the background color.
 
@@ -134,7 +101,7 @@ fn get_background_color() raises -> RGBColor:
     Returns:
         A tuple containing the red, green, and blue components of the background color.
     """
-    return parse_xterm_color(query_osc("11;?"))
+    return XTermColor(query_osc("11;?")).to_rgb_color()
 
 
 fn has_dark_background() raises -> Bool:
@@ -393,7 +360,29 @@ fn get_terminal_size() raises -> Tuple[UInt16, UInt16]:
     """
     var result = query(TERMINAL_SIZE_SEQUENCE)
     if not result.startswith("\033[8;"):
-        raise Error("Unexpected response from terminal: ", result)
+        raise Error("Unexpected response from terminal: ", repr(result))
 
-    var parts = result.as_string_slice().split(";")
-    return (UInt16(Int(parts[1])), UInt16(Int(parts[2].split("t")[0])))
+    var parts = result.split(";")
+    return (UInt16(atol(parts[1])), UInt16(atol(parts[2].split("t")[0])))
+
+
+comptime CURSOR_COLOR_SEQUENCE = OSC + "12;?" + BEL
+"""ANSI sequence to query the cursor color."""
+
+
+fn get_cursor_color() raises -> RGBColor:
+    """Queries the terminal for the cursor color.
+
+    Raises:
+        Error: Terminal does not respond with a valid cursor color sequence.
+        Error: Could not parse cursor color sequence as it is not a valid xterm color sequence.
+
+    Returns:
+        An RGBColor representing the cursor color.
+    """
+    var result = query(CURSOR_COLOR_SEQUENCE)
+    if not result.startswith("\033]12;"):
+        raise Error("Unexpected response from terminal: ", repr(result))
+
+    var parts = result.split(";")
+    return XTermColor(parts[1]).to_rgb_color()

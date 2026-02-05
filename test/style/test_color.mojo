@@ -1,6 +1,6 @@
-import mist._hue as hue
+import mist.style._hue as hue
 import testing
-from mist.color import (
+from mist.style.color import (
     ANSI256Color,
     ANSIColor,
     AnyColor,

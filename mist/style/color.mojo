@@ -1,6 +1,6 @@
-import mist._hue as hue
-from mist._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
+import mist.style._hue as hue
 from mist._utils import lut
+from mist.style._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
 from utils import Variant
 
 
@@ -24,9 +24,17 @@ trait Color(Copyable, Equatable, Representable, Stringable, Writable):
         """
         ...
 
+    fn as_hex_string(self) -> String:
+        """Returns the hex string for the color, if it exists.
 
-@fieldwise_init
+        Returns:
+            The hex string for the color, or an empty string if the color cannot be represented as a hex string.
+        """
+        ...
+
+
 @register_passable("trivial")
+@fieldwise_init
 struct NoColor(Color):
     """NoColor represents an ASCII color which is binary black or white."""
 
@@ -41,11 +49,8 @@ struct NoColor(Color):
         """
         return True
 
-    fn write_to[W: Writer, //](self, mut writer: W):
+    fn write_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
-
-        Parameters:
-            W: The type of writer.
 
         Args:
             writer: The writer to write the data to.
@@ -73,6 +78,14 @@ struct NoColor(Color):
 
         Parameters:
             is_background: Whether the color is a background color.
+
+        Returns:
+            An empty string.
+        """
+        return ""
+
+    fn as_hex_string(self) -> String:
+        """Returns an empty string, as NoColor cannot be represented as a hex string.
 
         Returns:
             An empty string.
@@ -114,11 +127,8 @@ struct ANSIColor(Color):
         """
         self.value = other.value
 
-    fn write_to[W: Writer, //](self, mut writer: W):
+    fn write_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
-
-        Parameters:
-            W: The type of writer.
 
         Args:
             writer: The writer to write the data to.
@@ -181,9 +191,17 @@ struct ANSIColor(Color):
             return String(lut[COLOR_STRINGS](modifier + self.value + 30))
         return String(lut[COLOR_STRINGS](modifier + self.value - 8 + 90))
 
+    fn as_hex_string(self) -> String:
+        """Returns the hex string for the ANSIColor.
 
-@fieldwise_init
+        Returns:
+            The hex string for the ANSIColor.
+        """
+        return hex_to_string(lut[ANSI_HEX_CODES](Int(self.value)))
+
+
 @register_passable("trivial")
+@fieldwise_init
 struct ANSI256Color(Color):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
@@ -198,11 +216,8 @@ struct ANSI256Color(Color):
         """
         self.value = hex_to_ansi256(color)
 
-    fn write_to[W: Writer, //](self, mut writer: W):
+    fn write_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
-
-        Parameters:
-            W: The type of writer.
 
         Args:
             writer: The writer to write the data to.
@@ -264,6 +279,14 @@ struct ANSI256Color(Color):
 
         return output^
 
+    fn as_hex_string(self) -> String:
+        """Returns the hex string for the ANSI256Color.
+
+        Returns:
+            The hex string for the ANSI256Color.
+        """
+        return hex_to_string(lut[ANSI_HEX_CODES](Int(self.value)))
+
 
 fn hex_to_rgb(hex: UInt32) -> Tuple[UInt8, UInt8, UInt8]:
     """Converts a number in hexadecimal format to red, green, and blue values.
@@ -298,8 +321,32 @@ fn rgb_to_hex(r: UInt8, g: UInt8, b: UInt8) -> UInt32:
     return (r.cast[DType.uint32]() << 16) | (g.cast[DType.uint32]() << 8) | b.cast[DType.uint32]()
 
 
-@fieldwise_init
+fn hex_to_string(value: UInt32) -> String:
+    """Convert a UInt32 value to a lowercase hexadecimal string.
+
+    Args:
+        value: The UInt32 value to convert.
+
+    Returns:
+        A lowercase hexadecimal string (e.g., "1a2b3c4d").
+    """
+    if value == 0:
+        return "0"
+
+    var result = String()
+    var v = value
+    comptime HEX_CHARS = "0123456789abcdef"
+
+    while v > 0:
+        var digit = Int(v & 0xF)
+        result = HEX_CHARS[digit] + result
+        v >>= 4
+
+    return result
+
+
 @register_passable("trivial")
+@fieldwise_init
 struct RGBColor(Color):
     """RGBColor is a hex-encoded color, e.g. `0xabcdef`."""
 
@@ -314,11 +361,26 @@ struct RGBColor(Color):
         """
         self.value = color.hex()
 
-    fn write_to[W: Writer, //](self, mut writer: W):
-        """Writes the representation to the writer.
+    fn __init__(out self, value: Tuple[UInt8, UInt8, UInt8]):
+        """Initializes the RGBColor with a hex value.
 
-        Parameters:
-            W: The type of writer.
+        Args:
+            value: The hex-encoded color value.
+        """
+        self.value = rgb_to_hex(value[0], value[1], value[2])
+
+    fn __init__(out self, r: UInt8, g: UInt8, b: UInt8):
+        """Initializes the RGBColor with a hex value.
+
+        Args:
+            r: The red component of the color.
+            g: The green component of the color.
+            b: The blue component of the color.
+        """
+        self.value = rgb_to_hex(r, g, b)
+
+    fn write_to(self, mut writer: Some[Writer]):
+        """Writes the representation to the writer.
 
         Args:
             writer: The writer to write the data to.
@@ -382,6 +444,14 @@ struct RGBColor(Color):
         )
 
         return output^
+
+    fn as_hex_string(self) -> String:
+        """Returns the hex string for the RGBColor.
+
+        Returns:
+            The hex string for the RGBColor.
+        """
+        return hex_to_string(self.value)
 
 
 fn ansi256_to_ansi(value: UInt8) -> UInt8:
@@ -541,7 +611,7 @@ struct AnyColor(Copyable):
         """
         return self.value.isa[T]()
 
-    fn __getitem__[T: Color](ref self) -> ref [self.value] T:
+    fn __getitem__[T: Color](ref self) -> ref[self.value] T:
         """Gets the value as the given type.
 
         Parameters:
@@ -551,3 +621,18 @@ struct AnyColor(Copyable):
             The value as the given type.
         """
         return self.value[T]
+
+    fn as_hex_string(self) -> String:
+        """Returns the hex string for the color, if it exists.
+
+        Returns:
+            The hex string for the color, or an empty string if the color cannot be represented as a hex string.
+        """
+        if self.value.isa[ANSIColor]():
+            return self.value[ANSIColor].as_hex_string()
+        elif self.value.isa[ANSI256Color]():
+            return self.value[ANSI256Color].as_hex_string()
+        elif self.value.isa[RGBColor]():
+            return self.value[RGBColor].as_hex_string()
+
+        return ""
