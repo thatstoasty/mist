@@ -76,8 +76,7 @@ struct Mode(Copyable, Equatable, Stringable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct Direction(Equatable, ImplicitlyCopyable):
+struct Direction(Equatable, ImplicitlyCopyable, TrivialRegisterType):
     """Direction values for cursor movement."""
 
     var value: UInt8
@@ -120,8 +119,7 @@ struct Direction(Equatable, ImplicitlyCopyable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct Area(Copyable, Writable):
+struct Area(ImplicitlyCopyable, TrivialRegisterType, Writable):
     """An area in the terminal defined by its row and column length."""
 
     var rows: UInt16
@@ -142,8 +140,7 @@ struct Area(Copyable, Writable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct TTY[mode: Mode = Mode.NONE]():
+struct TTY[mode: Mode = Mode.NONE](TrivialRegisterType):
     """A context manager for terminal state.
 
     Parameters:

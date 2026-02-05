@@ -1,5 +1,5 @@
 # fmt: off
-comptime ANSI_HEX_CODES = InlineArray[UInt32, 256](
+comptime ANSI_HEX_CODES: InlineArray[UInt32, 256] = [
     # The 16 system colours as used by default by xterm.
     0x000000, 0x800000, 0x008000, 0x808000,
     0x000080, 0x800080, 0x008080, 0xC0C0C0,
@@ -50,7 +50,7 @@ comptime ANSI_HEX_CODES = InlineArray[UInt32, 256](
     0x444444, 0x4E4E4E, 0x585858, 0x626262, 0x6C6C6C, 0x767676,
     0x808080, 0x8A8A8A, 0x949494, 0x9E9E9E, 0xA8A8A8, 0xB2B2B2,
     0xBCBCBC, 0xC6C6C6, 0xD0D0D0, 0xDADADA, 0xE4E4E4, 0xEEEEEE,
-)
+]
 """RGB values of ANSI colors (0-255)."""
 
 comptime COLOR_STRINGS: InlineArray[UInt8, 256] = [

@@ -1,9 +1,9 @@
 from collections import BitSet
-from sys import CompilationTarget, external_call
+from sys import CompilationTarget
 from sys._libc_errno import get_errno
-from sys.ffi import c_char, c_int, c_size_t
 from time.time import _CTimeSpec
 
+from ffi import c_char, c_int, c_size_t, external_call
 from utils import StaticTuple
 
 
@@ -30,8 +30,7 @@ comptime c_speed_t = UInt64
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct ControlFlag:
+struct ControlFlag(TrivialRegisterType):
     """Control mode flags."""
 
     var value: tcflag_t
@@ -49,8 +48,7 @@ struct ControlFlag:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct LocalFlag:
+struct LocalFlag(TrivialRegisterType):
     """Local mode flags."""
 
     var value: tcflag_t
@@ -76,8 +74,7 @@ struct LocalFlag:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct OutputFlag:
+struct OutputFlag(TrivialRegisterType):
     """Output mode flags. These flags control how `stdout` behaves via output control."""
 
     var value: tcflag_t
@@ -87,8 +84,7 @@ struct OutputFlag:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct InputFlag:
+struct InputFlag(TrivialRegisterType):
     """Input mode flags. These flags control how `stdin` behaves via input control."""
 
     var value: tcflag_t
@@ -153,8 +149,7 @@ struct InputFlag:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct SpecialCharacter:
+struct SpecialCharacter(TrivialRegisterType):
     """Special Character indexes for control characters."""
 
     var value: cc_t
@@ -185,8 +180,7 @@ struct SpecialCharacter:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct Termios(Copyable, Stringable, Writable):
+struct Termios(Copyable, Stringable, TrivialRegisterType, Writable):
     """Termios libc."""
 
     comptime _CONTROL_CHARACTER_WIDTH = 20 if CompilationTarget.is_macos() else 32

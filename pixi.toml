@@ -1,7 +1,7 @@
 [workspace]
 description = "Mist lets you safely use advanced styling options on the terminal."
 authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
-channels = ["conda-forge", "https://conda.modular.com/max", "https://prefix.dev/pixi-build-backends"]
+channels = ["conda-forge", "https://conda.modular.com/max-nightly", "https://prefix.dev/pixi-build-backends"]
 platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
 license = "MIT"
 license-file = "LICENSE"
@@ -28,7 +28,7 @@ build_and_publish = [{ task = "build" }, { task = "publish" }]
 
 [package]
 name = "mist"
-version = "26.1.0"
+version = "26.2.0"
 
 [package.build]
 backend = { name = "pixi-build-mojo", version = "*" }

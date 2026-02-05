@@ -6,8 +6,7 @@ import mist.termios.c
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct WhenOption:
+struct WhenOption(TrivialRegisterType):
     """TTY when values."""
 
     var value: Int32
