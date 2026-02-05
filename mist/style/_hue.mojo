@@ -230,7 +230,7 @@ fn LuvLch_to_HSLuv(var l: Float64, var c: Float64, h: Float64) -> Tuple[Float64,
 
 @fieldwise_init
 @register_passable("trivial")
-struct Color(Copyable, Movable, Representable, Stringable):
+struct Color(Copyable, Representable, Stringable):
     """A color represented by red, green, and blue values.
     RGB values are stored internally using sRGB (standard RGB) values in the range 0-1.
     """

@@ -1,5 +1,9 @@
-comptime Interval = Tuple[UInt32, UInt32]
-"""Low to high interval of codepoints."""
+@fieldwise_init
+struct Interval(ImplicitlyCopyable):
+    """Low to high interval of codepoints."""
+
+    var start: UInt32
+    var end: UInt32
 
 
 comptime COMBINING: InlineArray[Interval, 43] = [

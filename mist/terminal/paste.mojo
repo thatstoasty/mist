@@ -20,3 +20,20 @@ fn enable_bracketed_paste() -> None:
 fn disable_bracketed_paste() -> None:
     """Disables bracketed paste."""
     print(DISABLE_BRACKETED_PASTE, sep="", end="")
+
+
+@fieldwise_init
+@explicit_destroy("Calling `disable()` is required to disable bracketed paste and restore normal terminal behavior.")
+struct BracketedPaste(Movable):
+    """Linear struct to enable bracketed paste on creation and guarantee disable on destruction."""
+
+    @staticmethod
+    fn enable() -> Self:
+        """Enables bracketed paste and returns a `BracketedPaste` instance, which will disable bracketed paste on destruction.
+        """
+        enable_bracketed_paste()
+        return Self()
+
+    fn disable(deinit self) -> None:
+        """Disables bracketed paste."""
+        disable_bracketed_paste()

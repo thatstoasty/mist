@@ -1,12 +1,11 @@
 import os
 
 import testing
-from mist.color import ANSI256Color, ANSIColor, NoColor, RGBColor
-from mist.profile import get_color_profile
+from mist.style.color import ANSI256Color, ANSIColor, NoColor, RGBColor
+from mist.style.profile import Profile, get_color_profile
 from testing import TestSuite
 
 import mist
-from mist import Profile
 
 
 comptime TRUE_COLOR_STYLE = mist.Style(Profile.TRUE_COLOR)

@@ -94,6 +94,23 @@ fn disable_mouse_extended_mode() -> None:
     print(DISABLE_MOUSE_EXTENDED_MODE, sep="", end="")
 
 
+@fieldwise_init
+@explicit_destroy("Calling `disable()` is required to disable mouse capture and restore normal terminal behavior.")
+struct MouseCapture(Movable):
+    """Linear struct to enable mouse capture on creation and guarantee disable on destruction."""
+
+    @staticmethod
+    fn enable() -> Self:
+        """Enables mouse capture and returns a `MouseCapture` instance, which will disable mouse capture on destruction.
+        """
+        enable_mouse_all_motion()
+        return Self()
+
+    fn disable(deinit self) -> None:
+        """Disables mouse capture."""
+        disable_mouse_all_motion()
+
+
 fn enable_mouse_pixels_mode() -> None:
     """Enables Pixel Motion Mouse mode (SGR-Pixels).
 

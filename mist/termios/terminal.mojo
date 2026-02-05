@@ -1,13 +1,13 @@
 import sys._libc as libc
 from sys import CompilationTarget
-from sys._libc_errno import get_errno
+from sys.ffi import get_errno
 
 import mist.termios.c
 
 
 @fieldwise_init
 @register_passable("trivial")
-struct WhenOption:
+struct WhenOption(ImplicitlyCopyable):
     """TTY when values."""
 
     var value: Int32
@@ -24,7 +24,7 @@ struct WhenOption:
 
 @fieldwise_init
 @register_passable("trivial")
-struct FlowOption:
+struct FlowOption(ImplicitlyCopyable):
     """TTY flow values."""
 
     var value: Int32
@@ -41,7 +41,7 @@ struct FlowOption:
 
 @fieldwise_init
 @register_passable("trivial")
-struct FlushOption:
+struct FlushOption(ImplicitlyCopyable):
     """TTY flow values."""
 
     var value: Int32

@@ -3,7 +3,7 @@ from mist.transform._table import AMBIGUOUS, COMBINING, DOUBLE_WIDTH, EMOJI, NAR
 
 
 @fieldwise_init
-struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, Movable):
+struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable):
     """Conditions have the flag `east_asian_width` enabled if the current locale is `CJK` or not.
 
     Parameters:
@@ -99,7 +99,7 @@ fn in_table[table: InlineArray[Interval]](codepoint: Codepoint) -> Bool:
         True if the codepoint is in the table, False otherwise.
     """
     var rune = codepoint.to_u32()
-    if rune < lut[table](0)[0]:
+    if rune < lut[table](0).start:
         return False
 
     # Check if the rune is in the table using binary search.
@@ -108,9 +108,9 @@ fn in_table[table: InlineArray[Interval]](codepoint: Codepoint) -> Bool:
     var top_n = top
     while top_n >= bot:
         var mid = (bot + top_n) >> 1
-        if lut[table](mid)[1] < rune:
+        if lut[table](mid).end < rune:
             bot = mid + 1
-        elif lut[table](mid)[0] > rune:
+        elif lut[table](mid).start > rune:
             top_n = mid - 1
         else:
             return True

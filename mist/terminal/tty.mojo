@@ -1,7 +1,7 @@
 import sys
 
-from mist.color import AnyColor
-from mist.terminal.bracketed_paste import disable_bracketed_paste, enable_bracketed_paste
+from mist.style.color import AnyColor
+from mist.terminal.paste import disable_bracketed_paste, enable_bracketed_paste
 from mist.terminal.cursor import (
     clear_lines,
     clear_screen,
@@ -26,9 +26,9 @@ from mist.terminal.mouse import (
 )
 from mist.terminal.query import get_background_color, get_terminal_size
 from mist.terminal.screen import (
-    alt_screen,
+    enable_alternate_screen,
+    disable_alternate_screen,
     change_scrolling_region,
-    exit_alt_screen,
     reset_terminal,
     restore_screen,
     save_screen,
@@ -76,7 +76,6 @@ struct Mode(Copyable, Equatable, Stringable):
 
 
 @fieldwise_init
-@register_passable("trivial")
 struct Direction(Equatable, ImplicitlyCopyable):
     """Direction values for cursor movement."""
 
@@ -121,7 +120,7 @@ struct Direction(Equatable, ImplicitlyCopyable):
 
 @fieldwise_init
 @register_passable("trivial")
-struct Area(Copyable, Writable):
+struct Area(ImplicitlyCopyable, Writable):
     """An area in the terminal defined by its row and column length."""
 
     var rows: UInt16
@@ -143,7 +142,7 @@ struct Area(Copyable, Writable):
 
 @fieldwise_init
 @register_passable("trivial")
-struct TTY[mode: Mode = Mode.NONE]():
+struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable):
     """A context manager for terminal state.
 
     Parameters:
@@ -390,13 +389,13 @@ struct TTY[mode: Mode = Mode.NONE]():
     fn alt_screen(mut self) -> None:
         """Switch to the alternate screen buffer."""
         if not self.alternate_screen:
-            alt_screen()
+            enable_alternate_screen()
             self.alternate_screen = True
 
     fn exit_alt_screen(mut self) -> None:
         """Exit the alternate screen buffer."""
         if self.alternate_screen:
-            exit_alt_screen()
+            disable_alternate_screen()
             self.alternate_screen = False
 
     fn change_scrolling_region(self, top: UInt16, bottom: UInt16) -> None:
