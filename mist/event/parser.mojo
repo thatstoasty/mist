@@ -19,7 +19,11 @@ The parsing follows these conventions:
 - `Some(event)` return -> we have event, clear the buffer
 """
 
-from mist.terminal.event import (  # Key types; Mouse event types; Event types
+from mist.event.internal import CursorPosition, InternalEvent, KeyboardEnhancementFlagsResponse, PrimaryDeviceAttributes
+from mist.terminal.sgr import CSI, ESC
+from utils import Variant
+
+from mist.event import (  # Key types; Mouse event types; Event types
     Backspace,
     BackTab,
     CapsLock,
@@ -35,6 +39,7 @@ from mist.terminal.event import (  # Key types; Mouse event types; Event types
     FunctionKey,
     Home,
     Insert,
+    InternalEventType,
     KeyboardEnhancementFlags,
     KeyCode,
     KeyEvent,
@@ -70,14 +75,6 @@ from mist.terminal.event import (  # Key types; Mouse event types; Event types
     Tab,
     Up,
 )
-from mist.terminal.internal import (
-    CursorPosition,
-    InternalEvent,
-    KeyboardEnhancementFlagsResponse,
-    PrimaryDeviceAttributes,
-)
-from mist.terminal.sgr import CSI, ESC
-from utils import Variant
 
 
 fn starts_with[pattern: StringSlice](buffer: Span[UInt8]) -> Bool:

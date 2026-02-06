@@ -1,5 +1,5 @@
-from mist.profile import Profile
 from mist.style import Style
+from mist.styles.profile import Profile
 
 
 comptime RED = 0xE88388

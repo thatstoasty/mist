@@ -11,7 +11,6 @@ Mouse and focus events are not enabled by default. You have to enable them with
 the EnableMouseCapture / EnableFocusChange commands.
 """
 
-from mist.terminal.internal import InternalEventType
 from utils import Variant
 
 
@@ -853,7 +852,7 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Stringable, Writable):
         """Returns the key code as type T."""
         return self.value[T]
 
-    fn write_to(self, mut writer: Some[Writer]) -> String:
+    fn write_to(self, mut writer: Some[Writer]) -> None:
         """Format the KeyCode.
 
         On macOS, Backspace is "Delete", Delete is "Fwd Del", and Enter is "Return".
@@ -1184,6 +1183,12 @@ struct MouseEvent(ImplicitlyCopyable, Writable):
 # ============================================================================
 # Key Event
 # ============================================================================
+
+
+trait InternalEventType(Writable):
+    """Marker trait for internal event types."""
+
+    pass
 
 
 trait EventType(Writable):

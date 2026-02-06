@@ -8,12 +8,13 @@ import sys
 from collections import BitSet, InlineArray
 from pathlib import Path
 
-import mist._hue as hue
-from mist.color import RGBColor
+import mist.styles._hue as hue
 from mist.terminal.sgr import BEL, CSI, ESC, OSC, ST
 from mist.terminal.tty import TTY
 from mist.termios.c import FileDescriptorBitSet, _TimeValue, select
 from mist.termios.tty import is_terminal_raw
+
+from mist.styles import RGBColor
 
 
 comptime EVENT_READ = 1
@@ -153,8 +154,7 @@ fn has_dark_background() raises -> Bool:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct OSCParseState(Copyable, Equatable):
+struct OSCParseState(Copyable, Equatable, TrivialRegisterType):
     """State for parsing OSC sequences."""
 
     var value: Int
@@ -395,5 +395,5 @@ fn get_terminal_size() raises -> Tuple[UInt16, UInt16]:
     if not result.startswith("\033[8;"):
         raise Error("Unexpected response from terminal: ", result)
 
-    var parts = result.as_string_slice().split(";")
-    return (UInt16(Int(parts[1])), UInt16(Int(parts[2].split("t")[0])))
+    var parts = StringSlice(result).split(";")
+    return (UInt16(atol(parts[1])), UInt16(atol(parts[2].split("t")[0])))

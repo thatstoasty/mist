@@ -176,7 +176,7 @@ struct Writer(Movable, Writable):
             self.ansi_seq.write(codepoint)
             if is_terminator(codepoint):
                 self.ansi = False
-                if self.ansi_seq.as_string_slice().startswith(ANSI_ESCAPE):
+                if self.ansi_seq.startswith(ANSI_ESCAPE):
                     # reset sequence
                     self.last_seq = String(capacity=self.last_seq.capacity())
                     self.seq_changed = False

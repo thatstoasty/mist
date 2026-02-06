@@ -1,6 +1,6 @@
-import mist._hue as hue
-from mist._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
+import mist.styles._hue as hue
 from mist._utils import lut
+from mist.styles._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
 from utils import Variant
 
 
@@ -26,8 +26,7 @@ trait Color(Copyable, Equatable, Representable, Stringable, Writable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct NoColor(Color):
+struct NoColor(Color, TrivialRegisterType):
     """NoColor represents an ASCII color which is binary black or white."""
 
     fn __eq__(self, other: Self) -> Bool:
@@ -80,8 +79,7 @@ struct NoColor(Color):
         return ""
 
 
-@register_passable("trivial")
-struct ANSIColor(Color):
+struct ANSIColor(Color, TrivialRegisterType):
     """ANSIColor is a color (0-15) as defined by the ANSI Standard."""
 
     var value: UInt8
@@ -183,8 +181,7 @@ struct ANSIColor(Color):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct ANSI256Color(Color):
+struct ANSI256Color(Color, TrivialRegisterType):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
     var value: UInt8
@@ -299,8 +296,7 @@ fn rgb_to_hex(r: UInt8, g: UInt8, b: UInt8) -> UInt32:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct RGBColor(Color):
+struct RGBColor(Color, TrivialRegisterType):
     """RGBColor is a hex-encoded color, e.g. `0xabcdef`."""
 
     var value: UInt32
@@ -541,7 +537,7 @@ struct AnyColor(Copyable):
         """
         return self.value.isa[T]()
 
-    fn __getitem__[T: Color](ref self) -> ref [self.value] T:
+    fn __getitem__[T: Color](ref self) -> ref[self.value] T:
         """Gets the value as the given type.
 
         Parameters:

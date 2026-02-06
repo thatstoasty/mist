@@ -1,5 +1,3 @@
-from mist.color import ANSI256Color, ANSIColor, AnyColor, Color, NoColor, RGBColor
-from mist.profile import Profile
 from mist.renderers import (
     blue,
     blue_background,
@@ -25,5 +23,7 @@ from mist.renderers import (
     yellow_background,
 )
 from mist.style import Style
+from mist.styles.color import ANSI256Color, ANSIColor, AnyColor, Color, NoColor, RGBColor
+from mist.styles.profile import Profile
 
 from mist.transform import dedent, indent, margin, padding, truncate, word_wrap, wrap

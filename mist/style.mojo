@@ -1,4 +1,4 @@
-from mist.color import AnyColor, NoColor
+from mist.styles.color import AnyColor, NoColor
 
 
 # Text formatting sequences
@@ -140,7 +140,7 @@ comptime RESET_STYLE = CSI + SGR.RESET + "m"
 
 
 @fieldwise_init
-struct Style(Copyable, ImplicitlyCopyable, Movable, Representable, Stringable, Writable):
+struct Style(Defaultable, ImplicitlyCopyable, Representable, Stringable, Writable):
     """Style stores a list of styles to format text with.
     These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
@@ -180,13 +180,13 @@ struct Style(Copyable, ImplicitlyCopyable, Movable, Representable, Stringable, W
         self.profile = Profile()
 
     fn __copyinit__(out self, other: Self):
-        """Copy constructor for Style.
+        """Creates a copy of the Style. This is used to create new instances of the Style when adding styles.
 
-        Args:
-            other: The Style to copy.
+        Returns:
+            A copy of the Style.
         """
-        self.styles = other.styles.copy()
         self.profile = other.profile
+        self.styles = other.styles.copy()
 
     fn __str__(self) -> String:
         """Returns a string representation of the Style.
@@ -202,18 +202,15 @@ struct Style(Copyable, ImplicitlyCopyable, Movable, Representable, Stringable, W
         Returns:
             A string representation of the Style.
         """
-        return String(self)
+        return String.write(self)
 
-    fn write_to[W: Writer, //](self, mut writer: W) -> None:
+    fn write_to(self, mut writer: Some[Writer]) -> None:
         """Writes the Style to a Writer.
-
-        Parameters:
-            W: The type of the Writer to write to.
 
         Args:
             writer: The Writer to write the Style to.
         """
-        writer.write("Style(", "styles=", self.styles.__repr__(), ", profile=", self.profile, ")")
+        writer.write("Style(", "styles=", repr(self.styles), ", profile=", self.profile, ")")
 
     fn add_style(self, style: String) -> Self:
         """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that.

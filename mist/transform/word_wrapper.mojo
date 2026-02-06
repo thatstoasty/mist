@@ -81,7 +81,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
         """Write the content of the word buffer to the word-wrap buffer."""
         if len(self.word) > 0:
             self.add_space()
-            self.line_len += ansi.printable_rune_width(self.word.as_string_slice())
+            self.line_len += ansi.printable_rune_width(self.word)
             self.buf.write(self.word)
             self.word = String(capacity=self.word.capacity())
 
@@ -153,7 +153,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
 
                 # add a line break if the current word would exceed the line's
                 # character limit
-                var word_width = ansi.printable_rune_width(self.word.as_string_slice())
+                var word_width = ansi.printable_rune_width(self.word)
                 if word_width < self.limit and self.line_len + UInt(len(self.space)) + word_width > self.limit:
                     self.add_newline()
 

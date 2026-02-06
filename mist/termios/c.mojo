@@ -1,9 +1,8 @@
 from collections import BitSet
 from sys import CompilationTarget
-from sys._libc_errno import get_errno
 from time.time import _CTimeSpec
 
-from ffi import c_char, c_int, c_size_t, external_call
+from ffi import c_char, c_int, c_size_t, external_call, get_errno
 from utils import StaticTuple
 
 
@@ -492,7 +491,7 @@ fn ttyname(fd: c_int) -> MutExternalPointer[c_char]:
     return external_call["ttyname", MutExternalPointer[c_char], c_int](fd)
 
 
-fn read(fd: c_int, buf: MutExternalPointer[c_void], size: c_size_t) -> c_int:
+fn read(fd: c_int, buf: MutUnsafePointer[NoneType], size: c_size_t) -> c_int:
     """Libc POSIX `read` function.
 
     Read `size` bytes from file descriptor `fd` into the buffer `buf`.
@@ -513,7 +512,7 @@ fn read(fd: c_int, buf: MutExternalPointer[c_void], size: c_size_t) -> c_int:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/read.3p.html.
     """
-    return external_call["read", c_int, c_int, MutExternalPointer[c_void], c_size_t](fd, buf, size)
+    return external_call["read", c_int, type_of(fd), type_of(buf), type_of(size)](fd, buf, size)
 
 
 comptime FileDescriptorBitSet = BitSet[1024]

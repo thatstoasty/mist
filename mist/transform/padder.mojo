@@ -55,7 +55,7 @@ struct PaddingWriter(Movable):
         Returns:
             The padded `StringSlice`.
         """
-        return self.cache.as_string_slice()
+        return self.cache
 
     fn write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer,

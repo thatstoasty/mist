@@ -1,6 +1,5 @@
 import sys
 
-from mist.color import AnyColor
 from mist.terminal.bracketed_paste import disable_bracketed_paste, enable_bracketed_paste
 from mist.terminal.cursor import (
     clear_lines,
@@ -38,6 +37,7 @@ from mist.terminal.screen import (
 )
 from mist.termios.c import LocalFlag
 
+from mist.styles import AnyColor
 from mist.termios import Termios, WhenOption, set_cbreak, set_raw, tcgetattr, tcsetattr
 
 
