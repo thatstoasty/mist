@@ -1,6 +1,5 @@
+from mist.style.color import AnyColor
 from mist.terminal.sgr import BEL, CSI, OSC
-
-from mist.styles import AnyColor
 
 
 # Cursor positioning.

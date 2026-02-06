@@ -8,13 +8,12 @@ import sys
 from collections import BitSet, InlineArray
 from pathlib import Path
 
-import mist.styles._hue as hue
+import mist.style._hue as hue
+from mist.style.color import RGBColor
 from mist.terminal.sgr import BEL, CSI, ESC, OSC, ST
 from mist.terminal.tty import TTY
 from mist.termios.c import FileDescriptorBitSet, _TimeValue, select
 from mist.termios.tty import is_terminal_raw
-
-from mist.styles import RGBColor
 
 
 comptime EVENT_READ = 1

@@ -1,5 +1,5 @@
 from collections import BitSet, Set
-from sys import exit, stdin
+from sys import stdin
 
 import mist.termios.c
 from ffi import c_int, external_call, get_errno

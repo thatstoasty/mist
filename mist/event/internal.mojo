@@ -1,6 +1,6 @@
 from utils.variant import Variant
 
-from mist.event import Char, Event, InternalEventType, KeyboardEnhancementFlags
+from mist.event.event import Char, Event, InternalEventType, KeyboardEnhancementFlags
 
 
 # ============================================================================
@@ -60,7 +60,7 @@ struct PrimaryDeviceAttributes(ImplicitlyCopyable, InternalEventType, Stringable
 # ============================================================================
 
 
-struct InternalEvent(Copyable, Movable, Stringable, Writable):
+struct InternalEvent(Copyable, Stringable, Writable):
     """An internal event.
 
     Encapsulates publicly available Event with additional internal

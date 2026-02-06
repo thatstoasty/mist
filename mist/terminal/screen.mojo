@@ -1,6 +1,5 @@
+from mist.style.color import AnyColor
 from mist.terminal.sgr import BEL, CSI, OSC
-
-from mist.styles import AnyColor
 
 
 comptime RESTORE_SCREEN = CSI + "?47l"
@@ -17,7 +16,7 @@ comptime RESET_STYLE = CSI + "0m"
 
 
 fn reset_terminal() -> None:
-    """Reset the terminal to its default style, removing any active styles."""
+    """Reset the terminal to its default style, removing any active style."""
     print(RESET_STYLE, sep="", end="")
 
 

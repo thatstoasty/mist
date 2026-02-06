@@ -24,19 +24,19 @@ on Unix systems. It handles:
 - Event-stream features are not implemented (no async/waker support)
 """
 
-from collections import BitSet, Deque
+from collections import Deque
 from sys import stderr, stdin
 from sys._libc_errno import get_errno
 
+from ffi import c_size_t
 from mist.event.internal import InternalEvent
 from mist.event.parser import parse_event
-from mist.event.query import get_terminal_size
 from mist.event.source import EventSource
 from mist.multiplex.event import Event as SelectEvent
 from mist.multiplex.select import SelectSelector
 from mist.termios.c import read
 
-from mist.event import Event, Resize
+from mist.event.event import Event, Resize
 
 
 # Buffer size for TTY reads. 1024 bytes is enough based on testing
@@ -221,19 +221,11 @@ struct UnixInternalEventSource(EventSource, Movable):
     """Buffer for reading from TTY."""
     var tty: FileDescriptor
     """TTY file descriptor."""
+    var selector: SelectSelector
+    """Selector for multiplexing TTY using `select`."""
     # Note: SIGWINCH handling via Unix socket pair is not implemented here
     # as it requires signal handling infrastructure not yet available.
     # For now, resize events can be detected by polling terminal size.
-
-    fn __init__(out self) raises:
-        """Initialize the event source using stdin as the TTY.
-
-        Raises:
-            Error: If stdin is not a terminal.
-        """
-        if not stdin.isatty():
-            raise Error("stdin is not a terminal")
-        self = Self(stdin)
 
     fn __init__(out self, tty: FileDescriptor):
         """Initialize the event source with a specific file descriptor.
@@ -244,6 +236,18 @@ struct UnixInternalEventSource(EventSource, Movable):
         self.parser = Parser()
         self.tty_buffer = InlineArray[UInt8, TTY_BUFFER_SIZE](uninitialized=True)
         self.tty = tty
+        self.selector = SelectSelector()
+        self.selector.register(self.tty, SelectEvent.READ)
+
+    fn __init__(out self) raises:
+        """Initialize the event source using stdin as the TTY.
+
+        Raises:
+            Error: If stdin is not a terminal.
+        """
+        if not stdin.isatty():
+            raise Error("stdin is not a terminal")
+        self = Self(stdin)
 
     fn try_read(mut self, timeout: Optional[Int]) raises -> Optional[InternalEvent]:
         """Try to read an event with an optional timeout.
@@ -263,9 +267,6 @@ struct UnixInternalEventSource(EventSource, Movable):
             An InternalEvent if one is available, None if timeout elapsed.
         """
         var poll_timeout = PollTimeout(timeout)
-        var selector = SelectSelector()
-        selector.register(self.tty, SelectEvent.READ)
-
         while poll_timeout.leftover().or_else(-1) <= 0:
             # Check if there are buffered events from the last read
             if buffered_event := self.parser.next():
@@ -273,7 +274,7 @@ struct UnixInternalEventSource(EventSource, Movable):
 
             # First checks if the file descriptor is ready.
             # If so, checks if the response is either `SelectEvent.READ` or `SelectEvent.READ_WRITE`
-            var status = selector.select().get(self.tty.value)
+            var status = self.selector.select().get(self.tty.value)
             if not status:
                 continue
 
@@ -290,8 +291,7 @@ struct UnixInternalEventSource(EventSource, Movable):
                         read_count == TTY_BUFFER_SIZE,
                     )
 
-                var event = self.parser.next()
-                if event:
+                if event := self.parser.next():
                     return event^
 
                 if read_count == 0:
@@ -308,15 +308,13 @@ struct UnixInternalEventSource(EventSource, Movable):
             Number of bytes read, or 0 if would block.
         """
         while True:
-            var buf_ptr = self.tty_buffer.unsafe_ptr()
             var bytes_read = read(
                 self.tty.value,
-                buf_ptr.bitcast[NoneType](),
+                self.tty_buffer.unsafe_ptr().bitcast[NoneType](),
                 c_size_t(TTY_BUFFER_SIZE),
             )
 
             if bytes_read >= 0:
-                print("Read ", bytes_read, " bytes from TTY")
                 return Int(bytes_read)
 
             # Error case

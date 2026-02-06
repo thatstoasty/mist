@@ -23,7 +23,7 @@ from mist.event.internal import CursorPosition, InternalEvent, KeyboardEnhanceme
 from mist.terminal.sgr import CSI, ESC
 from utils import Variant
 
-from mist.event import (  # Key types; Mouse event types; Event types
+from mist.event.event import (  # Key types; Mouse event types; Event types
     Backspace,
     BackTab,
     CapsLock,

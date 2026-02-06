@@ -6,33 +6,11 @@ from mist.event.internal import InternalEvent
 from mist.event.parser import parse_event
 from mist.event.unix_event_source import UnixInternalEventSource
 
-
-fn read_events() raises -> Optional[InternalEvent]:
-    """Reads a single event from stdin. Read is normally blocking, but the terminal
-    is set to non-blocking mode, so this will return immediately if there is no
-    data to read. If there is no data to read, this will return a NoMsg message.
-
-    Returns:
-        An InternalEvent containing the event read from stdin. This will be a KeyMsg if
-        a key was pressed, or a NoMsg if there was no data to read.
-    """
-    comptime COUNT_TO_READ = 8
-
-    # We use a stack allocation to avoid heap allocations.
-    # We don't need to free stack allocated pointers, I guess?
-    # Freeing it works when its a heap allocated pointer, but not stack allocated.
-    # var buffer = InlineArray[Byte, COUNT_TO_READ](uninitialized=True)
-    # _ = read(stdin.value, buffer.unsafe_ptr().bitcast[NoneType](), COUNT_TO_READ)
-    # var event = parse_event(Span(buffer).get_immutable(), True)
-    # return event^
-    var reader = InternalEventReader(
-        events=Deque[InternalEvent](), source=UnixInternalEventSource(), skipped_events=List[InternalEvent]()
-    )
-    return reader.read()
+from mist.event.event import Event
 
 
 @fieldwise_init
-struct InternalEventReader:
+struct InternalEventReader(Movable):
     var events: Deque[InternalEvent]
     var source: UnixInternalEventSource
     var skipped_events: List[InternalEvent]
@@ -92,3 +70,21 @@ struct InternalEventReader:
                 return event.value().copy()
 
             _ = self.poll(None)
+
+
+@fieldwise_init
+struct EventReader(Movable):
+    var reader: InternalEventReader
+
+    fn __init__(out self) raises:
+        self.reader = InternalEventReader(
+            events=Deque[InternalEvent](), source=UnixInternalEventSource(), skipped_events=List[InternalEvent]()
+        )
+
+    fn read(mut self) raises -> Event:
+        """Reads a single event from the event reader. This will block until an event is available.
+
+        Returns:
+            An InternalEvent containing the event read from the event reader.
+        """
+        return self.reader.read()[Event].copy()
