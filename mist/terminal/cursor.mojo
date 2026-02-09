@@ -11,14 +11,6 @@ comptime SAVE_CURSOR_POSITION = CSI + "s"
 comptime RESTORE_CURSOR_POSITION = CSI + "u"
 """Restores the cursor position `CSI + u = \\x1b[u`."""
 
-# Explicit values for EraseLineSeq.
-comptime CLEAR_LINE_RIGHT = CSI + "0K"
-"""Clears the line to the right of the cursor `CSI + 0 + K = \\x1b[0K`."""
-comptime CLEAR_LINE_LEFT = CSI + "1K"
-"""Clears the line to the left of the cursor `CSI + 1 + K = \\x1b[1K`."""
-comptime CLEAR_LINE = CSI + "2K"
-"""Clears the entire line `CSI + 2 + K = \\x1b[2K`."""
-
 # Session
 comptime HIDE_CURSOR = CSI + "?25l"
 """Hide the cursor `CSI + ?25 + l = \\x1b[?25l`."""
@@ -208,31 +200,6 @@ fn cursor_prev_line(n: UInt16) -> None:
     print(CSI, n, "F", sep="", end="")
 
 
-fn clear_line() -> None:
-    """Clears the current line."""
-    print(CLEAR_LINE, sep="", end="")
-
-
-fn clear_line_left() -> None:
-    """Clears the line to the left of the cursor."""
-    print(CLEAR_LINE_LEFT, sep="", end="")
-
-
-fn clear_line_right() -> None:
-    """Clears the line to the right of the cursor."""
-    print(CLEAR_LINE_RIGHT, sep="", end="")
-
-
-fn clear_lines(n: UInt16) -> None:
-    """Clears a given number of lines.
-
-    Args:
-        n: The number of lines to CLEAR.
-    """
-    var movement = (cursor_up_sequence(1) + CLEAR_LINE) * Int(n)
-    print(CLEAR_LINE + movement, sep="", end="")
-
-
 struct Cursor:
     @staticmethod
     fn up(n: UInt16) -> None:
@@ -287,6 +254,16 @@ struct Cursor:
             n: The number of lines to move back.
         """
         cursor_prev_line(n)
+
+    @staticmethod
+    fn move_to(row: UInt16, column: UInt16) -> None:
+        """Moves the cursor to a given position.
+
+        Args:
+            row: The row to move to.
+            column: The column to move to.
+        """
+        move_cursor(row, column)
 
     @staticmethod
     fn set_color(color: AnyColor, *, initial_color: AnyColor = NoColor()) raises -> CursorColor:
