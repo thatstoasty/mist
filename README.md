@@ -1,6 +1,10 @@
 # mist
 
-`mist` is an ANSI aware toolkit that enables you to style and transform text on the terminal.
+`mist` is an ANSI aware toolkit that enables you to:
+
+* Style and transform text on the terminal.
+* Control terminal screen and cursor behavior.
+* Read terminal events such as key presses and mouse events.
 
 ![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-26.1-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
