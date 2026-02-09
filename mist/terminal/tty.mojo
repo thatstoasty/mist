@@ -3,7 +3,6 @@ import sys
 from mist.style.color import AnyColor
 from mist.terminal.paste import disable_bracketed_paste, enable_bracketed_paste
 from mist.terminal.cursor import (
-    clear_lines,
     clear_screen,
     cursor_back,
     cursor_down,
@@ -35,6 +34,7 @@ from mist.terminal.screen import (
     set_background_color,
     set_foreground_color,
     set_window_title,
+    clear_lines,
 )
 from mist.termios.c import LocalFlag
 
