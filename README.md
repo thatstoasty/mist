@@ -191,25 +191,52 @@ TODO: Example of using `termios` to change terminal settings.
 In the `mist.terminal` package, you can use the `TTY` context manager as a high-level interface to manage terminal settings rather than using the `termios` module directly. This context manager allows you to temporarily change terminal settings and automatically restores them when exiting the context.
 
 ```mojo
-from mist.terminal.query import get_terminal_size
-from mist.terminal.tty import TTY
+from mist.terminal.tty import TTY, Mode, Area
 
 fn main() raises -> None:
-    var rows: UInt16
-    var columns: UInt16
-    with TTY():
-        rows, columns = get_terminal_size()
-    print("Terminal dimensions:", rows, "x", columns)
+    var area: Area
+    with TTY[Mode.RAW]() as tty:
+        area = tty.terminal_size()
+    print("Terminal dimensions:", area.columns, "x", area.rows)
 ```
 
 ### Cursor Positioning
 
+The `cursor` module provides functions to control the cursor's position on the terminal. You can alternatively use the `Cursor` struct which provides the same functionality with a more object-oriented interface. It doesn't store any state, it just groups the functions into a commonm namespace for ease of use.
+
 ```mojo
-from mist.terminal.cursor import move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
+from mist.terminal.cursor import Cursor, move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
 
 fn main() raises:
     # Move the cursor to a given position
     move_cursor(row, column)
+    Cursor.move_to(row, column)
+
+    # Move the cursor up a given number of lines
+    cursor_up(n)
+    Cursor.up(n)
+
+    # Move the cursor down a given number of lines
+    cursor_down(n)
+    Cursor.down(n)
+
+    # Move the cursor up a given number of lines
+    cursor_forward(n)
+    Cursor.forward(n)
+
+    # Move the cursor backwards a given number of cells
+    cursor_back(n)
+    Cursor.back(n)
+
+    # Move the cursor down a given number of lines and place it at the beginning
+    # of the line
+    cursor_next_line(n)
+    Cursor.next_line(n)
+
+    # Move the cursor up a given number of lines and place it at the beginning of
+    # the line
+    cursor_prev_line(n)
+    Cursor.prev_line(n)
 
     # Save the cursor position
     save_cursor_position()
@@ -217,67 +244,61 @@ fn main() raises:
     # Restore a saved cursor position
     restore_cursor_position()
 
-    # Move the cursor up a given number of lines
-    cursor_up(n)
-
-    # Move the cursor down a given number of lines
-    cursor_down(n)
-
-    # Move the cursor up a given number of lines
-    cursor_forward(n)
-
-    # Move the cursor backwards a given number of cells
-    cursor_back(n)
-
-    # Move the cursor down a given number of lines and place it at the beginning
-    # of the line
-    cursor_next_line(n)
-
-    # Move the cursor up a given number of lines and place it at the beginning of
-    # the line
-    cursor_prev_line(n)
 ```
 
 ### Screen
 
+The `screen` module provides functions to control the terminal screen, such as clearing the screen, changing the scrolling region, and more. You can also use the `Screen` struct which provides the same functionality with a more object-oriented interface.
+
 ```mojo
-from mist.terminal.screen import reset, restore_screen, save_screen, alt_screen, exit_alt_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
+from mist.terminal.screen import Screen, reset, restore_screen, save_screen, enable_alternate_screen, disable_alternate_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
 
 fn main() raises:
     # Reset the terminal to its default style, removing any active styles
     reset()
-
-    # Restores a previously saved screen state
-    restore_screen()
+    Screen.reset()
 
     # Saves the screen state
     save_screen()
+    Screen.save()
+
+    # Restores a previously saved screen state
+    restore_screen()
+    Screen.restore()
 
     # Switch to the altscreen. The former view can be restored with ExitAltScreen()
-    alt_screen()
+    enable_alternate_screen()
+    Screen.enable_alternate_screen()
 
     # Exit the altscreen and return to the former terminal view
-    exit_alt_screen()
+    disable_alternate_screen()
+    Screen.disable_alternate_screen()
 
     # Clear the visible portion of the terminal
     clear_screen()
+    Screen.clear()
 
     # Clear the current line
     clear_line()
+    Screen.clear_line()
 
     # Clear a given number of lines
     clear_lines(n)
+    Screen.clear_lines(n)
 
     # Set the scrolling region of the terminal
     change_scrolling_region(top, bottom)
+    Screen.change_scrolling_region(top, bottom)
 
     # Insert the given number of lines at the top of the scrollable region, pushing
     # lines below down
     insert_lines(n)
+    Screen.insert_lines(n)
 
     # Delete the given number of lines, pulling any lines in the scrollable region
     # below up
     delete_lines(n)
+    Screen.delete_lines(n)
 ```
 
 ## Example using cursor and screen operations
@@ -290,8 +311,6 @@ fn main():
     cursor_back(2)
     clear_line_right()
 ```
-
-Output
 
 ![Cursor](https://github.com/thatstoasty/mist/blob/main/doc/tapes/cursor.gif)
 
@@ -317,7 +336,7 @@ fn main() raises:
 ### Mouse
 
 ```mojo
-from mist.terminal.screen import enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
+from mist.terminal.screen import Mouse, enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
 
 fn main() raises:
     # Enable X10 mouse mode, only button press events are sent
@@ -346,22 +365,26 @@ fn main() raises:
 
     # Enable All Motion Mouse mode
     enable_mouse_all_motion()
+    var mouse_capture = Mouse.enable_capture()
 
     # Disable All Motion Mouse mode
     disable_mouse_all_motion()
+    mouse_capture^.disable()
 ```
 
 ### Bracketed Paste
 
 ```mojo
-from mist.terminal.screen import enable_bracketed_paste, disable_bracketed_paste
+from mist.terminal.screen import BracketedPaste, enable_bracketed_paste, disable_bracketed_paste
 
 fn main() raises:
     # Enables bracketed paste mode
     enable_bracketed_paste()
+    var paste = BracketedPaste.enable()
 
     # Disables bracketed paste mode
     disable_bracketed_paste()
+    paste^.disable()
 ```
 
 ### Terminal Querying
@@ -370,15 +393,39 @@ The `mist.terminal.query` module provides functions to query terminal properties
 
 ```mojo
 from mist.terminal.query import query_osc
-from mist.terminal.tty import TTY
+from mist.terminal.tty import TTY, Mode
 from mist.color import RGBColor
 
 fn main() raises -> None:
-    with TTY():
+    with TTY[Mode.RAW]():
         var xterm_background_color = query_osc("11;?")
 ```
 
-## Text Transformation
+## Reading Terminal Events
+
+`mist` provides an `EventReader` struct that allows you to read events from the terminal, such as key presses, mouse events, and focus gained/lost.
+
+```mojo
+from mist.event.read import EventReader
+from mist.terminal.tty import TTY, Mode
+from mist.event.event import Char, KeyEvent
+
+fn main() raises -> None:
+    print("Reading events from terminal. Press keys or click mouse (Ctrl+C to exit)...")
+    var reader = EventReader()
+    with TTY[Mode.RAW]():
+        while True:
+            var event = reader.read()
+            if event.isa[KeyEvent]():
+                print(event[KeyEvent].code, end="\r\n")
+                if event[KeyEvent].code.isa[Char]() and event[KeyEvent].code[Char] == "q":
+                    print("Exiting on 'q' key press.", end="\r\n")
+                    break
+            else:
+                print("Received event:", event, end="\r\n")
+```
+
+## ANSI Aware Text Transformation
 
 ### Wrap (Unconditional Wrapping)
 
@@ -523,6 +570,5 @@ Color chart lifted from [termenv](https://github.com/muesli/termenv), give their
 ## TODO
 
 - Get terminal resizing to work.
-- Alternate screen buffer example.
 - Add more terminal query examples.
 - Fix show/hide cursor.

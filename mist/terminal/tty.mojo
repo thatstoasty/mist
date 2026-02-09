@@ -123,16 +123,13 @@ struct Direction(Equatable, ImplicitlyCopyable):
 struct Area(ImplicitlyCopyable, Writable):
     """An area in the terminal defined by its row and column length."""
 
-    var rows: UInt16
-    """Number of rows."""
     var columns: UInt16
     """Number of columns."""
+    var rows: UInt16
+    """Number of rows."""
 
-    fn write_to[W: Writer, //](self, mut writer: W) -> None:
+    fn write_to(self, mut writer: Some[Writer]):
         """Write the area to a writer.
-
-        Parameters:
-            W: The type of the writer.
 
         Args:
             writer: The writer to write to.
@@ -473,7 +470,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable):
             An Area representing the current terminal size.
         """
         var dimensions = get_terminal_size()
-        return Area(dimensions[0], dimensions[1])
+        return Area(columns=dimensions[0], rows=dimensions[1])
 
     fn write_bytes(mut self, bytes: Span[Byte]) -> None:
         """Write bytes to the terminal.

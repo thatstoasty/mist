@@ -356,14 +356,14 @@ fn get_terminal_size() raises -> Tuple[UInt16, UInt16]:
         Error: Fails to convert the terminal size response to UInt.
 
     Returns:
-        A tuple containing the number of rows and columns of the terminal.
+        A tuple containing the number of columns and rows of the terminal.
     """
     var result = query(TERMINAL_SIZE_SEQUENCE)
     if not result.startswith("\033[8;"):
         raise Error("Unexpected response from terminal: ", repr(result))
 
     var parts = result.split(";")
-    return (UInt16(atol(parts[1])), UInt16(atol(parts[2].split("t")[0])))
+    return (UInt16(atol(parts[2].split("t")[0])), UInt16(atol(parts[1])))
 
 
 comptime CURSOR_COLOR_SEQUENCE = OSC + "12;?" + BEL
