@@ -6,7 +6,7 @@
 * Control terminal screen and cursor behavior.
 * Read terminal events such as key presses and mouse events.
 
-![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-26.1-orange)
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-26.2-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
 ![Test Status](https://github.com/thatstoasty/mist/actions/workflows/test.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -17,9 +17,9 @@
 
 This project was heavily inspired by:
 
-- [Termenv](https://github.com/muesli/termenv/tree/master)
-- [Reflow](https://github.com/muesli/reflow/tree/master)
-- [Crossterm](https://github.com/crossterm-rs/crossterm)
+* [Termenv](https://github.com/muesli/termenv/tree/master)
+* [Reflow](https://github.com/muesli/reflow/tree/master)
+* [Crossterm](https://github.com/crossterm-rs/crossterm)
 
 ## Adding the `mist` package to your project
 
@@ -573,6 +573,6 @@ Color chart lifted from [termenv](https://github.com/muesli/termenv), give their
 
 ## TODO
 
-- Get terminal resizing to work.
-- Add more terminal query examples.
-- Fix show/hide cursor.
+* Get terminal resizing to work.
+* Add more terminal query examples.
+* Fix show/hide cursor.
