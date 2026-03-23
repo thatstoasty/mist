@@ -19,23 +19,24 @@ from std.utils import Variant
 # ============================================================================
 
 
-struct KeyboardEnhancementFlags(Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
+struct KeyboardEnhancementFlags(Equatable, Writable, ImplicitlyCopyable, TrivialRegisterPassable):
     """Represents special flags that tell compatible terminals to add extra information to keyboard events.
 
     See https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement for more information.
     """
 
     var value: UInt8
+    """The raw bits representing the enabled keyboard enhancement flags."""
 
-    # Represent Escape and modified keys using CSI-u sequences, so they can be unambiguously read.
     comptime DISAMBIGUATE_ESCAPE_CODES = KeyboardEnhancementFlags(0b0000_0001)
-    # Add extra events with KeyEvent.kind set to KeyEventKind::Repeat or KeyEventKind::Release
-    # when keys are autorepeated or released.
+    """Represent Escape and modified keys using CSI-u sequences, so they can be unambiguously read."""
     comptime REPORT_EVENT_TYPES = KeyboardEnhancementFlags(0b0000_0010)
-    # Send alternate keycodes in addition to the base keycode.
+    """Add extra events with KeyEvent.kind set to KeyEventKind::Repeat or KeyEventKind::Release
+    when keys are autorepeated or released."""
     comptime REPORT_ALTERNATE_KEYS = KeyboardEnhancementFlags(0b0000_0100)
-    # Represent all keyboard events as CSI-u sequences.
+    """Send alternate keycodes in addition to the base keycode."""
     comptime REPORT_ALL_KEYS_AS_ESCAPE_CODES = KeyboardEnhancementFlags(0b0000_1000)
+    """Represent all keyboard events as CSI-u sequences."""
 
     fn __init__(out self, value: UInt8):
         self.value = value
@@ -879,66 +880,32 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Writable):
         return self.value[T]
 
     fn write_to(self, mut writer: Some[Writer]) -> None:
-        """Format the KeyCode.
+        """Writes the KeyCode to the writer.
 
         On macOS, Backspace is "Delete", Delete is "Fwd Del", and Enter is "Return".
+
+        Args:
+            writer: The writer to write the key code to.
         """
-        if self.isa[Backspace]():
-            writer.write(self[Backspace])
-        elif self.isa[Enter]():
-            writer.write(self[Enter])
-        elif self.isa[Left]():
-            writer.write(self[Left])
-        elif self.isa[Right]():
-            writer.write(self[Right])
-        elif self.isa[Up]():
-            writer.write(self[Up])
-        elif self.isa[Down]():
-            writer.write(self[Down])
-        elif self.isa[Home]():
-            writer.write(self[Home])
-        elif self.isa[End]():
-            writer.write(self[End])
-        elif self.isa[PageUp]():
-            writer.write(self[PageUp])
-        elif self.isa[PageDown]():
-            writer.write(self[PageDown])
-        elif self.isa[Tab]():
-            writer.write(self[Tab])
-        elif self.isa[BackTab]():
-            writer.write(self[BackTab])
-        elif self.isa[Delete]():
-            writer.write(self[Delete])
-        elif self.isa[Insert]():
-            writer.write(self[Insert])
-        elif self.isa[Null]():
-            writer.write(self[Null])
-        elif self.isa[Esc]():
-            writer.write(self[Esc])
-        elif self.isa[CapsLock]():
-            writer.write(self[CapsLock])
-        elif self.isa[ScrollLock]():
-            writer.write(self[ScrollLock])
-        elif self.isa[NumLock]():
-            writer.write(self[NumLock])
-        elif self.isa[PrintScreen]():
-            writer.write(self[PrintScreen])
-        elif self.isa[Pause]():
-            writer.write(self[Pause])
-        elif self.isa[Menu]():
-            writer.write(self[Menu])
-        elif self.isa[KeypadBegin]():
-            writer.write(self[KeypadBegin])
-        elif self.isa[FunctionKey]():
-            writer.write(self[FunctionKey])
-        elif self.isa[Char]():
-            writer.write(self[Char])
-        elif self.isa[MediaKeyCode]():
-            writer.write(self[MediaKeyCode])
-        elif self.isa[ModifierKeyCode]():
-            writer.write(self[ModifierKeyCode])
-        else:
-            writer.write("Unknown KeyCode")
+        comptime for i in range(Variadic.size(Self._type.Ts)):
+            comptime type = Self._type.Ts[i]
+            if self.value.isa[type]():
+                comptime assert conforms_to(type, Writable), String(t"KeyCode type at index, {i}, must implement Writable for formatting")
+                return trait_downcast[Writable](self.value[type]).write_to(writer)
+
+    fn write_repr_to(self, mut writer: Some[Writer]) -> None:
+        """Writes the KeyCode to the writer.
+
+        On macOS, Backspace is "Delete", Delete is "Fwd Del", and Enter is "Return".
+
+        Args:
+            writer: The writer to write the KeyCode representation to.
+        """
+        comptime for i in range(Variadic.size(Self._type.Ts)):
+            comptime type = Self._type.Ts[i]
+            if self.value.isa[type]():
+                comptime assert conforms_to(type, Writable), String(t"KeyCode type at index, {i}, must implement Writable for formatting")
+                return trait_downcast[Writable](self.value[type]).write_repr_to(writer)
 
 
 # ============================================================================
@@ -1322,6 +1289,26 @@ struct KeyEvent(Equatable, EventType, ImplicitlyCopyable, Writable):
         return (
             lhs.code == rhs.code and lhs.modifiers == rhs.modifiers and lhs.kind == rhs.kind and lhs.state == rhs.state
         )
+
+    fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        # TODO: Find a better way than allocating another string.
+        if self.code.isa[Char]() and self.modifiers.contains(KeyModifiers.SHIFT):
+            var temp = String.write(self.code)
+            writer.write(temp.upper())
+            return
+
+        self.code.write_to(writer)
+        if self.modifiers != KeyModifiers.NONE:
+            writer.write(" + ", self.modifiers)
+        if self.kind != KeyEventKind.Press:
+            writer.write(" (", self.kind, ")")
+        if self.state != KeyEventState.NONE:
+            writer.write(" [", self.state, "]")
 
 
 # ============================================================================
