@@ -1,4 +1,4 @@
-from utils.variant import Variant
+from std.utils.variant import Variant
 
 from mist.event.event import Char, Event, InternalEventType, KeyboardEnhancementFlags
 
@@ -8,38 +8,26 @@ from mist.event.event import Char, Event, InternalEventType, KeyboardEnhancement
 # ============================================================================
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct CursorPosition(ImplicitlyCopyable, InternalEventType, Stringable, Writable):
+struct CursorPosition(ImplicitlyCopyable, InternalEventType, Writable, TrivialRegisterPassable):
     """A cursor position response (column, row)."""
 
     var column: UInt16
+    """The cursor column position (0-based)."""
     var row: UInt16
-
-    fn write_to(self, mut writer: Some[Writer]):
-        writer.write("CursorPosition(", self.column, ", ", self.row, ")")
-
-    fn __str__(self) -> String:
-        return String.write(self)
+    """The cursor row position (0-based)."""
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct KeyboardEnhancementFlagsResponse(ImplicitlyCopyable, InternalEventType, Stringable, Writable):
+struct KeyboardEnhancementFlagsResponse(ImplicitlyCopyable, InternalEventType, Writable, TrivialRegisterPassable):
     """The progressive keyboard enhancement flags enabled by the terminal."""
 
     var flags: KeyboardEnhancementFlags
-
-    fn write_to(self, mut writer: Some[Writer]):
-        writer.write("KeyboardEnhancementFlagsResponse(", self.flags.bits(), ")")
-
-    fn __str__(self) -> String:
-        return String.write(self)
+    """The progressive keyboard enhancement flags enabled by the terminal."""
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct PrimaryDeviceAttributes(ImplicitlyCopyable, InternalEventType, Stringable, Writable):
+struct PrimaryDeviceAttributes(ImplicitlyCopyable, InternalEventType, Writable, TrivialRegisterPassable):
     """Attributes and architectural class of the terminal.
 
     This is a stub - the response is not exposed in the public API.
@@ -51,19 +39,13 @@ struct PrimaryDeviceAttributes(ImplicitlyCopyable, InternalEventType, Stringable
     fn __init__(out self):
         self._placeholder = True
 
-    fn write_to(self, mut writer: Some[Writer]):
-        writer.write("PrimaryDeviceAttributes")
-
-    fn __str__(self) -> String:
-        return String.write(self)
-
 
 # ============================================================================
 # Internal Event
 # ============================================================================
 
 
-struct InternalEvent(Copyable, Stringable, Writable):
+struct InternalEvent(Copyable, Writable):
     """An internal event.
 
     Encapsulates publicly available Event with additional internal
@@ -97,7 +79,7 @@ struct InternalEvent(Copyable, Stringable, Writable):
         """Check if the internal event is of the specified type."""
         return self.value.isa[T]()
 
-    fn __getitem__[T: InternalEventType](self) -> ref[self.value] T:
+    fn __getitem_param__[T: InternalEventType](self) -> ref[self.value] T:
         """Get the internal event as the specified type (asserts the type)."""
         return self.value[T]
 
@@ -134,18 +116,39 @@ struct InternalEvent(Copyable, Stringable, Writable):
         return self.value[PrimaryDeviceAttributes]
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the internal event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         if self.value.isa[Event]():
-            writer.write("InternalEvent::Event(", self.value[Event], ")")
+            writer.write(t"InternalEvent(Event({self.value[Event]})")
         elif self.value.isa[CursorPosition]():
-            writer.write("InternalEvent::CursorPosition(", self.value[CursorPosition], ")")
+            writer.write(t"InternalEvent(CursorPosition({self.value[CursorPosition]}))")
         elif self.value.isa[KeyboardEnhancementFlagsResponse]():
             writer.write(
-                "InternalEvent::KeyboardEnhancementFlagsResponse(", self.value[KeyboardEnhancementFlagsResponse], ")"
+                t"InternalEvent(KeyboardEnhancementFlagsResponse({self.value[KeyboardEnhancementFlagsResponse]}))"
             )
         elif self.value.isa[PrimaryDeviceAttributes]():
-            writer.write("InternalEvent::PrimaryDeviceAttributes(", self.value[PrimaryDeviceAttributes], ")")
+            writer.write(t"InternalEvent(PrimaryDeviceAttributes({self.value[PrimaryDeviceAttributes]}))")
         else:
-            writer.write("InternalEvent::Unknown")
+            writer.write("InternalEvent(value=UNKNOWN)")
 
-    fn __str__(self) -> String:
-        return String.write(self)
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the internal event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        if self.value.isa[Event]():
+            writer.write(t"InternalEvent(value=Event({self.value[Event]})")
+        elif self.value.isa[CursorPosition]():
+            writer.write(t"InternalEvent(value=CursorPosition({self.value[CursorPosition]}))")
+        elif self.value.isa[KeyboardEnhancementFlagsResponse]():
+            writer.write(
+                t"InternalEvent(value=KeyboardEnhancementFlagsResponse({self.value[KeyboardEnhancementFlagsResponse]}))"
+            )
+        elif self.value.isa[PrimaryDeviceAttributes]():
+            writer.write(t"InternalEvent(value=PrimaryDeviceAttributes({self.value[PrimaryDeviceAttributes]}))")
+        else:
+            writer.write("InternalEvent(value=UNKNOWN)")

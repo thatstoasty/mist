@@ -25,8 +25,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable):
         if rune < 0 or rune > 0x10FFFF:
             return 0
 
-        @parameter
-        if not Self.east_asian_width:
+        comptime if not Self.east_asian_width:
             if rune < 0x20:
                 return 0
             # nonprint
@@ -58,8 +57,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable):
             elif in_table[AMBIGUOUS](codepoint) or in_table[EMOJI](codepoint):
                 return 2
 
-            @parameter
-            if Self.strict_emoji_neutral:
+            comptime if Self.strict_emoji_neutral:
                 return 1
 
             if in_table[AMBIGUOUS](codepoint):
@@ -86,7 +84,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable):
         return width
 
 
-fn in_table[table: InlineArray[Interval]](codepoint: Codepoint) -> Bool:
+fn in_table[table: InlineArray[Interval, ...]](codepoint: Codepoint) -> Bool:
     """Check if the rune is in the table.
 
     Parameters:

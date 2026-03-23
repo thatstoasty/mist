@@ -1,5 +1,5 @@
 import mist.style._hue as hue
-import testing
+from std import testing
 from mist.style.color import (
     ANSI256Color,
     ANSIColor,
@@ -11,7 +11,7 @@ from mist.style.color import (
     hex_to_rgb,
     rgb_to_hex,
 )
-from testing import TestSuite
+from std.testing import TestSuite
 
 
 fn test_color_sequence() raises:

@@ -10,7 +10,7 @@ comptime DEFAULT_TAB_WIDTH = 4
 
 
 @fieldwise_init
-struct WrapWriter[keep_newlines: Bool = True](Movable, Stringable):
+struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
     """A line wrapping writer that wraps content based on the given limit.
 
     Parameters:
@@ -75,13 +75,13 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Stringable):
         self.ansi = ansi
         self.forceful_newline = forceful_newline
 
-    fn __str__(self) -> String:
-        """Returns the wrapped result as a string by copying the content of the internal buffer.
+    fn write_to(self, mut writer: Some[Writer]):
+        """Writes the wrapped result to the given writer.
 
-        Returns:
-            The wrapped string.
+        Args:
+            writer: The writer to write the wrapped result to.
         """
-        return String(self.buf)
+        writer.write(self.buf)
 
     fn add_newline(mut self) -> None:
         """Adds a newline to the buffer and resets the line length."""
@@ -98,8 +98,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Stringable):
         var tab_space = SPACE * Int(self.tab_width)
         content = content.replace("\t", tab_space)
 
-        @parameter
-        if not Self.keep_newlines:
+        comptime if not Self.keep_newlines:
             content = content.replace("\n", "")
 
         var width = ansi.printable_rune_width(content)

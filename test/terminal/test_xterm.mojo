@@ -1,5 +1,5 @@
 from mist.terminal.xterm import XTermColor, parse_xterm_color
-from testing import TestSuite, assert_equal
+from std.testing import TestSuite, assert_equal
 
 
 fn test_parse_xterm_color() raises -> None:

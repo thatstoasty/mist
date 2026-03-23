@@ -1,9 +1,8 @@
-import math
-from os import abort
-from sys import is_compile_time
+from std import math
+from std.os import abort
 
 from mist._utils import lut
-from utils.numerics import max_finite
+from std.utils.numerics import max_finite
 
 
 @always_inline
@@ -93,8 +92,7 @@ fn get_bounds(l: Float64) -> InlineArray[InlineArray[Float64, 2], 6]:
     var sub_1 = (l + 16.0**3.0) / 1560896.0
     var sub_2 = sub_1 if sub_1 > EPSILON else l / KAPPA
 
-    @parameter
-    for i in range(len(XYZ_TO_RGB_MATRIX)):
+    comptime for i in range(len(XYZ_TO_RGB_MATRIX)):
         var k = 0
         while k < 2:
             var top1 = (284517.0 * lut[XYZ_TO_RGB_MATRIX](i)[0] - 94839.0 * lut[XYZ_TO_RGB_MATRIX](i)[2]) * sub_2
@@ -229,8 +227,7 @@ fn LuvLch_to_HSLuv(var l: Float64, var c: Float64, h: Float64) -> Tuple[Float64,
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct Color(Copyable, Representable, Stringable):
+struct Color(Copyable, Writable, TrivialRegisterPassable):
     """A color represented by red, green, and blue values.
     RGB values are stored internally using sRGB (standard RGB) values in the range 0-1.
     """
@@ -286,21 +283,13 @@ struct Color(Copyable, Representable, Stringable):
         self.G = (hex >> 8 & 0xFF).cast[DType.uint8]().cast[DType.float64]() / 255.0
         self.B = (hex & 0xFF).cast[DType.uint8]().cast[DType.float64]() / 255.0
 
-    fn __str__(self) -> String:
-        """Returns the string representation of the color.
+    fn write_to(self, mut writer: Some[Writer]):
+        """Writes the string representation of the color to the given writer.
 
-        Returns:
-            The string representation of the color.
+        Args:
+            writer: The writer to write the string representation to.
         """
-        return String("Color(", self.R, ", ", self.G, ", ", self.B, ")")
-
-    fn __repr__(self) -> String:
-        """Returns the string representation of the color.
-
-        Returns:
-            The string representation of the color.
-        """
-        return String("Color(", self.R, ", ", self.G, ", ", self.B, ")")
+        writer.write("Color(", self.R, ", ", self.G, ", ", self.B, ")")
 
     fn hex(self) -> UInt32:
         """Converts red, green, and blue values to a number in hexadecimal format.
@@ -308,7 +297,7 @@ struct Color(Copyable, Representable, Stringable):
         Returns:
             The hexadecimal representation of the color.
         """
-        return (Int(self.R * 255.0) << 16) | (Int(self.G * 255.0) << 8) | Int(self.B * 255.0)
+        return UInt32((Int(self.R * 255.0) << 16) | (Int(self.G * 255.0) << 8) | Int(self.B * 255.0))
 
     fn linear_rgb(self) -> Tuple[Float64, Float64, Float64]:
         """Converts the color into the linear color space (see http://www.sjbrown.co.uk/2004/05/14/gamma-correct-rendering/).

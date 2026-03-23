@@ -19,12 +19,12 @@ The parsing follows these conventions:
 - `Some(event)` return -> we have event, clear the buffer
 """
 
-from sys import stdin
+from std.sys import stdin
 
 from mist.event.internal import CursorPosition, InternalEvent, KeyboardEnhancementFlagsResponse, PrimaryDeviceAttributes
 from mist.terminal.sgr import CSI, ESC
 from mist.termios.tty import is_terminal_raw
-from utils import Variant
+from std.utils import Variant
 
 from mist.event.event import (  # Key types; Mouse event types; Event types
     Backspace,
@@ -80,14 +80,14 @@ from mist.event.event import (  # Key types; Mouse event types; Event types
 )
 
 
-fn starts_with[pattern: StringSlice](buffer: Span[UInt8]) -> Bool:
+fn starts_with[pattern: StringSlice](buffer: Span[UInt8, ...]) -> Bool:
     for expected, actual in zip(pattern.as_bytes(), buffer):
         if expected != actual:
             return False
     return True
 
 
-fn assert_starts_with[pattern: StringSlice](buffer: Span[UInt8]) raises:
+fn assert_starts_with[pattern: StringSlice](buffer: Span[UInt8, ...]) raises:
     """Assert that the buffer starts with the CSI sequence."""
     # TODO: Test which is faster - converting pattern to bytes at comptime or comparing as string slices
     # if not StringSlice(from_utf8=buffer).startswith(pattern):
@@ -97,14 +97,14 @@ fn assert_starts_with[pattern: StringSlice](buffer: Span[UInt8]) raises:
         raise Error("Buffer does not start with expected pattern: ", pattern)
 
 
-fn ends_with[pattern: StringSlice](buffer: Span[UInt8]) -> Bool:
+fn ends_with[pattern: StringSlice](buffer: Span[UInt8, ...]) -> Bool:
     for expected, actual in zip(reversed(pattern.as_bytes()), reversed(buffer)):
         if expected != actual:
             return False
     return True
 
 
-fn assert_ends_with[pattern: StringSlice](buffer: Span[UInt8]) raises:
+fn assert_ends_with[pattern: StringSlice](buffer: Span[UInt8, ...]) raises:
     """Assert that the buffer ends with the CSI sequence."""
     if not ends_with[pattern](buffer):
         raise Error("Buffer does not start with expected pattern: ", pattern)
@@ -134,8 +134,11 @@ fn _saturating_sub(value: UInt8, sub: UInt8) -> UInt8:
 
 fn _char_to_digit(c: UInt8) -> Optional[UInt8]:
     """Convert an ASCII digit character to its numeric value."""
-    if c >= ord("0") and c <= ord("9"):
-        return c - ord("0")
+    comptime ZERO_BYTE = UInt8(ord("0"))
+    comptime NINE_BYTE = UInt8(ord("9"))
+
+    if c >= ZERO_BYTE and c <= NINE_BYTE:
+        return c - ZERO_BYTE
     return None
 
 
@@ -431,7 +434,7 @@ fn parse_cb(cb: UInt8) raises -> Tuple[MouseEventKind, KeyModifiers]:
     return (kind, modifiers)
 
 
-fn parse_csi_rxvt_mouse(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_rxvt_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse rxvt mouse encoding.
 
     Format: ESC [ Cb ; Cx ; Cy ; M
@@ -468,7 +471,7 @@ fn parse_csi_rxvt_mouse(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
     return InternalEvent(Event(MouseEvent(kind, cx, cy, modifiers)))
 
 
-fn parse_csi_normal_mouse(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_normal_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse normal mouse encoding.
 
     Format: ESC [ M CB Cx Cy (6 characters only)
@@ -508,7 +511,7 @@ fn parse_csi_normal_mouse(buffer: Span[UInt8]) raises -> Optional[InternalEvent]
     return InternalEvent(Event(MouseEvent(kind, cx, cy, modifiers)))
 
 
-fn parse_csi_sgr_mouse(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_sgr_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse SGR mouse encoding.
 
     Format: ESC [ < Cb ; Cx ; Cy (;) (M or m)
@@ -522,7 +525,7 @@ fn parse_csi_sgr_mouse(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
     # Buffer should start with ESC [ <
     assert_starts_with[CSI + "<"](buffer)
     var last_byte = buffer[len(buffer)]
-    if last_byte != ord("m") and last_byte != ord("M"):
+    if last_byte != m_BYTE and last_byte != M_BYTE:
         return None
 
     # Parse the parameters between ESC[< and M/m
@@ -558,7 +561,7 @@ fn parse_csi_sgr_mouse(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
 # ============================================================================
 
 
-fn parse_csi_cursor_position(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_cursor_position(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse cursor position response.
 
     Format: ESC [ Cy ; Cx R
@@ -593,7 +596,7 @@ fn parse_csi_cursor_position(buffer: Span[UInt8]) raises -> Optional[InternalEve
 # ============================================================================
 
 
-fn parse_csi_keyboard_enhancement_flags(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_keyboard_enhancement_flags(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse keyboard enhancement flags response.
 
     Format: ESC [ ? flags u
@@ -630,7 +633,7 @@ fn parse_csi_keyboard_enhancement_flags(buffer: Span[UInt8]) raises -> Optional[
 # ============================================================================
 
 
-fn parse_csi_primary_device_attributes(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_primary_device_attributes(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse primary device attributes response.
 
     Format: ESC [ 64 ; attr1 ; attr2 ; ... ; attrn ; c
@@ -654,7 +657,7 @@ fn parse_csi_primary_device_attributes(buffer: Span[UInt8]) raises -> Optional[I
 # ============================================================================
 
 
-fn parse_csi_modifier_key_code(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_modifier_key_code(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse CSI modifier key code sequence.
 
     Args:
@@ -693,25 +696,25 @@ fn parse_csi_modifier_key_code(buffer: Span[UInt8]) raises -> Optional[InternalE
     var key = buffer[len(buffer) - 1]
 
     var keycode: KeyCode
-    if key == ord("A"):
+    if key == A_BYTE:
         keycode = KeyCode(Up())
-    elif key == ord("B"):
+    elif key == B_BYTE:
         keycode = KeyCode(Down())
-    elif key == ord("C"):
+    elif key == C_BYTE:
         keycode = KeyCode(Right())
-    elif key == ord("D"):
+    elif key == D_BYTE:
         keycode = KeyCode(Left())
-    elif key == ord("F"):
+    elif key == F_BYTE:
         keycode = KeyCode(End())
-    elif key == ord("H"):
+    elif key == H_BYTE:
         keycode = KeyCode(Home())
-    elif key == ord("P"):
+    elif key == P_BYTE:
         keycode = KeyCode(FunctionKey(1))
-    elif key == ord("Q"):
+    elif key == Q_BYTE:
         keycode = KeyCode(FunctionKey(2))
-    elif key == ord("R"):
+    elif key == R_BYTE:
         keycode = KeyCode(FunctionKey(3))
-    elif key == ord("S"):
+    elif key == S_BYTE:
         keycode = KeyCode(FunctionKey(4))
     else:
         raise could_not_parse_event_error()
@@ -724,7 +727,7 @@ fn parse_csi_modifier_key_code(buffer: Span[UInt8]) raises -> Optional[InternalE
 # ============================================================================
 
 
-fn parse_csi_special_key_code(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_special_key_code(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse CSI special key code sequence.
 
     Format: ESC [ number ; modifier ~
@@ -797,7 +800,7 @@ fn parse_csi_special_key_code(buffer: Span[UInt8]) raises -> Optional[InternalEv
 # ============================================================================
 
 
-fn parse_csi_u_encoded_key_code(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_u_encoded_key_code(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse CSI u encoded key code (Kitty keyboard protocol).
 
     Format: CSI codepoint ; modifiers u (basic)
@@ -902,7 +905,7 @@ fn parse_csi_u_encoded_key_code(buffer: Span[UInt8]) raises -> Optional[Internal
 # ============================================================================
 
 
-fn parse_csi_bracketed_paste(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi_bracketed_paste(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse bracketed paste sequence.
 
     Format: ESC [ 2 0 0 ~ pasted text ESC [ 2 0 1 ~
@@ -929,7 +932,7 @@ fn parse_csi_bracketed_paste(buffer: Span[UInt8]) raises -> Optional[InternalEve
 # ============================================================================
 
 
-fn parse_utf8_char(buffer: Span[UInt8]) raises -> Optional[Codepoint]:
+fn parse_utf8_char(buffer: Span[UInt8, ...]) raises -> Optional[Codepoint]:
     """Parse a UTF-8 encoded character from the buffer.
 
     Args:
@@ -1072,7 +1075,7 @@ comptime CTRL_4 = 0x1C
 comptime CTRL_7 = 0x1F
 
 
-fn parse_csi(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
+fn parse_csi(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:
     """Parse a CSI (Control Sequence Introducer) escape sequence.
 
     CSI sequences start with ESC [ and are used for various terminal commands.
@@ -1092,7 +1095,7 @@ fn parse_csi(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
 
     var third_byte = buffer[2]
 
-    if third_byte == ord("["):
+    if third_byte == LBRACKET_BYTE:
         # ESC [ [ - Linux console F1-F5
         if len(buffer) == 3:
             return None
@@ -1176,7 +1179,7 @@ fn parse_csi(buffer: Span[UInt8]) raises -> Optional[InternalEvent]:
 # ============================================================================
 
 
-fn parse_event(buffer: Span[UInt8], input_available: Bool) raises -> Optional[InternalEvent]:
+fn parse_event(buffer: Span[UInt8, ...], input_available: Bool) raises -> Optional[InternalEvent]:
     """Parse a terminal input event from a byte buffer.
 
     This is the main entry point for parsing terminal input.

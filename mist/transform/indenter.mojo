@@ -3,7 +3,7 @@ from mist.transform.ansi import NEWLINE_BYTE, SPACE
 
 
 @fieldwise_init
-struct IndentWriter(Movable, Stringable, Writable):
+struct IndentWriter(Movable, Writable):
     """A writer that indents content by a given number of spaces.
 
     #### Examples:

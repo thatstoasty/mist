@@ -36,7 +36,6 @@ fn clear_lines(n: UInt16) -> None:
     print(CLEAR_LINE + movement, sep="", end="")
 
 
-
 comptime RESTORE_SCREEN = CSI + "?47l"
 """Restores the screen state `CSI + ?47 + l = \\x1b[?47l`."""
 comptime SAVE_SCREEN = CSI + "?47h"

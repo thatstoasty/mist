@@ -40,7 +40,7 @@ fn _apply_dedent(text: StringSlice, indent: UInt) -> String:
     """
     var should_omit = True
     var omitted: UInt = 0
-    var buf = String(capacity=Int(text.byte_length() * 1.25))
+    var buf = String(capacity=Int(Float64(text.byte_length()) * 1.25))
 
     for codepoint in text.codepoint_slices():
         if codepoint == "\t" or codepoint == " ":

@@ -1,6 +1,5 @@
 @fieldwise_init
-@register_passable("trivial")
-struct Event(Boolable, Equatable, ImplicitlyCopyable):
+struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
     """Represents an event that can be monitored by the `select` function."""
 
     var value: Int

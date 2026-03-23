@@ -1,7 +1,7 @@
 import mist.style._hue as hue
 from mist._utils import lut
 from mist.style._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
-from utils import Variant
+from std.utils import Variant
 
 
 comptime FOREGROUND = "38"
@@ -10,7 +10,7 @@ comptime BACKGROUND = "48"
 """ANSI code for background colors."""
 
 
-trait Color(Copyable, Equatable, Representable, Stringable, Writable):
+trait Color(ImplicitlyCopyable, Equatable, Writable):
     """Represents colors that can be displayed in the terminal."""
 
     fn sequence[is_background: Bool](self) -> String:
@@ -33,9 +33,8 @@ trait Color(Copyable, Equatable, Representable, Stringable, Writable):
         ...
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct NoColor(Color):
+struct NoColor(Color, TrivialRegisterPassable):
     """NoColor represents an ASCII color which is binary black or white."""
 
     fn __eq__(self, other: Self) -> Bool:
@@ -57,21 +56,13 @@ struct NoColor(Color):
         """
         writer.write("NoColor()")
 
-    fn __str__(self) -> String:
-        """Returns the string representation of the NoColor.
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes the representation to the writer.
 
-        Returns:
-            The string representation of the NoColor.
+        Args:
+            writer: The writer to write the data to.
         """
-        return String.write(self)
-
-    fn __repr__(self) -> String:
-        """Returns the string representation of the NoColor.
-
-        Returns:
-            The string representation of the NoColor.
-        """
-        return String(self)
+        writer.write("NoColor()")
 
     fn sequence[is_background: Bool](self) -> String:
         """Returns an empty string. This function is used to implement the Color trait.
@@ -93,8 +84,7 @@ struct NoColor(Color):
         return ""
 
 
-@register_passable("trivial")
-struct ANSIColor(Color):
+struct ANSIColor(Color, TrivialRegisterPassable):
     """ANSIColor is a color (0-15) as defined by the ANSI Standard."""
 
     var value: UInt8
@@ -135,21 +125,13 @@ struct ANSIColor(Color):
         """
         writer.write("ANSIColor(", self.value, ")")
 
-    fn __str__(self) -> String:
-        """Converts the ANSIColor to a string.
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes the representation to the writer.
 
-        Returns:
-            The string representation of the ANSIColor.
+        Args:
+            writer: The writer to write the data to.
         """
-        return String.write(self)
-
-    fn __repr__(self) -> String:
-        """Converts the ANSIColor to a string.
-
-        Returns:
-            The string representation of the ANSIColor.
-        """
-        return String(self)
+        writer.write("ANSIColor(", self.value, ")")
 
     fn __eq__(self, other: ANSIColor) -> Bool:
         """Compares two colors for equality.
@@ -179,10 +161,9 @@ struct ANSIColor(Color):
         Returns:
             The ANSI Sequence for the color and the text.
         """
-        var modifier: Int
+        var modifier: UInt8
 
-        @parameter
-        if is_background:
+        comptime if is_background:
             modifier = 10
         else:
             modifier = 0
@@ -200,9 +181,8 @@ struct ANSIColor(Color):
         return hex_to_string(lut[ANSI_HEX_CODES](Int(self.value)))
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct ANSI256Color(Color):
+struct ANSI256Color(Color, TrivialRegisterPassable):
     """ANSI256Color is a color (16-255) as defined by the ANSI Standard."""
 
     var value: UInt8
@@ -224,21 +204,13 @@ struct ANSI256Color(Color):
         """
         writer.write("ANSI256Color(", self.value, ")")
 
-    fn __str__(self) -> String:
-        """Converts the color to a string.
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes the representation to the writer.
 
-        Returns:
-            The string representation of the color value.
+        Args:
+            writer: The writer to write the data to.
         """
-        return String.write(self)
-
-    fn __repr__(self) -> String:
-        """Converts the ANSI256Color to a string.
-
-        Returns:
-            The string representation of the ANSI256Color.
-        """
-        return String(self)
+        writer.write("ANSI256Color(", self.value, ")")
 
     fn __eq__(self, other: ANSI256Color) -> Bool:
         """Compares two colors for equality.
@@ -270,8 +242,7 @@ struct ANSI256Color(Color):
         """
         var output = String(capacity=8)
 
-        @parameter
-        if is_background:
+        comptime if is_background:
             output.write(BACKGROUND)
         else:
             output.write(FOREGROUND)
@@ -345,9 +316,8 @@ fn hex_to_string(value: UInt32) -> String:
     return result
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct RGBColor(Color):
+struct RGBColor(Color, TrivialRegisterPassable):
     """RGBColor is a hex-encoded color, e.g. `0xabcdef`."""
 
     var value: UInt32
@@ -387,21 +357,13 @@ struct RGBColor(Color):
         """
         writer.write("RGBColor(", self.value, ")")
 
-    fn __str__(self) -> String:
-        """Converts the RGBColor to a string.
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes the representation to the writer.
 
-        Returns:
-            The string representation of the RGBColor.
+        Args:
+            writer: The writer to write the data to.
         """
-        return String.write(self)
-
-    fn __repr__(self) -> String:
-        """Converts the RGBColor to a string.
-
-        Returns:
-            The string representation of the RGBColor.
-        """
-        return String.write(self)
+        writer.write("RGBColor(", self.value, ")")
 
     fn __eq__(self, other: RGBColor) -> Bool:
         """Compares two colors for equality.
@@ -433,8 +395,7 @@ struct RGBColor(Color):
         """
         var output = String(capacity=8)
 
-        @parameter
-        if is_background:
+        comptime if is_background:
             output.write(BACKGROUND)
         else:
             output.write(FOREGROUND)
@@ -463,13 +424,12 @@ fn ansi256_to_ansi(value: UInt8) -> UInt8:
     Returns:
         The ANSI color value.
     """
-    comptime MAX_ANSI = 16
+    comptime MAX_ANSI: UInt8 = 16
     var r: UInt8 = 0
     var md = hue.MAX_FLOAT64
     var h_color = hue.Color(lut[ANSI_HEX_CODES](Int(value)))
 
-    @parameter
-    for i in range(MAX_ANSI):
+    comptime for i in range(MAX_ANSI):
         var d = h_color.distance_HSLuv(hue.Color(lut[ANSI_HEX_CODES](i)))
         if d < md:
             md = d
@@ -515,7 +475,7 @@ fn hex_to_ansi256(color: hue.Color) -> UInt8:
     if average > 238:
         gray_index = 23
     else:
-        gray_index = Int((average - 3) / 10)  # 0..23
+        gray_index = UInt8(Int((average - 3) / 10))  # 0..23
     var gv = 8 + 10 * gray_index  # same value for r/g/b, 0..255
 
     # Calculate the represented colors back from the index
@@ -611,7 +571,7 @@ struct AnyColor(Copyable):
         """
         return self.value.isa[T]()
 
-    fn __getitem__[T: Color](ref self) -> ref[self.value] T:
+    fn __getitem_param__[T: Color](ref self) -> ref[self.value] T:
         """Gets the value as the given type.
 
         Parameters:

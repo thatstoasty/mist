@@ -11,7 +11,7 @@ Mouse and focus events are not enabled by default. You have to enable them with
 the EnableMouseCapture / EnableFocusChange commands.
 """
 
-from utils import Variant
+from std.utils import Variant
 
 
 # ============================================================================
@@ -19,8 +19,7 @@ from utils import Variant
 # ============================================================================
 
 
-@register_passable("trivial")
-struct KeyboardEnhancementFlags(Equatable, ImplicitlyCopyable):
+struct KeyboardEnhancementFlags(Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
     """Represents special flags that tell compatible terminals to add extra information to keyboard events.
 
     See https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement for more information.
@@ -83,8 +82,7 @@ struct KeyboardEnhancementFlags(Equatable, ImplicitlyCopyable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct KeyModifiers(Equatable, ImplicitlyCopyable, Stringable, Writable):
+struct KeyModifiers(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
     """Represents key modifiers (shift, control, alt, etc.).
 
     Note: SUPER, HYPER, and META can only be read if
@@ -156,18 +154,13 @@ struct KeyModifiers(Equatable, ImplicitlyCopyable, Stringable, Writable):
 
         writer.write("+".join(parts))
 
-    fn __str__(self) -> String:
-        return String.write(self)
-
-
 # ============================================================================
 # Key Event State (bitflags)
 # ============================================================================
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct KeyEventState(Equatable, ImplicitlyCopyable, Stringable, Writable):
+struct KeyEventState(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
     """Represents extra state about the key event.
 
     Note: This state can only be read if
@@ -208,8 +201,13 @@ struct KeyEventState(Equatable, ImplicitlyCopyable, Stringable, Writable):
 
         writer.write("+".join(parts))
 
-    fn __str__(self) -> String:
-        return String.write(self)
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key event state to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("KeyEventState(", self.value, ")")
 
     fn contains(self, other: Self) -> Bool:
         """Check if this state contains all flags from other."""
@@ -226,8 +224,7 @@ struct KeyEventState(Equatable, ImplicitlyCopyable, Stringable, Writable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct KeyEventKind(Equatable, ImplicitlyCopyable, Stringable, Writable):
+struct KeyEventKind(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
     """Represents a keyboard event kind."""
 
     var value: UInt8
@@ -247,8 +244,13 @@ struct KeyEventKind(Equatable, ImplicitlyCopyable, Stringable, Writable):
         else:
             writer.write("Release")
 
-    fn __str__(self) -> String:
-        return String.write(self)
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key event kind to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("KeyEventKind(", self.value, ")")
 
 
 # ============================================================================
@@ -257,8 +259,7 @@ struct KeyEventKind(Equatable, ImplicitlyCopyable, Stringable, Writable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct MediaKeyCode(Equatable, ImplicitlyCopyable, KeyType):
+struct MediaKeyCode(Equatable, ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents a media key."""
 
     var value: UInt8
@@ -308,8 +309,13 @@ struct MediaKeyCode(Equatable, ImplicitlyCopyable, KeyType):
         else:
             writer.write("Mute Volume")
 
-    fn __str__(self) -> String:
-        return String.write(self)
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the media key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MediaKeyCode(", self.value, ")")
 
 
 # ============================================================================
@@ -317,9 +323,8 @@ struct MediaKeyCode(Equatable, ImplicitlyCopyable, KeyType):
 # ============================================================================
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct ModifierKeyCode(Equatable, ImplicitlyCopyable, KeyType, Stringable):
+struct ModifierKeyCode(Equatable, ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents a modifier key.
 
     On macOS, control is "Control", alt is "Option", and super is "Command".
@@ -376,8 +381,13 @@ struct ModifierKeyCode(Equatable, ImplicitlyCopyable, KeyType, Stringable):
         else:
             writer.write("Iso Level 5 Shift")
 
-    fn __str__(self) -> String:
-        return String.write(self)
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the modifier key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("ModifierKeyCode(", self.value, ")")
 
 
 # ============================================================================
@@ -391,9 +401,8 @@ trait KeyType(Writable):
     pass
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct Backspace(ImplicitlyCopyable, KeyType):
+struct Backspace(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -403,10 +412,17 @@ struct Backspace(ImplicitlyCopyable, KeyType):
     fn write_to(self, mut writer: Some[Writer]):
         writer.write("Backspace")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the backspace key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Backspace()")
+
+
 @fieldwise_init
-struct Enter(ImplicitlyCopyable, KeyType):
+struct Enter(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -414,12 +430,24 @@ struct Enter(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the enter key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Enter")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the enter key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Enter()")
+
+
 @fieldwise_init
-struct Left(ImplicitlyCopyable, KeyType):
+struct Left(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -429,10 +457,17 @@ struct Left(ImplicitlyCopyable, KeyType):
     fn write_to(self, mut writer: Some[Writer]):
         writer.write("Left")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the left key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Left()")
+
+
 @fieldwise_init
-struct Right(ImplicitlyCopyable, KeyType):
+struct Right(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -442,10 +477,17 @@ struct Right(ImplicitlyCopyable, KeyType):
     fn write_to(self, mut writer: Some[Writer]):
         writer.write("Right")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the right key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Right()")
+
+
 @fieldwise_init
-struct Up(ImplicitlyCopyable, KeyType):
+struct Up(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -453,12 +495,24 @@ struct Up(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the home key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Up")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the up key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Up()")
+
+
 @fieldwise_init
-struct Down(ImplicitlyCopyable, KeyType):
+struct Down(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -466,12 +520,24 @@ struct Down(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the home key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Down")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the down key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Down()")
+
+
 @fieldwise_init
-struct Home(ImplicitlyCopyable, KeyType):
+struct Home(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -479,12 +545,24 @@ struct Home(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Home")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Home()")
+
+
 @fieldwise_init
-struct End(ImplicitlyCopyable, KeyType):
+struct End(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -492,12 +570,24 @@ struct End(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("End")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("End()")
+
+
 @fieldwise_init
-struct PageUp(ImplicitlyCopyable, KeyType):
+struct PageUp(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -505,10 +595,22 @@ struct PageUp(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Page Up")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Page Up()")
+
+
 @fieldwise_init
 struct PageDown(ImplicitlyCopyable, KeyType):
     var remove_later: Bool
@@ -518,12 +620,24 @@ struct PageDown(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Page Down")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Page Down()")
+
+
 @fieldwise_init
-struct Tab(ImplicitlyCopyable, KeyType):
+struct Tab(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -531,12 +645,24 @@ struct Tab(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Tab")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Tab()")
+
+
 @fieldwise_init
-struct BackTab(ImplicitlyCopyable, KeyType):
+struct BackTab(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -544,12 +670,24 @@ struct BackTab(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Back Tab")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Back Tab()")
+
+
 @fieldwise_init
-struct Delete(ImplicitlyCopyable, KeyType):
+struct Delete(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -557,12 +695,24 @@ struct Delete(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Delete")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Delete()")
+
+
 @fieldwise_init
-struct Insert(ImplicitlyCopyable, KeyType):
+struct Insert(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -570,12 +720,24 @@ struct Insert(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Insert")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Insert()")
+
+
 @fieldwise_init
-struct Null(ImplicitlyCopyable, KeyType):
+struct Null(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -583,12 +745,24 @@ struct Null(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Null")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Null()")
+
+
 @fieldwise_init
-struct Esc(ImplicitlyCopyable, KeyType):
+struct Esc(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -596,12 +770,24 @@ struct Esc(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Esc")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Esc()")
+
+
 @fieldwise_init
-struct CapsLock(ImplicitlyCopyable, KeyType):
+struct CapsLock(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -609,12 +795,24 @@ struct CapsLock(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Caps Lock")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("CapsLock()")
+
+
 @fieldwise_init
-struct ScrollLock(ImplicitlyCopyable, KeyType):
+struct ScrollLock(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -622,12 +820,24 @@ struct ScrollLock(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Scroll Lock")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("ScrollLock()")
+
+
 @fieldwise_init
-struct NumLock(ImplicitlyCopyable, KeyType):
+struct NumLock(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -635,12 +845,24 @@ struct NumLock(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Num Lock")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("NumLock()")
+
+
 @fieldwise_init
-struct PrintScreen(ImplicitlyCopyable, KeyType):
+struct PrintScreen(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -648,12 +870,24 @@ struct PrintScreen(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Print Screen")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("PrintScreen()")
+
+
 @fieldwise_init
-struct Pause(ImplicitlyCopyable, KeyType):
+struct Pause(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -661,12 +895,24 @@ struct Pause(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Pause")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Pause()")
+
+
 @fieldwise_init
-struct Menu(ImplicitlyCopyable, KeyType):
+struct Menu(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -674,12 +920,24 @@ struct Menu(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Menu")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("Menu()")
+
+
 @fieldwise_init
-struct KeypadBegin(ImplicitlyCopyable, KeyType):
+struct KeypadBegin(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var remove_later: Bool
     """Only here because of a bug in the complier with empty structs."""
 
@@ -687,16 +945,41 @@ struct KeypadBegin(ImplicitlyCopyable, KeyType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("Keypad Begin")
 
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
 
-@register_passable("trivial")
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("KeypadBegin()")
+
+
 @fieldwise_init
-struct FunctionKey(ImplicitlyCopyable, KeyType):
+struct FunctionKey(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     var number: UInt8
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("F", self.number)
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("FunctionKey(", self.number, ")")
 
 
 @fieldwise_init
@@ -726,7 +1009,7 @@ struct Char(Equatable, ImplicitlyCopyable, KeyType):
 
 
 @fieldwise_init
-struct KeyCode(Equatable, ImplicitlyCopyable, Stringable, Writable):
+struct KeyCode(Equatable, ImplicitlyCopyable, Writable):
     """Represents a key.
 
     This struct uses a type tag and a value field to represent different key types.
@@ -878,7 +1161,7 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Stringable, Writable):
         """Returns True if the key code is of type T."""
         return self.value.isa[T]()
 
-    fn __getitem__[T: KeyType](ref self) -> ref[self.value] T:
+    fn __getitem_param__[T: KeyType](ref self) -> ref[self.value] T:
         """Returns the key code as type T."""
         return self.value[T]
 
@@ -944,18 +1227,14 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Stringable, Writable):
         else:
             writer.write("Unknown KeyCode")
 
-    fn __str__(self) -> String:
-        return String.write(self)
-
 
 # ============================================================================
 # Mouse Button
 # ============================================================================
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MouseButton(Equatable, ImplicitlyCopyable, Stringable, Writable):
+struct MouseButton(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
     """Represents a mouse button."""
 
     var value: UInt8
@@ -990,42 +1269,77 @@ trait MouseEventType(Writable):
     ...
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MousePress(Equatable, ImplicitlyCopyable, MouseEventType):
+struct MousePress(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRegisterPassable):
     """Pressed mouse button."""
 
     var button: MouseButton
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MousePress(", self.button, ")")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("MousePress(", self.button, ")")
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MouseRelease(Equatable, ImplicitlyCopyable, MouseEventType):
+struct MouseRelease(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRegisterPassable):
     """Released mouse button."""
 
     var button: MouseButton
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MouseRelease(", self.button, ")")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("MouseRelease(", self.button, ")")
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MouseDrag(Equatable, ImplicitlyCopyable, MouseEventType):
+struct MouseDrag(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRegisterPassable):
     """Moved the mouse cursor while pressing a button."""
 
     var button: MouseButton
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MouseDrag(", self.button, ")")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("MouseDrag(", self.button, ")")
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MouseMoved(Equatable, ImplicitlyCopyable, MouseEventType):
+struct MouseMoved(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRegisterPassable):
     """Moved the mouse cursor while not pressing a mouse button."""
 
     var remove_later: Bool
@@ -1035,12 +1349,24 @@ struct MouseMoved(Equatable, ImplicitlyCopyable, MouseEventType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MouseMoved()")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("MouseMoved()")
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MouseScrollDown(Equatable, ImplicitlyCopyable, MouseEventType):
+struct MouseScrollDown(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRegisterPassable):
     """Scrolled mouse wheel downwards (towards the user)."""
 
     var remove_later: Bool
@@ -1050,12 +1376,24 @@ struct MouseScrollDown(Equatable, ImplicitlyCopyable, MouseEventType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MouseScrollDown()")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("MouseScrollDown()")
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MouseScrollUp(Equatable, ImplicitlyCopyable, MouseEventType):
+struct MouseScrollUp(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRegisterPassable):
     """Scrolled mouse wheel upwards (away from the user)."""
 
     var remove_later: Bool
@@ -1065,12 +1403,24 @@ struct MouseScrollUp(Equatable, ImplicitlyCopyable, MouseEventType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MouseScrollUp()")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("MouseScrollUp()")
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MouseScrollLeft(Equatable, ImplicitlyCopyable, MouseEventType):
+struct MouseScrollLeft(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRegisterPassable):
     """Scrolled mouse wheel left (mostly on a laptop touchpad)."""
 
     var remove_later: Bool
@@ -1080,12 +1430,24 @@ struct MouseScrollLeft(Equatable, ImplicitlyCopyable, MouseEventType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MouseScrollLeft()")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("MouseScrollLeft()")
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct MouseScrollRight(Equatable, ImplicitlyCopyable, MouseEventType):
+struct MouseScrollRight(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRegisterPassable):
     """Scrolled mouse wheel right (mostly on a laptop touchpad)."""
 
     var remove_later: Bool
@@ -1095,6 +1457,19 @@ struct MouseScrollRight(Equatable, ImplicitlyCopyable, MouseEventType):
         self.remove_later = True
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write("MouseScrollRight()")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write("MouseScrollRight()")
 
 
@@ -1103,7 +1478,7 @@ struct MouseScrollRight(Equatable, ImplicitlyCopyable, MouseEventType):
 # ============================================================================
 
 
-struct MouseEventKind(ImplicitlyCopyable, Stringable, Writable):
+struct MouseEventKind(ImplicitlyCopyable, Writable):
     var event: Variant[
         MousePress,
         MouseRelease,
@@ -1151,11 +1526,16 @@ struct MouseEventKind(ImplicitlyCopyable, Stringable, Writable):
         """Returns True if the mouse event kind is of type T."""
         return self.event.isa[T]()
 
-    fn __getitem__[T: MouseEventType](ref self) -> ref[self.event] T:
+    fn __getitem_param__[T: MouseEventType](ref self) -> ref[self.event] T:
         """Returns the mouse event kind as type T."""
         return self.event[T]
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         if self.isa[MousePress]():
             writer.write(self[MousePress])
         elif self.isa[MouseRelease]():
@@ -1175,8 +1555,30 @@ struct MouseEventKind(ImplicitlyCopyable, Stringable, Writable):
         else:
             writer.write("Unknown MouseEventKind")
 
-    fn __str__(self) -> String:
-        return String.write(self)
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        if self.isa[MousePress]():
+            writer.write(repr(self[MousePress]))
+        elif self.isa[MouseRelease]():
+            writer.write(repr(self[MouseRelease]))
+        elif self.isa[MouseDrag]():
+            writer.write(repr(self[MouseDrag]))
+        elif self.isa[MouseMoved]():
+            writer.write(repr(self[MouseMoved]))
+        elif self.isa[MouseScrollDown]():
+            writer.write(repr(self[MouseScrollDown]))
+        elif self.isa[MouseScrollUp]():
+            writer.write(repr(self[MouseScrollUp]))
+        elif self.isa[MouseScrollLeft]():
+            writer.write(repr(self[MouseScrollLeft]))
+        elif self.isa[MouseScrollRight]():
+            writer.write(repr(self[MouseScrollRight]))
+        else:
+            writer.write("Unknown MouseEventKind()")
 
 
 @fieldwise_init
@@ -1237,7 +1639,7 @@ trait EventType(Writable):
 
 
 @fieldwise_init
-struct KeyEvent(Equatable, EventType, ImplicitlyCopyable, Stringable, Writable):
+struct KeyEvent(Equatable, EventType, ImplicitlyCopyable, Writable):
     """Represents a key event."""
 
     var code: KeyCode
@@ -1304,6 +1706,11 @@ struct KeyEvent(Equatable, EventType, ImplicitlyCopyable, Stringable, Writable):
         )
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         writer.write(
             "KeyEvent(code=",
             self.code,
@@ -1316,8 +1723,23 @@ struct KeyEvent(Equatable, EventType, ImplicitlyCopyable, Stringable, Writable):
             ")",
         )
 
-    fn __str__(self) -> String:
-        return String.write(self)
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
+        writer.write(
+            "KeyEvent(code=",
+            repr(self.code),
+            ", modifiers=",
+            repr(self.modifiers),
+            ", kind=",
+            repr(self.kind),
+            ", state=",
+            repr(self.state),
+            ")",
+        )
 
 
 # ============================================================================
@@ -1325,17 +1747,15 @@ struct KeyEvent(Equatable, EventType, ImplicitlyCopyable, Stringable, Writable):
 # ============================================================================
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct FocusGained(EventType, ImplicitlyCopyable):
+struct FocusGained(EventType, ImplicitlyCopyable, TrivialRegisterPassable):
     """The terminal gained focus."""
 
     pass
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct FocusLost(EventType, ImplicitlyCopyable):
+struct FocusLost(EventType, ImplicitlyCopyable, TrivialRegisterPassable):
     """The terminal lost focus."""
 
     pass
@@ -1351,9 +1771,8 @@ struct Paste(Copyable, EventType):
     var content: String
 
 
-@register_passable("trivial")
 @fieldwise_init
-struct Resize(EventType, ImplicitlyCopyable):
+struct Resize(EventType, ImplicitlyCopyable, TrivialRegisterPassable):
     """A resize event with new dimensions after resize (columns, rows).
 
     Note that resize events can occur in batches.
@@ -1369,7 +1788,7 @@ struct Resize(EventType, ImplicitlyCopyable):
 
 
 @fieldwise_init
-struct Event(Copyable, InternalEventType, Stringable, Writable):
+struct Event(Copyable, InternalEventType, Writable):
     """Represents an event.
 
     Events can be:
@@ -1408,6 +1827,11 @@ struct Event(Copyable, InternalEventType, Stringable, Writable):
         self.value = event
 
     fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the event to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         if self.value.isa[FocusGained]():
             writer.write(self.value[FocusGained])
         elif self.value.isa[FocusLost]():
@@ -1423,9 +1847,6 @@ struct Event(Copyable, InternalEventType, Stringable, Writable):
         else:
             writer.write("Unknown Event")
 
-    fn __str__(self) -> String:
-        return String.write(self)
-
     fn isa[T: EventType](self) -> Bool:
         """Checks if the value is of the given type.
 
@@ -1437,7 +1858,7 @@ struct Event(Copyable, InternalEventType, Stringable, Writable):
         """
         return self.value.isa[T]()
 
-    fn __getitem__[T: EventType](ref self) -> ref[self.value] T:
+    fn __getitem_param__[T: EventType](ref self) -> ref[self.value] T:
         """Gets the value as the given type.
 
         Parameters:

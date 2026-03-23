@@ -1,13 +1,12 @@
-import sys._libc as libc
-from sys import CompilationTarget
-from sys.ffi import get_errno
+import std.sys._libc as libc
+from std.sys import CompilationTarget
+from std.ffi import get_errno
 
 import mist.termios.c
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct WhenOption(ImplicitlyCopyable):
+struct WhenOption(ImplicitlyCopyable, TrivialRegisterPassable):
     """TTY when values."""
 
     var value: Int32
@@ -23,8 +22,7 @@ struct WhenOption(ImplicitlyCopyable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct FlowOption(ImplicitlyCopyable):
+struct FlowOption(ImplicitlyCopyable, TrivialRegisterPassable):
     """TTY flow values."""
 
     var value: Int32
@@ -40,8 +38,7 @@ struct FlowOption(ImplicitlyCopyable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct FlushOption(ImplicitlyCopyable):
+struct FlushOption(ImplicitlyCopyable, TrivialRegisterPassable):
     """TTY flow values."""
 
     var value: Int32
@@ -70,7 +67,7 @@ fn tcgetattr(file: FileDescriptor) raises -> c.Termios:
     """
     var terminal_attributes = c.Termios()
     # tcgetattr expects a mutable pointer, dunno why.
-    var status = c.tcgetattr(file.value, Pointer(to=terminal_attributes))
+    var status = c.tcgetattr(Int32(file.value), Pointer(to=terminal_attributes))
     if status != 0:
         var errno = get_errno()
         if errno == errno.EBADF:
@@ -105,7 +102,7 @@ fn tcsetattr(file: FileDescriptor, optional_actions: WhenOption, terminal_attrib
     * `WhenOption.TCSADRAIN`: Change attributes after transmitting all queued output.
     * `WhenOption.TCSAFLUSH`: Change attributes after transmitting all queued output and discarding all queued input.
     """
-    var status = c.tcsetattr(file.value, optional_actions.value, Pointer(to=terminal_attributes))
+    var status = c.tcsetattr(Int32(file.value), optional_actions.value, Pointer(to=terminal_attributes))
     if status != 0:
         var errno = get_errno()
         if errno == errno.EBADF:
@@ -141,7 +138,7 @@ fn tcsendbreak(file: FileDescriptor, duration: c.c_int) raises -> None:
         * Error: [ENOTTY] If the file associated with `file` is not a terminal.
         * Error: [EIO] If the process group of the writing process is orphaned, and the writing process is not ignoring or blocking SIGTTOU.
     """
-    var status = c.tcsendbreak(file.value, duration)
+    var status = c.tcsendbreak(Int32(file.value), duration)
     if status != 0:
         var errno = get_errno()
         if errno == errno.EBADF:
@@ -173,7 +170,7 @@ fn tcdrain(file: FileDescriptor) raises -> None:
         * Error: [ENOTTY] If the file associated with `file` is not a terminal.
         * Error: [EIO] If the process group of the writing process is orphaned, and the writing process is not ignoring or blocking SIGTTOU.
     """
-    var status = c.tcdrain(file.value)
+    var status = c.tcdrain(Int32(file.value))
     if status != 0:
         var errno = get_errno()
         if errno == errno.EBADF:
@@ -214,7 +211,7 @@ fn tcflush(file: FileDescriptor, queue_selector: FlushOption) raises -> None:
         - `FlushOption.TCOFLUSH` for the output queue.
         - `FlushOption.TCIOFLUSH` for both queues.
     """
-    var status = c.tcflush(file.value, queue_selector.value)
+    var status = c.tcflush(Int32(file.value), queue_selector.value)
     if status != 0:
         var errno = get_errno()
         if errno == errno.EBADF:
@@ -251,7 +248,7 @@ fn tcflow(file: FileDescriptor, action: FlowOption) raises -> None:
     * `FlowOption.TCIOFF`: Transmits a STOP character, which stops the terminal device from transmitting data to the system.
     * `FlowOption.TCION`: Transmits a START character, which starts the terminal device transmitting data to the system.
     """
-    var status = c.tcflow(file.value, action.value)
+    var status = c.tcflow(Int32(file.value), action.value)
     if status != 0:
         var errno = get_errno()
         if errno == errno.EBADF:
@@ -284,7 +281,7 @@ fn tty_name(file_descriptor: FileDescriptor) raises -> String:
     Returns:
         The name of the terminal as a string.
     """
-    var name = c.ttyname(file_descriptor.value)
+    var name = c.ttyname(Int32(file_descriptor.value))
     if not name:
         var errno = get_errno()
         if errno == errno.EBADF:

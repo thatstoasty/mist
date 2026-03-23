@@ -1,15 +1,15 @@
-from collections import BitSet, Set
-from sys import stdin
+from std.collections import BitSet, Set
+from std.sys import stdin
+from std.memory import MutPointer
 
 import mist.termios.c
-from sys.ffi import c_int, external_call, get_errno
+from std.ffi import c_int, external_call, get_errno
 from mist.multiplex.event import Event
 from mist.multiplex.selector import Selector
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct TimeValue(ImplicitlyCopyable):
+struct TimeValue(ImplicitlyCopyable, TrivialRegisterPassable):
     """Represents a time value for the `select` function."""
 
     var tv_sec: Int64
@@ -25,12 +25,12 @@ comptime FileDescriptorBitSet = BitSet[1024]
 """BitSet for file descriptors, with a size of 1024 bits."""
 
 
-fn _select(
+fn _select[read_origin: MutOrigin, write_origin: MutOrigin, except_origin: MutOrigin, timeout_origin: MutOrigin, //](
     nfds: c_int,
-    readfds: Pointer[mut=True, FileDescriptorBitSet],
-    writefds: Pointer[mut=True, FileDescriptorBitSet],
-    exceptfds: Pointer[mut=True, FileDescriptorBitSet],
-    timeout: Pointer[mut=True, TimeValue],
+    readfds: MutPointer[FileDescriptorBitSet, read_origin],
+    writefds: MutPointer[FileDescriptorBitSet, write_origin],
+    exceptfds: MutPointer[FileDescriptorBitSet, except_origin],
+    timeout: MutPointer[TimeValue, timeout_origin],
 ) -> c_int:
     """Libc POSIX `select` function.
 
@@ -221,7 +221,7 @@ struct SelectSelector(Movable, Selector):
         - If timeout <= 0, the select() call won't block, and will report
           the currently ready file objects.
         """
-        var tv = TimeValue(0, timeout)
+        var tv = TimeValue(0, Int64(timeout))
 
         var readers = FileDescriptorBitSet()
         for reader in self.readers:

@@ -1,5 +1,4 @@
 from mist.style.profile import Profile
-
 from mist.style.style import Style
 
 

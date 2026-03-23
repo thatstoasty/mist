@@ -1,6 +1,6 @@
-import testing
+from std import testing
 from mist.style.profile import Profile
-from testing import TestSuite
+from std.testing import TestSuite
 
 import mist
 from mist.style.style import SGR

@@ -1,4 +1,4 @@
-import sys
+from std import sys
 
 from mist.style.color import AnyColor
 from mist.terminal.paste import disable_bracketed_paste, enable_bracketed_paste
@@ -43,7 +43,7 @@ from mist.termios import Termios, WhenOption, set_cbreak, set_raw, tcgetattr, tc
 
 # TTY State modes
 @fieldwise_init
-struct Mode(Copyable, Equatable, Stringable):
+struct Mode(Copyable, Equatable, Writable):
     """TTY state modes for terminal operations."""
 
     var value: String
@@ -65,14 +65,6 @@ struct Mode(Copyable, Equatable, Stringable):
             True if the modes are equal, False otherwise.
         """
         return self.value == other.value
-
-    fn __str__(self) -> String:
-        """Return a string representation of the mode.
-
-        Returns:
-            The string representation of the mode.
-        """
-        return self.value
 
 
 @fieldwise_init
@@ -119,8 +111,7 @@ struct Direction(Equatable, ImplicitlyCopyable):
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct Area(ImplicitlyCopyable, Writable):
+struct Area(ImplicitlyCopyable, Writable, TrivialRegisterPassable):
     """An area in the terminal defined by its row and column length."""
 
     var columns: UInt16
@@ -128,18 +119,9 @@ struct Area(ImplicitlyCopyable, Writable):
     var rows: UInt16
     """Number of rows."""
 
-    fn write_to(self, mut writer: Some[Writer]):
-        """Write the area to a writer.
-
-        Args:
-            writer: The writer to write to.
-        """
-        writer.write("Area(", self.rows, ", ", self.columns, ")")
-
 
 @fieldwise_init
-@register_passable("trivial")
-struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable):
+struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegisterPassable):
     """A context manager for terminal state.
 
     Parameters:
@@ -187,8 +169,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable):
         self.alternate_screen = False
         self.scrolling_region = Area(0, 0)
 
-        @parameter
-        if Self.mode == Mode.RAW:
+        comptime if Self.mode == Mode.RAW:
             self.state = set_raw(self.fd)
         elif Self.mode == Mode.CBREAK:
             self.state = set_cbreak(self.fd)
@@ -302,8 +283,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable):
             n: The number of lines/columns to move in that direction.
         """
 
-        @parameter
-        if direction == Direction.UP:
+        comptime if direction == Direction.UP:
             cursor_up(n)
         elif direction == Direction.DOWN:
             cursor_down(n)
@@ -472,7 +452,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable):
         var dimensions = get_terminal_size()
         return Area(columns=dimensions[0], rows=dimensions[1])
 
-    fn write_bytes(mut self, bytes: Span[Byte]) -> None:
+    fn write_bytes(mut self, bytes: Span[Byte, ...]) -> None:
         """Write bytes to the terminal.
 
         Args:
@@ -490,7 +470,5 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable):
             args: The arguments to write to the terminal.
         """
         comptime length = args.__len__()
-
-        @parameter
-        for i in range(length):
+        comptime for i in range(length):
             args[i].write_to(self.fd)

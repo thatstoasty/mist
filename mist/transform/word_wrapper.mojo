@@ -63,8 +63,8 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
             ansi: Whether the current character is part of an ANSI escape sequence.
         """
         self.limit = limit
-        self.breakpoint = Codepoint(ord(breakpoint))
-        self.newline = Codepoint(ord(newline))
+        self.breakpoint = Codepoint(Byte(ord(breakpoint)))
+        self.newline = Codepoint(Byte(ord(newline)))
         self.buf = String()
         self.space = String()
         self.word = String()
@@ -103,9 +103,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
             return
 
         var content: String
-
-        @parameter
-        if not Self.keep_newlines:
+        comptime if not Self.keep_newlines:
             content = String(text.strip()).replace("\n", " ")
         else:
             content = String(text)
