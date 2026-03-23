@@ -140,7 +140,7 @@ comptime RESET_STYLE = CSI + SGR.RESET + "m"
 
 
 @fieldwise_init
-struct Style(Defaultable, ImplicitlyCopyable, Representable, Stringable, Writable):
+struct Style(Defaultable, ImplicitlyCopyable, Writable):
     """Style stores a list of styles to format text with.
     These styles are ANSI sequences which modify text (and control the terminal).
     In reality, these styles are turning visual terminal features on and off around the text it's styling.
@@ -179,30 +179,22 @@ struct Style(Defaultable, ImplicitlyCopyable, Representable, Stringable, Writabl
         self.styles = List[String]()
         self.profile = Profile()
 
-    fn __copyinit__(out self, other: Self):
+    fn __copyinit__(out self, copy: Self):
         """Creates a copy of the Style. This is used to create new instances of the Style when adding style.
 
         Returns:
             A copy of the Style.
         """
-        self.profile = other.profile
-        self.styles = other.styles.copy()
+        self.profile = copy.profile
+        self.styles = copy.styles.copy()
 
-    fn __str__(self) -> String:
-        """Returns a string representation of the Style.
+    fn write_repr_to(self, mut writer: Some[Writer]) -> None:
+        """Writes a string representation of the Style to the given writer.
 
-        Returns:
-            A string representation of the Style.
+        Args:
+            writer: The writer to write the string representation to.
         """
-        return String.write(self)
-
-    fn __repr__(self) -> String:
-        """Returns a string representation of the Style.
-
-        Returns:
-            A string representation of the Style.
-        """
-        return String.write(self)
+        writer.write(self)
 
     fn write_to(self, mut writer: Some[Writer]) -> None:
         """Writes the Style to a Writer.

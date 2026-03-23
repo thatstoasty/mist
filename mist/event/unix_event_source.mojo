@@ -24,11 +24,12 @@ on Unix systems. It handles:
 - Event-stream features are not implemented (no async/waker support)
 """
 
-from collections import Deque
-from sys import stderr, stdin
-from sys._libc_errno import get_errno
+from std.collections import Deque
+from std.sys import stderr, stdin
+from std.sys._libc_errno import get_errno
 
-from sys.ffi import c_size_t
+from std.ffi import c_size_t
+from std.time import perf_counter_ns
 from mist.event.internal import InternalEvent
 from mist.event.parser import parse_event
 from mist.event.source import EventSource
@@ -120,8 +121,6 @@ fn _get_time_ns() -> Int:
     Returns:
         Current time in nanoseconds since some epoch.
     """
-    from time import perf_counter_ns
-
     return Int(perf_counter_ns())
 
 
@@ -157,7 +156,7 @@ struct Parser(Movable):
         # reallocations when processing large amounts of data.
         self.internal_events = Deque[InternalEvent](capacity=128)
 
-    fn advance(mut self, buffer: Span[UInt8], more: Bool):
+    fn advance(mut self, buffer: Span[UInt8, ...], more: Bool):
         """Advance the parser with new bytes.
 
         Processes each byte and attempts to parse complete events.
@@ -270,7 +269,7 @@ struct UnixInternalEventSource(EventSource, Movable):
         while poll_timeout.leftover().or_else(-1) <= 0:
             # Check if there are buffered events from the last read
             if buffered_event := self.parser.next():
-                return buffered_event
+                return buffered_event^
 
             # First checks if the file descriptor is ready.
             # If so, checks if the response is either `SelectEvent.READ` or `SelectEvent.READ_WRITE`
@@ -309,7 +308,7 @@ struct UnixInternalEventSource(EventSource, Movable):
         """
         while True:
             var bytes_read = read(
-                self.tty.value,
+                Int32(self.tty.value),
                 self.tty_buffer.unsafe_ptr().bitcast[NoneType](),
                 c_size_t(TTY_BUFFER_SIZE),
             )

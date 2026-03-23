@@ -1,4 +1,4 @@
-from builtin.globals import global_constant
+from std.builtin.globals import global_constant
 
 
 comptime StackArray[T: Copyable, size: Int] = InlineArray[T, size]

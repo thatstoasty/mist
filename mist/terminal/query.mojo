@@ -3,10 +3,10 @@
 - https://github.com/Canop/xterm-query/tree/main
 - https://github.com/muesli/termenv/tree/master
 """
-import os
-import sys
-from collections import BitSet, InlineArray
-from pathlib import Path
+from std import os
+from std import sys
+from std.collections import BitSet, InlineArray
+from std.pathlib import Path
 
 from mist.style.color import RGBColor
 from mist.terminal.sgr import BEL, CSI, ESC, OSC, ST
@@ -20,6 +20,12 @@ from mist.style import _hue as hue
 
 comptime EVENT_READ = 1
 """Bitwise mask for select read events."""
+comptime ESC_BYTE = Byte(ord(ESC))
+"""Byte representation of the ESC character."""
+comptime BEL_BYTE = Byte(ord(BEL))
+"""Byte representation of the BEL character."""
+comptime R_BYTE = Byte(ord("R"))
+"""Byte representation of the 'R' character."""
 
 
 fn _select(
@@ -120,8 +126,7 @@ fn has_dark_background() raises -> Bool:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct OSCParseState(Copyable, Equatable):
+struct OSCParseState(Copyable, Equatable, TrivialRegisterPassable):
     """State for parsing OSC sequences."""
 
     var value: Int
@@ -145,7 +150,7 @@ struct OSCParseState(Copyable, Equatable):
         return self.value == other.value
 
 
-fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineArray[Byte]) raises -> String:
+fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineArray[Byte, ...]) raises -> String:
     """Queries the terminal for a specific sequence. Assumes the terminal is in raw mode.
     This function will wrap `sequence` with OSC and BEL, so it should they should not be included in `sequence`.
 
@@ -167,8 +172,7 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
         the response end (ESC or BEL) and everything after.
     """
 
-    @parameter
-    if verify:
+    comptime if verify:
         # TODO (Mikhail): Reassess this later once I learn more about /dev/tty.
         # I figure we'd want to check the controlling tty, but that throws an error
         # indicating its an invalid file descriptor.
@@ -229,23 +233,23 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
 
         if bytes_read == 0:
             raise Error("EOF")
-        elif buf[0] != ord(ESC):
+        elif buf[0] != ESC_BYTE:
             raise Error("Unexpected response from terminal. Did not start with ESC.")
 
         for i in range(0, bytes_read):
             ref byte = buf[i]
             if state == OSCParseState.RESPONSE_START_SEARCH:
-                if byte == ord(ESC):
+                if byte == ESC_BYTE:
                     start_idx = i + 1  # Skip the ESC
                     state = OSCParseState.RESPONSE_END_SEARCH
                     continue
             elif state == OSCParseState.RESPONSE_END_SEARCH:
-                if byte == ord(ESC) or byte == ord(BEL):
+                if byte == ESC_BYTE or byte == BEL_BYTE:
                     end_idx = total_bytes_read + i  # Total bytes read + i = total bytes read from all reads.
                     state = OSCParseState.FENCE_END_SEARCH
                     continue
             elif state == OSCParseState.FENCE_END_SEARCH:
-                if byte == ord("R"):
+                if byte == R_BYTE:
                     return String(from_utf8=Span(buffer)[start_idx:end_idx])
 
         total_bytes_read += Int(bytes_read)
@@ -275,7 +279,7 @@ fn query_osc[verify: Bool = True](sequence: StringSlice) raises -> String:
     return query_osc_buffer[verify](sequence, buffer)
 
 
-fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineArray[Byte]) raises -> String:
+fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineArray[Byte, ...]) raises -> String:
     """Queries the terminal for a specific sequence. Assumes the terminal is in raw mode.
 
     Parameters:
@@ -297,8 +301,7 @@ fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineAr
         The response from the terminal.
     """
 
-    @parameter
-    if verify:
+    comptime if verify:
         # TODO (Mikhail): Same as above, reassess later.
         if not is_terminal_raw(sys.stdin):
             raise Error("Terminal must be in raw mode to query OSC sequences.")

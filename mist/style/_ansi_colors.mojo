@@ -81,4 +81,4 @@ comptime COLOR_STRINGS: InlineArray[UInt8, 256] = [
     240, 241, 242, 243, 244, 245, 246, 247, 248, 249,
     250, 251, 252, 253, 254, 255
 ]
-"""0-255 as strings. Used to avoid calling `str` during comp-time, which is not supported."""
+"""0-255. Used to avoid calling `str` during comp-time, which is not supported."""

@@ -1,4 +1,4 @@
-from io import write
+from std.io import write
 
 from mist.transform.unicode import char_width, string_width
 
@@ -7,23 +7,23 @@ comptime ANSI_ESCAPE = "[0m"
 """The ANSI escape sequence for resetting formatting."""
 comptime ANSI_MARKER = "\x1b"
 """The ANSI escape sequence marker."""
-comptime ANSI_MARKER_BYTE = ord(ANSI_MARKER)
+comptime ANSI_MARKER_BYTE = UInt32(ord(ANSI_MARKER))
 """The byte value of the ANSI escape sequence marker."""
-comptime SGR_COMMAND = ord("m")
+comptime SGR_COMMAND = UInt32(ord("m"))
 """The byte value of the SGR command."""
 comptime SPACE = " "
 """A single space character."""
 comptime NEWLINE = "\n"
 """A newline character."""
-comptime TAB_BYTE = ord("\t")
+comptime TAB_BYTE = UInt32(ord("\t"))
 """The byte value of the tab character."""
-comptime SPACE_BYTE = ord(" ")
+comptime SPACE_BYTE = UInt32(ord(" "))
 """The byte value of the space character."""
-comptime NEWLINE_BYTE = ord("\n")
+comptime NEWLINE_BYTE = UInt32(ord("\n"))
 """The byte value of the newline character."""
 
 
-fn equals(left: Span[Byte], right: Span[Byte]) -> Bool:
+fn equals(left: Span[Byte, ...], right: Span[Byte, ...]) -> Bool:
     """Reports if `left` and `right` are equal.
 
     Args:
@@ -42,7 +42,7 @@ fn equals(left: Span[Byte], right: Span[Byte]) -> Bool:
     return True
 
 
-fn has_suffix(bytes: Span[Byte], suffix: Span[Byte]) -> Bool:
+fn has_suffix(bytes: Span[Byte, ...], suffix: Span[Byte, ...]) -> Bool:
     """Reports if the list ends with suffix.
 
     Args:

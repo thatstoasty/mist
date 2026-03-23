@@ -1,9 +1,10 @@
-from collections import BitSet
-from sys import CompilationTarget
-from time.time import _CTimeSpec
+from std.collections import BitSet
+from std.sys import CompilationTarget
+from std.time.time import _CTimeSpec
 
-from sys.ffi import c_char, c_int, c_size_t, external_call, get_errno
-from utils import StaticTuple
+from std.ffi import c_char, c_int, c_size_t, external_call, get_errno
+from std.utils import StaticTuple
+from std.memory import MutPointer, ImmutPointer
 
 
 # C types
@@ -17,9 +18,9 @@ comptime time_t = Int64
 """C time type."""
 comptime suseconds_t = Int64
 """C microsecond time type."""
-comptime MutExternalPointer = UnsafePointer[origin=MutExternalOrigin]
+comptime MutExternalPointer = MutUnsafePointer[origin=MutExternalOrigin, ...]
 """A mutable external pointer type."""
-comptime ImmutExternalPointer = UnsafePointer[origin=ImmutExternalOrigin]
+comptime ImmutExternalPointer = ImmutUnsafePointer[origin=ImmutExternalOrigin, ...]
 """An immutable external pointer type."""
 
 comptime tcflag_t = SIMD[(DType.uint32, DType.uint64)[Int(CompilationTarget.is_macos())], 1]
@@ -29,8 +30,7 @@ comptime c_speed_t = UInt64
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct ControlFlag:
+struct ControlFlag(TrivialRegisterPassable):
     """Control mode flags."""
 
     var value: tcflag_t
@@ -48,8 +48,7 @@ struct ControlFlag:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct LocalFlag:
+struct LocalFlag(TrivialRegisterPassable):
     """Local mode flags."""
 
     var value: tcflag_t
@@ -75,8 +74,7 @@ struct LocalFlag:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct OutputFlag:
+struct OutputFlag(TrivialRegisterPassable):
     """Output mode flags. These flags control how `stdout` behaves via output control."""
 
     var value: tcflag_t
@@ -86,8 +84,7 @@ struct OutputFlag:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct InputFlag:
+struct InputFlag(TrivialRegisterPassable):
     """Input mode flags. These flags control how `stdin` behaves via input control."""
 
     var value: tcflag_t
@@ -152,8 +149,7 @@ struct InputFlag:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct SpecialCharacter:
+struct SpecialCharacter(TrivialRegisterPassable):
     """Special Character indexes for control characters."""
 
     var value: cc_t
@@ -184,8 +180,7 @@ struct SpecialCharacter:
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct Termios(Copyable, Stringable, Writable):
+struct Termios(Copyable, Writable, TrivialRegisterPassable):
     """Termios libc."""
 
     comptime _CONTROL_CHARACTER_WIDTH = 20 if CompilationTarget.is_macos() else 32
@@ -208,9 +203,7 @@ struct Termios(Copyable, Stringable, Writable):
     fn __init__(out self):
         """Initializes the Termios struct with default values."""
         self.c_cc = StaticTuple[cc_t, Self._CONTROL_CHARACTER_WIDTH]()
-
-        @parameter
-        for n in range(Self._CONTROL_CHARACTER_WIDTH):
+        comptime for n in range(Self._CONTROL_CHARACTER_WIDTH):
             self.c_cc[n] = 0
 
         self.c_cflag = 0
@@ -249,8 +242,7 @@ struct Termios(Copyable, Stringable, Writable):
             "c_cc=(",
         )
 
-        @parameter
-        for i in range(20):
+        comptime for i in range(20):
             writer.write(self.c_cc[i], ", ")
         writer.write(")")
 
@@ -263,7 +255,7 @@ struct Termios(Copyable, Stringable, Writable):
         return String.write(self)
 
 
-fn tcgetattr[origin: MutOrigin](fd: c_int, termios_p: Pointer[mut=True, Termios, origin]) -> c_int:
+fn tcgetattr[origin: MutOrigin, //](fd: c_int, termios_p: MutPointer[Termios, origin]) -> c_int:
     """Libc POSIX `tcgetattr` function.
 
     Get the parameters associated with the terminal referred to by the file descriptor `fd`.
@@ -286,12 +278,12 @@ fn tcgetattr[origin: MutOrigin](fd: c_int, termios_p: Pointer[mut=True, Termios,
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/tcgetattr.3.html.
     """
-    return external_call["tcgetattr", c_int, c_int, Pointer[mut=True, Termios, origin]](fd, termios_p)
+    return external_call["tcgetattr", c_int, c_int, MutPointer[Termios, origin]](fd, termios_p)
 
 
 fn tcsetattr[
     origin: ImmutOrigin
-](fd: c_int, optional_actions: c_int, termios_p: Pointer[mut=False, Termios, origin]) -> c_int:
+](fd: c_int, optional_actions: c_int, termios_p: ImmutPointer[Termios, origin]) -> c_int:
     """Libc POSIX `tcsetattr` function.
 
     Set the parameters associated with the terminal referred to by the file descriptor `fd`.
@@ -315,7 +307,7 @@ fn tcsetattr[
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/tcsetattr.3.html.
     """
-    return external_call["tcsetattr", c_int, c_int, c_int, Pointer[mut=False, Termios, origin]](
+    return external_call["tcsetattr", c_int, c_int, c_int, ImmutPointer[Termios, origin]](
         fd, optional_actions, termios_p
     )
 
@@ -491,10 +483,10 @@ fn ttyname(fd: c_int) -> MutExternalPointer[c_char]:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/ttyname.3p.html.
     """
-    return external_call["ttyname", MutExternalPointer[c_char], c_int](fd)
+    return external_call["ttyname", MutExternalPointer[c_char], type_of(fd)](fd)
 
 
-fn read(fd: c_int, buf: MutUnsafePointer[NoneType], size: c_size_t) -> c_int:
+fn read[origin: MutOrigin, //](fd: c_int, buf: MutUnsafePointer[NoneType, origin], size: c_size_t) -> c_int:
     """Libc POSIX `read` function.
 
     Read `size` bytes from file descriptor `fd` into the buffer `buf`.
@@ -523,18 +515,17 @@ comptime FileDescriptorBitSet = BitSet[1024]
 
 
 @fieldwise_init
-@register_passable("trivial")
-struct _TimeValue(Copyable, Movable):
+struct _TimeValue(Copyable, TrivialRegisterPassable):
     var seconds: time_t
     var microseconds: suseconds_t
 
 
 fn _select(
     nfds: c_int,
-    readfds: Pointer[mut=True, FileDescriptorBitSet],
-    writefds: Pointer[mut=True, BitSet[1]],
-    exceptfds: Pointer[mut=True, BitSet[1]],
-    timeout: Pointer[mut=True, _TimeValue],
+    readfds: MutPointer[FileDescriptorBitSet, ...],
+    writefds: MutPointer[BitSet[1], ...],
+    exceptfds: MutPointer[BitSet[1], ...],
+    timeout: MutPointer[_TimeValue, ...],
 ) -> c_int:
     """Libc POSIX `select` function.
 

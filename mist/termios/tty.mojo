@@ -1,5 +1,5 @@
 import mist.termios.c
-from sys.ffi import external_call
+from std.ffi import external_call
 from mist.termios.c import ControlFlag, InputFlag, LocalFlag, OutputFlag, SpecialCharacter
 from mist.termios.terminal import FlowOption, FlushOption, WhenOption, tcgetattr, tcsetattr
 

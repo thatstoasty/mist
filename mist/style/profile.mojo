@@ -1,7 +1,6 @@
-from os import abort, getenv
-from sys import is_compile_time
-from sys.param_env import env_get_string
-from sys.ffi import _get_global, external_call
+from std.os import abort, getenv
+from std.sys.defines import get_defined_string
+from std.ffi import _get_global, external_call
 
 import mist.style._hue as hue
 from mist.style.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
@@ -80,8 +79,7 @@ fn get_color_profile() -> Profile:
     return Profile.ASCII
 
 
-@register_passable("trivial")
-struct Profile(Comparable, ImplicitlyCopyable, Representable, Stringable, Writable):
+struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
     """The color profile for the terminal."""
 
     var _value: UInt8
@@ -118,10 +116,8 @@ struct Profile(Comparable, ImplicitlyCopyable, Representable, Stringable, Writab
             If an invalid value is passed in, the profile will default to ASCII.
             This is to workaround the virtality of raising functions.
         """
-        comptime profile = env_get_string["MIST_PROFILE", ""]()
-
-        @parameter
-        if profile == "TRUE_COLOR":
+        comptime profile = get_defined_string["MIST_PROFILE", ""]()
+        comptime if profile == "TRUE_COLOR":
             self = Self.TRUE_COLOR
             return
         elif profile == "ANSI256":
@@ -135,10 +131,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Representable, Stringable, Writab
             return
         elif profile != "":
             # A profile was passed, but was invalid. If none passed, move on to `get_color_profile`
-            constrained[
-                False,
-                "Invalid profile setting. Must be one of [TRUE_COLOR, ANSI256, ANSI, ASCII].",
-            ]()
+            comptime assert False, "Invalid profile setting. Must be one of [TRUE_COLOR, ANSI256, ANSI, ASCII]."
 
         # if is_compile_time():
         #     abort(
@@ -178,36 +171,28 @@ struct Profile(Comparable, ImplicitlyCopyable, Representable, Stringable, Writab
         """
         return self._value < other._value
 
-    fn __str__(self) -> String:
-        """Returns a string representation of the profile.
-
-        Returns:
-            A string representation of the profile.
-        """
-        if self == self.TRUE_COLOR:
-            return "TRUE_COLOR"
-        elif self == self.ANSI256:
-            return "ANSI256"
-        elif self == self.ANSI:
-            return "ANSI"
-        elif self == self.ASCII:
-            return "ASCII"
-        else:
-            return "INVALID STATE"
-
-    fn __repr__(self) -> String:
-        """Returns a string representation of the profile.
-
-        Returns:
-            A string representation of the profile.
-        """
-        return String.write(self)
-
-    fn write_to(self, mut writer: Some[Writer]) -> None:
-        """Writes the profile to a Writer.
+    fn write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the profile to the given writer.
 
         Args:
-            writer: The Writer to write the profile to.
+            writer: The writer to write the string representation to.
+        """
+        if self == self.TRUE_COLOR:
+            writer.write("TRUE_COLOR")
+        elif self == self.ANSI256:
+            writer.write("ANSI256")
+        elif self == self.ANSI:
+            writer.write("ANSI")
+        elif self == self.ASCII:
+            writer.write("ASCII")
+        else:
+            writer.write("INVALID STATE")
+
+    fn write_repr_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the profile to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
         """
         writer.write("Profile(", self._value, ")")
 

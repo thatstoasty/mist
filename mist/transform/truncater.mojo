@@ -3,7 +3,7 @@ from mist.transform.unicode import char_width
 
 
 @fieldwise_init
-struct TruncateWriter(Movable, Stringable):
+struct TruncateWriter(Movable, Writable):
     """A truncating writer that truncates content at the given printable cell width.
 
     #### Examples:
@@ -39,13 +39,13 @@ struct TruncateWriter(Movable, Stringable):
         self.in_ansi = in_ansi
         self.ansi_writer = ansi.Writer()
 
-    fn __str__(self) -> String:
-        """Returns the truncated result as a string by copying the content of the internal buffer.
+    fn write_to(self, mut writer: Some[Writer]):
+        """Writes the truncated result to the given writer.
 
-        Returns:
-            The truncated string.
+        Args:
+            writer: The writer to write the truncated result to.
         """
-        return String(self.ansi_writer.forward)
+        writer.write(self.ansi_writer.forward)
 
     fn as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
         """Returns the truncated result as a string slice by referencing the content of the internal buffer.

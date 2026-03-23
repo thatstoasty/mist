@@ -1,6 +1,6 @@
-import testing
+from std import testing
 from mist.transform.ansi import Writer, is_terminator, printable_rune_width
-from testing import TestSuite
+from std.testing import TestSuite
 
 
 fn test_is_terminator() raises:
