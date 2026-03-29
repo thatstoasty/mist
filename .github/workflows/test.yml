@@ -34,5 +34,4 @@ jobs:
           pixi-version: v0.59.0
 
       - name: Run tests
-        shell: bash
         run: pixi run tests
