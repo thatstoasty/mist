@@ -23,17 +23,11 @@ This project was heavily inspired by:
 
 ## Adding the `mist` package to your project
 
-First, you'll need to configure your `pixi.toml` file to include the Modular community Conda channel. Add `"https://repo.prefix.dev/modular-community"` to the list of channels.
-
-### Installing it from the `modular-community` Conda channel
-
-Run the following commands in your terminal:
+First, you'll need to enable the `pixi-build` preview by adding this to the `workspace` section of your `pixi.toml` file.
 
 ```bash
-pixi add mist && pixi install
+preview = ["pixi-build"]
 ```
-
-This will add `mist` to your project's dependencies and install it along with its dependencies.
 
 ### Building it from source
 
@@ -44,7 +38,7 @@ There's two ways to build `mist` from source: directly from the Git repository o
 Run the following commands in your terminal:
 
 ```bash
-pixi add -g "https://github.com/thatstoasty/mist.git" && pixi install
+pixi add -g "https://github.com/thatstoasty/mist.git" --tag v0.1.0 && pixi install
 ```
 
 #### Building from source: Local
