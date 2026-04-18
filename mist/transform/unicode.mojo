@@ -3,7 +3,7 @@ from mist.transform._table import AMBIGUOUS, COMBINING, DOUBLE_WIDTH, EMOJI, NAR
 
 
 @fieldwise_init
-struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable):
+struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, Writable):
     """Conditions have the flag `east_asian_width` enabled if the current locale is `CJK` or not.
 
     Parameters:
@@ -11,7 +11,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable):
         strict_emoji_neutral: Whether to treat emoji as double-width characters.
     """
 
-    fn char_width(self, codepoint: Codepoint) -> UInt:
+    def char_width(self, codepoint: Codepoint) -> UInt:
         """Returns the number of cells in `codepoint`.
         See http://www.unicode.org/reports/tr11/.
 
@@ -69,7 +69,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable):
 
             return 1
 
-    fn string_width(self, content: StringSlice) -> UInt:
+    def string_width(self, content: StringSlice) -> UInt:
         """Return width as you can see.
 
         Args:
@@ -84,7 +84,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable):
         return width
 
 
-fn in_table[table: InlineArray[Interval, ...]](codepoint: Codepoint) -> Bool:
+def in_table[table: InlineArray[Interval, ...]](codepoint: Codepoint) -> Bool:
     """Check if the rune is in the table.
 
     Parameters:
@@ -120,7 +120,7 @@ comptime DEFAULT_CONDITION = Condition[east_asian_width=False, strict_emoji_neut
 """The default configuration for calculating the width of runes and strings."""
 
 
-fn string_width(content: StringSlice) -> UInt:
+def string_width(content: StringSlice) -> UInt:
     """Return width as you can see.
 
     Args:
@@ -132,7 +132,7 @@ fn string_width(content: StringSlice) -> UInt:
     return materialize[DEFAULT_CONDITION]().string_width(content)
 
 
-fn char_width(codepoint: Codepoint) -> UInt:
+def char_width(codepoint: Codepoint) -> UInt:
     """Return width as you can see.
 
     Args:

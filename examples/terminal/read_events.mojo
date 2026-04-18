@@ -4,7 +4,7 @@ from mist.terminal.tty import TTY, Mode
 from mist.event.event import Char, KeyEvent
 
 
-fn main() raises -> None:
+def main() raises -> None:
     print("Reading events from terminal. Press keys or click mouse (Ctrl+C to exit)...")
     var reader = EventReader()
     with TTY[Mode.RAW]():

@@ -22,7 +22,7 @@ comptime SHOW_CURSOR = CSI + "?25h"
 # But if it proves to be an issue in the future, I can change it.
 
 
-fn move_cursor_sequence(row: UInt16, column: UInt16) -> String:
+def move_cursor_sequence(row: UInt16, column: UInt16) -> String:
     """Returns ANSI sequence, which if written to stdout, will move the cursor to a given position.
 
     Args:
@@ -35,7 +35,7 @@ fn move_cursor_sequence(row: UInt16, column: UInt16) -> String:
     return String(CSI, row, ";", column, "H")
 
 
-fn move_cursor(row: UInt16, column: UInt16) -> None:
+def move_cursor(row: UInt16, column: UInt16) -> None:
     """Moves the cursor to a given position.
 
     Args:
@@ -45,34 +45,34 @@ fn move_cursor(row: UInt16, column: UInt16) -> None:
     print(CSI, row, ";", column, "H", sep="", end="")
 
 
-fn clear_screen() -> None:
+def clear_screen() -> None:
     """Clears the visible portion of the terminal."""
     print(ERASE_DISPLAY, sep="", end="")
     move_cursor(1, 1)
 
 
 # TODO: Show and Hide cursor don't seem to work ATM.
-fn hide_cursor() -> None:
+def hide_cursor() -> None:
     """Hides the cursor."""
     print(HIDE_CURSOR, sep="", end="")
 
 
-fn show_cursor() -> None:
+def show_cursor() -> None:
     """Shows the cursor."""
     print(SHOW_CURSOR, sep="", end="")
 
 
-fn save_cursor_position() -> None:
+def save_cursor_position() -> None:
     """Saves the cursor position."""
     print(SAVE_CURSOR_POSITION, sep="", end="")
 
 
-fn restore_cursor_position() -> None:
+def restore_cursor_position() -> None:
     """Restores a saved cursor position."""
     print(RESTORE_CURSOR_POSITION, sep="", end="")
 
 
-fn cursor_up_sequence(n: UInt16) -> String:
+def cursor_up_sequence(n: UInt16) -> String:
     """Returns an ANSI Sequence, which if printed to stdout, will move the cursor up `n` number of lines.
 
     Args:
@@ -84,7 +84,7 @@ fn cursor_up_sequence(n: UInt16) -> String:
     return String(CSI, n, "A")
 
 
-fn cursor_up(n: UInt16) -> None:
+def cursor_up(n: UInt16) -> None:
     """Moves the cursor up a given number of lines.
 
     Args:
@@ -93,7 +93,7 @@ fn cursor_up(n: UInt16) -> None:
     print(CSI, n, "A", sep="", end="")
 
 
-fn cursor_down_sequence(n: UInt16) -> String:
+def cursor_down_sequence(n: UInt16) -> String:
     """Returns an ANSI Sequence, which if printed to stdout, will move the cursor down `n` number of lines.
 
     Args:
@@ -105,7 +105,7 @@ fn cursor_down_sequence(n: UInt16) -> String:
     return String(CSI, n, "B")
 
 
-fn cursor_down(n: UInt16) -> None:
+def cursor_down(n: UInt16) -> None:
     """Moves the cursor down a given number of lines.
 
     Args:
@@ -114,7 +114,7 @@ fn cursor_down(n: UInt16) -> None:
     print(CSI, n, "B", sep="", end="")
 
 
-fn cursor_forward_sequence(n: UInt16) -> String:
+def cursor_forward_sequence(n: UInt16) -> String:
     """Returns an ANSI Sequence, which if printed to stdout, will move the cursor forward `n` number of cells.
 
     Args:
@@ -126,7 +126,7 @@ fn cursor_forward_sequence(n: UInt16) -> String:
     return String(CSI, n, "C")
 
 
-fn cursor_forward(n: UInt16) -> None:
+def cursor_forward(n: UInt16) -> None:
     """Moves the cursor forward a given number of cells.
 
     Args:
@@ -135,7 +135,7 @@ fn cursor_forward(n: UInt16) -> None:
     print(CSI, n, "C", sep="", end="")
 
 
-fn cursor_back_sequence(n: UInt16) -> String:
+def cursor_back_sequence(n: UInt16) -> String:
     """Returns an ANSI Sequence, which if printed to stdout, will move the cursor backwards a given number of cells.
 
     Args:
@@ -147,7 +147,7 @@ fn cursor_back_sequence(n: UInt16) -> String:
     return String(CSI, n, "D")
 
 
-fn cursor_back(n: UInt16) -> None:
+def cursor_back(n: UInt16) -> None:
     """Moves the cursor backwards a given number of cells.
 
     Args:
@@ -156,7 +156,7 @@ fn cursor_back(n: UInt16) -> None:
     print(CSI, n, "D", sep="", end="")
 
 
-fn cursor_next_line_sequence(n: UInt16) -> String:
+def cursor_next_line_sequence(n: UInt16) -> String:
     """Returns an ANSI Sequence, which if printed to stdout, will move the cursor down a given number
     of lines and places it at the beginning of the line.
 
@@ -169,7 +169,7 @@ fn cursor_next_line_sequence(n: UInt16) -> String:
     return String(CSI, n, "E")
 
 
-fn cursor_next_line(n: UInt16) -> None:
+def cursor_next_line(n: UInt16) -> None:
     """Moves the cursor down a given number of lines and places it at the beginning of the line.
 
     Args:
@@ -178,7 +178,7 @@ fn cursor_next_line(n: UInt16) -> None:
     print(CSI, n, "E", sep="", end="")
 
 
-fn cursor_prev_line_sequence(n: UInt16) -> String:
+def cursor_prev_line_sequence(n: UInt16) -> String:
     """Returns an ANSI Sequence, which if printed to stdout, will move the cursor up a given number of lines
     and places it at the beginning of the line.
 
@@ -191,7 +191,7 @@ fn cursor_prev_line_sequence(n: UInt16) -> String:
     return String(CSI, n, "F")
 
 
-fn cursor_prev_line(n: UInt16) -> None:
+def cursor_prev_line(n: UInt16) -> None:
     """Moves the cursor up a given number of lines and places it at the beginning of the line.
 
     Args:
@@ -202,7 +202,7 @@ fn cursor_prev_line(n: UInt16) -> None:
 
 struct Cursor:
     @staticmethod
-    fn up(n: UInt16) -> None:
+    def up(n: UInt16) -> None:
         """Moves the cursor up a given number of lines.
 
         Args:
@@ -211,7 +211,7 @@ struct Cursor:
         cursor_up(n)
 
     @staticmethod
-    fn down(n: UInt16) -> None:
+    def down(n: UInt16) -> None:
         """Moves the cursor down a given number of lines.
 
         Args:
@@ -220,7 +220,7 @@ struct Cursor:
         cursor_down(n)
 
     @staticmethod
-    fn forward(n: UInt16) -> None:
+    def forward(n: UInt16) -> None:
         """Moves the cursor forward a given number of cells.
 
         Args:
@@ -229,7 +229,7 @@ struct Cursor:
         cursor_forward(n)
 
     @staticmethod
-    fn back(n: UInt16) -> None:
+    def back(n: UInt16) -> None:
         """Moves the cursor backwards a given number of cells.
 
         Args:
@@ -238,7 +238,7 @@ struct Cursor:
         cursor_back(n)
 
     @staticmethod
-    fn next_line(n: UInt16) -> None:
+    def next_line(n: UInt16) -> None:
         """Moves the cursor down a given number of lines and places it at the beginning of the line.
 
         Args:
@@ -247,7 +247,7 @@ struct Cursor:
         cursor_next_line(n)
 
     @staticmethod
-    fn previous_line(n: UInt16) -> None:
+    def previous_line(n: UInt16) -> None:
         """Moves the cursor up a given number of lines and places it at the beginning of the line.
 
         Args:
@@ -256,7 +256,7 @@ struct Cursor:
         cursor_prev_line(n)
 
     @staticmethod
-    fn move_to(row: UInt16, column: UInt16) -> None:
+    def move_to(row: UInt16, column: UInt16) -> None:
         """Moves the cursor to a given position.
 
         Args:
@@ -266,7 +266,7 @@ struct Cursor:
         move_cursor(row, column)
 
     @staticmethod
-    fn set_color(color: AnyColor, *, initial_color: AnyColor = NoColor()) raises -> CursorColor:
+    def set_color(color: AnyColor, *, initial_color: AnyColor = NoColor()) raises -> CursorColor:
         """Sets the cursor color and returns a `CursorColor` instance, which will reset the cursor color to its original value on destruction.
 
         Terminal must be in raw mode to query the initial color.
@@ -280,7 +280,7 @@ struct Cursor:
         return CursorColor(original_color^)
 
 
-fn set_cursor_color(color: AnyColor) -> None:
+def set_cursor_color(color: AnyColor) -> None:
     """Sets the cursor color.
 
     Args:
@@ -295,6 +295,6 @@ struct CursorColor:
     var original_color: AnyColor
     """The original color of the cursor before it was changed."""
 
-    fn reset(deinit self) -> None:
+    def reset(deinit self) -> None:
         """Resets the cursor color to its original value."""
         set_cursor_color(self.original_color)

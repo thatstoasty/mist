@@ -11,7 +11,7 @@ Parameters:
 
 
 @always_inline
-fn lut[I: Indexer, //, A: StackArray](i: I) -> A.ElementType:
+def lut[I: Indexer, //, A: StackArray](i: I) -> A.ElementType:
     """Returns the value at the given index from a global constant array.
 
     Parameters:

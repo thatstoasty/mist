@@ -4,7 +4,7 @@ from mist.termios.c import ControlFlag, InputFlag, LocalFlag, OutputFlag, Specia
 from mist.termios.terminal import FlowOption, FlushOption, WhenOption, tcgetattr, tcsetattr
 
 
-fn cfmakeraw(mut mode: c.Termios) -> None:
+def cfmakeraw(mut mode: c.Termios) -> None:
     """Make Termios mode raw.
 
     This is roughly equivalent to CPython's `cfmakeraw()`.
@@ -66,11 +66,11 @@ fn cfmakeraw(mut mode: c.Termios) -> None:
     mode.c_cc[SpecialCharacter.VTIME.value] = 0
 
 
-# fn cfmakeraw(mut mode: c.Termios):
+# def cfmakeraw(mut mode: c.Termios):
 #     external_call["cfmakeraw", NoneType](Pointer(to=mode))
 
 
-fn cfmakecbreak(mut mode: c.Termios):
+def cfmakecbreak(mut mode: c.Termios):
     """Make Termios mode cbreak.
     This is roughly equivalent to CPython's `cfmakecbreak()`.
 
@@ -92,7 +92,7 @@ fn cfmakecbreak(mut mode: c.Termios):
     mode.c_cc[SpecialCharacter.VTIME.value] = 0
 
 
-fn set_raw(file: FileDescriptor, when: WhenOption = WhenOption.TCSAFLUSH) raises -> c.Termios:
+def set_raw(file: FileDescriptor, when: WhenOption = WhenOption.TCSAFLUSH) raises -> c.Termios:
     """Set terminal to raw mode.
 
     Args:
@@ -113,7 +113,7 @@ fn set_raw(file: FileDescriptor, when: WhenOption = WhenOption.TCSAFLUSH) raises
     return mode
 
 
-fn set_cbreak(file: FileDescriptor, when: WhenOption = WhenOption.TCSAFLUSH) raises -> c.Termios:
+def set_cbreak(file: FileDescriptor, when: WhenOption = WhenOption.TCSAFLUSH) raises -> c.Termios:
     """Set terminal to cbreak mode.
 
     Args:
@@ -134,7 +134,7 @@ fn set_cbreak(file: FileDescriptor, when: WhenOption = WhenOption.TCSAFLUSH) rai
     return mode
 
 
-fn is_terminal_raw(file_descriptor: FileDescriptor) raises -> Bool:
+def is_terminal_raw(file_descriptor: FileDescriptor) raises -> Bool:
     """Checks if a terminal is in raw mode.
 
     Args:

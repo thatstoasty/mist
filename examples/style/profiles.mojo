@@ -2,7 +2,7 @@ import mist
 from mist import Profile
 
 
-fn render_profiles():
+def render_profiles():
     var a: String = "Hello World!"
 
     # ) will automatically convert the color to the best matching color in the profile.
@@ -33,7 +33,7 @@ fn render_profiles():
     print(mist.Style(Profile.TRUE_COLOR).foreground(0xC9A0DC).render(a))
 
 
-fn renderers():
+def renderers():
     print(mist.red("Hello, world!"))
     print(mist.green("Hello, world!"))
     print(mist.blue("Hello, world!"))
@@ -45,6 +45,6 @@ fn renderers():
     print(mist.strikethrough("Hello, world!"))
 
 
-fn main():
+def main():
     render_profiles()
     renderers()

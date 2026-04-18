@@ -14,7 +14,7 @@ comptime ANSI256_STYLE = mist.Style(Profile.ANSI256)
 comptime ASCII_STYLE = mist.Style(Profile.ASCII)
 
 
-fn test_ascii_profile_color_conversions() raises:
+def test_ascii_profile_color_conversions() raises:
     comptime profile = Profile.ASCII
     # Degrade Hex, ANSI256, and ANSI to ASCII
     testing.assert_equal(profile.convert(ANSIColor(5))[NoColor].sequence[False](), NoColor().sequence[False]())
@@ -22,10 +22,10 @@ fn test_ascii_profile_color_conversions() raises:
     testing.assert_equal(profile.convert(RGBColor(0xC9A0DC))[NoColor].sequence[False](), NoColor().sequence[False]())
 
 
-fn test_ansi_profile_color_conversions() raises:
+def test_ansi_profile_color_conversions() raises:
     comptime profile = Profile.ANSI
 
-    fn validate_ansi256_degradation(ansi256_color: UInt8, ansi_color: UInt8) raises -> None:
+    def validate_ansi256_degradation(ansi256_color: UInt8, ansi_color: UInt8) raises -> None:
         testing.assert_equal(
             String(profile.convert(ANSI256Color(ansi256_color))[ANSIColor].value), String(ANSIColor(ansi_color).value)
         )
@@ -38,7 +38,7 @@ fn test_ansi_profile_color_conversions() raises:
     validate_ansi256_degradation(ansi256_color=200, ansi_color=13)  # Magenta
     validate_ansi256_degradation(ansi256_color=255, ansi_color=15)  # White
 
-    fn validate_rgb_degradation(rgb_color: UInt32, ansi_color: UInt8) raises -> None:
+    def validate_rgb_degradation(rgb_color: UInt32, ansi_color: UInt8) raises -> None:
         testing.assert_equal(
             String(profile.convert(RGBColor(rgb_color))[ANSIColor].value), String(ANSIColor(ansi_color).value)
         )
@@ -53,11 +53,11 @@ fn test_ansi_profile_color_conversions() raises:
     validate_rgb_degradation(rgb_color=0xFFFFFF, ansi_color=15)
 
 
-fn test_ansi256_profile_color_conversions() raises:
+def test_ansi256_profile_color_conversions() raises:
     comptime profile = Profile.ANSI256
 
     # Degrade Hex to ANSI256
-    fn validate_rgb_degradation(rgb_color: UInt32, ansi256_color: UInt8) raises -> None:
+    def validate_rgb_degradation(rgb_color: UInt32, ansi256_color: UInt8) raises -> None:
         testing.assert_equal(
             String(profile.convert(RGBColor(rgb_color))[ANSI256Color].value), String(ANSI256Color(ansi256_color).value)
         )
@@ -71,7 +71,7 @@ fn test_ansi256_profile_color_conversions() raises:
     validate_rgb_degradation(rgb_color=0xFFFFFF, ansi256_color=231)
 
 
-fn test_profile_color() raises:
+def test_profile_color() raises:
     # ASCII profile returns NoColor for all colors.
     testing.assert_equal(Profile.ASCII.color(0xC9A0DC)[NoColor].sequence[False](), NoColor().sequence[False]())
 
@@ -82,7 +82,7 @@ fn test_profile_color() raises:
     testing.assert_equal(String(Profile.ANSI.convert(ANSI256Color(100))[ANSIColor].value), String(ANSIColor(3).value))
 
 
-fn test_render_profiles() raises:
+def test_render_profiles() raises:
     comptime a = "Hello World!"
 
     # ) will automatically convert the color to the best matching color in the profile.
@@ -122,7 +122,7 @@ fn test_render_profiles() raises:
     testing.assert_equal(TRUE_COLOR_STYLE.foreground(0xC9A0DC).render(a), "\x1B[38;2;201;160;220mHello World!\x1B[0m")
 
 
-fn test_unicode_handling() raises:
+def test_unicode_handling() raises:
     comptime a = "Hello──World!"
     testing.assert_equal(
         TRUE_COLOR_STYLE.underline().foreground(12).render(a),
@@ -134,18 +134,18 @@ fn test_unicode_handling() raises:
 struct EnvVar(Copyable, ImplicitlyCopyable, Movable):
     var name: String
 
-    fn __init__(out self, name: String, value: String):
+    def __init__(out self, name: String, value: String):
         self.name = name
         _ = os.setenv(name, value)
 
-    fn __enter__(self) -> Self:
+    def __enter__(self) -> Self:
         return self
 
-    fn __exit__(self) -> None:
+    def __exit__(self) -> None:
         _ = os.unsetenv(self.name)
 
 
-# fn test_get_color_profile() raises:
+# def test_get_color_profile() raises:
 #     with EnvVar("GOOGLE_CLOUD_SHELL", "true"):
 #         testing.assert_equal(get_color_profile(), Profile.TRUE_COLOR)
 
@@ -165,5 +165,5 @@ struct EnvVar(Copyable, ImplicitlyCopyable, Movable):
 #         testing.assert_equal(get_color_profile(), Profile.ANSI256)
 
 
-fn main() raises:
+def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

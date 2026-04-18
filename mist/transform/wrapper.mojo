@@ -20,7 +20,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
     ```mojo
     from mist.transform import WrapWriter
 
-    fn main():
+    def main():
         var writer = WrapWriter(5)
         writer.write("Hello, World!")
         print(String(writer))
@@ -44,7 +44,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
     var forceful_newline: Bool
     """Whether to force a newline at the end of the line."""
 
-    fn __init__(
+    def __init__(
         out self,
         limit: UInt,
         *,
@@ -75,7 +75,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
         self.ansi = ansi
         self.forceful_newline = forceful_newline
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes the wrapped result to the given writer.
 
         Args:
@@ -83,12 +83,12 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
         """
         writer.write(self.buf)
 
-    fn add_newline(mut self) -> None:
+    def add_newline(mut self) -> None:
         """Adds a newline to the buffer and resets the line length."""
         self.buf.write(self.newline)
         self.line_len = 0
 
-    fn write(mut self, text: StringSlice) -> None:
+    def write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
 
         Args:
@@ -134,7 +134,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
             self.buf.write(codepoint)
 
 
-fn wrap[
+def wrap[
     keep_newlines: Bool = True
 ](
     text: StringSlice,
@@ -163,7 +163,7 @@ fn wrap[
     ```mojo
     from mist import wrap
 
-    fn main():
+    def main():
         print(wrap("Hello, World!", 5))
     ```
     """

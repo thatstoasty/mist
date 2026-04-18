@@ -1,7 +1,7 @@
 from mist.terminal.sgr import OSC, ST
 
 
-fn notify(title: StringSlice, body: StringSlice) -> None:
+def notify(title: StringSlice, body: StringSlice) -> None:
     """Sends a notification to the terminal.
 
     Args:

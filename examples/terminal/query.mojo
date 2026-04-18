@@ -3,7 +3,7 @@ from mist.terminal.query import get_background_color, get_terminal_size, has_dar
 from mist.terminal.tty import TTY, Mode
 
 
-fn main() raises -> None:
+def main() raises -> None:
     var color: RGBColor
     var rows: UInt16
     var columns: UInt16

@@ -20,7 +20,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
     ```mojo
     from mist.transform import WordWrapWriter
 
-    fn main():
+    def main():
         var writer = WordWrapWriter(5)
         writer.write("Hello, World!")
         print(writer^.finish())
@@ -44,7 +44,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
     var ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
 
-    fn __init__(
+    def __init__(
         out self,
         limit: UInt,
         *,
@@ -71,27 +71,27 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
         self.line_len = line_len
         self.ansi = ansi
 
-    fn add_space(mut self):
+    def add_space(mut self):
         """Write the content of the space buffer to the word-wrap buffer."""
-        self.line_len += UInt(len(self.space))
+        self.line_len += UInt(self.space.count_codepoints())
         self.buf.write(self.space)
         self.space = String(capacity=self.space.capacity())
 
-    fn add_word(mut self):
+    def add_word(mut self):
         """Write the content of the word buffer to the word-wrap buffer."""
-        if len(self.word) > 0:
+        if self.word.byte_length() > 0:
             self.add_space()
             self.line_len += ansi.printable_rune_width(self.word)
             self.buf.write(self.word)
             self.word = String(capacity=self.word.capacity())
 
-    fn add_newline(mut self):
+    def add_newline(mut self):
         """Write a newline to the word-wrap buffer and reset the line length & space buffer."""
         self.buf.write(NEWLINE)
         self.line_len = 0
         self.space = String(capacity=self.space.capacity())
 
-    fn write(mut self, text: StringSlice) -> None:
+    def write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
         If the word cannot fit on the line, then it will be written to the next line.
 
@@ -123,8 +123,8 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
             # end of current line
             # see if we can add the content of the space buffer to the current line
             elif codepoint == self.newline:
-                if len(self.word) == 0:
-                    if self.line_len + UInt(len(self.space)) > self.limit:
+                if self.word.byte_length() == 0:
+                    if self.line_len + UInt(self.space.count_codepoints()) > self.limit:
                         self.line_len = 0
 
                     # preserve whitespace
@@ -152,10 +152,10 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
                 # add a line break if the current word would exceed the line's
                 # character limit
                 var word_width = ansi.printable_rune_width(self.word)
-                if word_width < self.limit and self.line_len + UInt(len(self.space)) + word_width > self.limit:
+                if word_width < self.limit and self.line_len + UInt(self.space.count_codepoints()) + word_width > self.limit:
                     self.add_newline()
 
-    fn finish(deinit self) -> String:
+    def finish(deinit self) -> String:
         """Finishes the word-wrap operation. Always call it before trying to retrieve the final result.
 
         Returns:
@@ -165,7 +165,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
         return self.buf^
 
 
-fn word_wrap[
+def word_wrap[
     keep_newlines: Bool = True
 ](
     text: StringSlice,
@@ -193,7 +193,7 @@ fn word_wrap[
     ```mojo
     from mist import word_wrap
 
-    fn main():
+    def main():
         print(word_wrap("Hello, World!", 5))
     ```
     """

@@ -13,7 +13,7 @@ comptime BACKGROUND = "48"
 trait Color(ImplicitlyCopyable, Equatable, Writable):
     """Represents colors that can be displayed in the terminal."""
 
-    fn sequence[is_background: Bool](self) -> String:
+    def sequence[is_background: Bool](self) -> String:
         """Sequence returns the ANSI Sequence for the color.
 
         Parameters:
@@ -24,7 +24,7 @@ trait Color(ImplicitlyCopyable, Equatable, Writable):
         """
         ...
 
-    fn as_hex_string(self) -> String:
+    def as_hex_string(self) -> String:
         """Returns the hex string for the color, if it exists.
 
         Returns:
@@ -37,7 +37,7 @@ trait Color(ImplicitlyCopyable, Equatable, Writable):
 struct NoColor(Color, TrivialRegisterPassable):
     """NoColor represents an ASCII color which is binary black or white."""
 
-    fn __eq__(self, other: Self) -> Bool:
+    def __eq__(self, other: Self) -> Bool:
         """Compares two colors for equality.
 
         Args:
@@ -48,7 +48,7 @@ struct NoColor(Color, TrivialRegisterPassable):
         """
         return True
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
 
         Args:
@@ -56,7 +56,7 @@ struct NoColor(Color, TrivialRegisterPassable):
         """
         writer.write("NoColor()")
 
-    fn write_repr_to(self, mut writer: Some[Writer]):
+    def write_repr_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
 
         Args:
@@ -64,7 +64,7 @@ struct NoColor(Color, TrivialRegisterPassable):
         """
         writer.write("NoColor()")
 
-    fn sequence[is_background: Bool](self) -> String:
+    def sequence[is_background: Bool](self) -> String:
         """Returns an empty string. This function is used to implement the Color trait.
 
         Parameters:
@@ -75,7 +75,7 @@ struct NoColor(Color, TrivialRegisterPassable):
         """
         return ""
 
-    fn as_hex_string(self) -> String:
+    def as_hex_string(self) -> String:
         """Returns an empty string, as NoColor cannot be represented as a hex string.
 
         Returns:
@@ -90,7 +90,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
     var value: UInt8
     """The ANSI color value."""
 
-    fn __init__(out self, value: UInt8):
+    def __init__(out self, value: UInt8):
         """Initializes the ANSIColor with a value.
 
         Args:
@@ -101,7 +101,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
         else:
             self.value = value
 
-    fn __init__(out self, color: hue.Color):
+    def __init__(out self, color: hue.Color):
         """Initializes the ANSIColor with a `hue.Color`.
 
         Args:
@@ -109,7 +109,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
         """
         self.value = ansi256_to_ansi(hex_to_ansi256(color))
 
-    fn __init__(out self, other: Self):
+    def __init__(out self, other: Self):
         """Initializes the ANSIColor with another ANSIColor.
 
         Args:
@@ -117,7 +117,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
         """
         self.value = other.value
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
 
         Args:
@@ -125,7 +125,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
         """
         writer.write("ANSIColor(", self.value, ")")
 
-    fn write_repr_to(self, mut writer: Some[Writer]):
+    def write_repr_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
 
         Args:
@@ -133,7 +133,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
         """
         writer.write("ANSIColor(", self.value, ")")
 
-    fn __eq__(self, other: ANSIColor) -> Bool:
+    def __eq__(self, other: ANSIColor) -> Bool:
         """Compares two colors for equality.
 
         Args:
@@ -144,7 +144,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
         """
         return self.value == other.value
 
-    fn to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
+    def to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
         """Converts the ANSI256 Color to an RGB Tuple.
 
         Returns:
@@ -152,7 +152,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
         """
         return hex_to_rgb(lut[ANSI_HEX_CODES](Int(self.value)))
 
-    fn sequence[is_background: Bool](self) -> String:
+    def sequence[is_background: Bool](self) -> String:
         """Converts the ANSI Color to an ANSI Sequence.
 
         Parameters:
@@ -172,7 +172,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
             return String(lut[COLOR_STRINGS](modifier + self.value + 30))
         return String(lut[COLOR_STRINGS](modifier + self.value - 8 + 90))
 
-    fn as_hex_string(self) -> String:
+    def as_hex_string(self) -> String:
         """Returns the hex string for the ANSIColor.
 
         Returns:
@@ -188,7 +188,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
     var value: UInt8
     """The ANSI256 color value."""
 
-    fn __init__(out self, color: hue.Color):
+    def __init__(out self, color: hue.Color):
         """Initializes the ANSI256Color with a `hue.Color`.
 
         Args:
@@ -196,7 +196,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
         """
         self.value = hex_to_ansi256(color)
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
 
         Args:
@@ -204,7 +204,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
         """
         writer.write("ANSI256Color(", self.value, ")")
 
-    fn write_repr_to(self, mut writer: Some[Writer]):
+    def write_repr_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
 
         Args:
@@ -212,7 +212,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
         """
         writer.write("ANSI256Color(", self.value, ")")
 
-    fn __eq__(self, other: ANSI256Color) -> Bool:
+    def __eq__(self, other: ANSI256Color) -> Bool:
         """Compares two colors for equality.
 
         Args:
@@ -223,7 +223,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
         """
         return self.value == other.value
 
-    fn to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
+    def to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
         """Converts the ANSI256 Color to an RGB Tuple.
 
         Returns:
@@ -231,7 +231,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
         """
         return hex_to_rgb(lut[ANSI_HEX_CODES](Int(self.value)))
 
-    fn sequence[is_background: Bool](self) -> String:
+    def sequence[is_background: Bool](self) -> String:
         """Converts the ANSI256 Color to an ANSI Sequence.
 
         Parameters:
@@ -250,7 +250,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
 
         return output^
 
-    fn as_hex_string(self) -> String:
+    def as_hex_string(self) -> String:
         """Returns the hex string for the ANSI256Color.
 
         Returns:
@@ -259,7 +259,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
         return hex_to_string(lut[ANSI_HEX_CODES](Int(self.value)))
 
 
-fn hex_to_rgb(hex: UInt32) -> Tuple[UInt8, UInt8, UInt8]:
+def hex_to_rgb(hex: UInt32) -> Tuple[UInt8, UInt8, UInt8]:
     """Converts a number in hexadecimal format to red, green, and blue values.
     `r, g, b = hex_to_rgb(0x0000FF) # (0, 0, 255)`.
 
@@ -277,7 +277,7 @@ fn hex_to_rgb(hex: UInt32) -> Tuple[UInt8, UInt8, UInt8]:
     return r, g, b
 
 
-fn rgb_to_hex(r: UInt8, g: UInt8, b: UInt8) -> UInt32:
+def rgb_to_hex(r: UInt8, g: UInt8, b: UInt8) -> UInt32:
     """Converts red, green, and blue values to a number in hexadecimal format.
     `hex = rgb_to_hex(0, 0, 255) # 0x0000FF`.
 
@@ -292,7 +292,7 @@ fn rgb_to_hex(r: UInt8, g: UInt8, b: UInt8) -> UInt32:
     return (r.cast[DType.uint32]() << 16) | (g.cast[DType.uint32]() << 8) | b.cast[DType.uint32]()
 
 
-fn hex_to_string(value: UInt32) -> String:
+def hex_to_string(value: UInt32) -> String:
     """Convert a UInt32 value to a lowercase hexadecimal string.
 
     Args:
@@ -323,7 +323,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
     var value: UInt32
     """The hex-encoded color value."""
 
-    fn __init__(out self, color: hue.Color):
+    def __init__(out self, color: hue.Color):
         """Initializes the RGBColor with a `hue.Color`.
 
         Args:
@@ -331,7 +331,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         """
         self.value = color.hex()
 
-    fn __init__(out self, value: Tuple[UInt8, UInt8, UInt8]):
+    def __init__(out self, value: Tuple[UInt8, UInt8, UInt8]):
         """Initializes the RGBColor with a hex value.
 
         Args:
@@ -339,7 +339,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         """
         self.value = rgb_to_hex(value[0], value[1], value[2])
 
-    fn __init__(out self, r: UInt8, g: UInt8, b: UInt8):
+    def __init__(out self, r: UInt8, g: UInt8, b: UInt8):
         """Initializes the RGBColor with a hex value.
 
         Args:
@@ -349,7 +349,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         """
         self.value = rgb_to_hex(r, g, b)
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
 
         Args:
@@ -357,7 +357,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         """
         writer.write("RGBColor(", self.value, ")")
 
-    fn write_repr_to(self, mut writer: Some[Writer]):
+    def write_repr_to(self, mut writer: Some[Writer]):
         """Writes the representation to the writer.
 
         Args:
@@ -365,7 +365,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         """
         writer.write("RGBColor(", self.value, ")")
 
-    fn __eq__(self, other: RGBColor) -> Bool:
+    def __eq__(self, other: RGBColor) -> Bool:
         """Compares two colors for equality.
 
         Args:
@@ -376,7 +376,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         """
         return self.value == other.value
 
-    fn to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
+    def to_rgb(self) -> Tuple[UInt8, UInt8, UInt8]:
         """Converts the RGB Color to an RGB Tuple.
 
         Returns:
@@ -384,7 +384,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         """
         return hex_to_rgb(self.value)
 
-    fn sequence[is_background: Bool](self) -> String:
+    def sequence[is_background: Bool](self) -> String:
         """Converts the RGB Color to an ANSI Sequence.
 
         Parameters:
@@ -406,7 +406,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
 
         return output^
 
-    fn as_hex_string(self) -> String:
+    def as_hex_string(self) -> String:
         """Returns the hex string for the RGBColor.
 
         Returns:
@@ -415,7 +415,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         return hex_to_string(self.value)
 
 
-fn ansi256_to_ansi(value: UInt8) -> UInt8:
+def ansi256_to_ansi(value: UInt8) -> UInt8:
     """Converts an ANSI256 color to an ANSI color.
 
     Args:
@@ -438,7 +438,7 @@ fn ansi256_to_ansi(value: UInt8) -> UInt8:
     return r
 
 
-fn _value_to_color_index(value: Float64) -> Int:
+def _value_to_color_index(value: Float64) -> Int:
     """Converts a value to a color index.
 
     Args:
@@ -454,7 +454,7 @@ fn _value_to_color_index(value: Float64) -> Int:
     return Int((value - 35) / 40)
 
 
-fn hex_to_ansi256(color: hue.Color) -> UInt8:
+def hex_to_ansi256(color: hue.Color) -> UInt8:
     """Converts a hex code to a ANSI256 color.
 
     Args:
@@ -498,7 +498,7 @@ struct AnyColor(Copyable):
     """The color value."""
 
     @implicit
-    fn __init__(out self, value: NoColor):
+    def __init__(out self, value: NoColor):
         """Initializes the AnyColor with a value.
 
         Args:
@@ -507,7 +507,7 @@ struct AnyColor(Copyable):
         self.value = value
 
     @implicit
-    fn __init__(out self, value: ANSIColor):
+    def __init__(out self, value: ANSIColor):
         """Initializes the AnyColor with a value.
 
         Args:
@@ -516,7 +516,7 @@ struct AnyColor(Copyable):
         self.value = value
 
     @implicit
-    fn __init__(out self, value: ANSI256Color):
+    def __init__(out self, value: ANSI256Color):
         """Initializes the AnyColor with a value.
 
         Args:
@@ -525,7 +525,7 @@ struct AnyColor(Copyable):
         self.value = value
 
     @implicit
-    fn __init__(out self, value: RGBColor):
+    def __init__(out self, value: RGBColor):
         """Initializes the AnyColor with a value.
 
         Args:
@@ -533,7 +533,7 @@ struct AnyColor(Copyable):
         """
         self.value = value
 
-    fn __init__(out self, other: Self):
+    def __init__(out self, other: Self):
         """Initializes the AnyColor with another AnyColor.
 
         Args:
@@ -541,7 +541,7 @@ struct AnyColor(Copyable):
         """
         self.value = other.value
 
-    fn sequence[is_background: Bool](self) -> String:
+    def sequence[is_background: Bool](self) -> String:
         """Sequence returns the ANSI Sequence for the color.
 
         Parameters:
@@ -560,7 +560,7 @@ struct AnyColor(Copyable):
 
         return self.value[NoColor].sequence[is_background]()
 
-    fn isa[T: Color](self) -> Bool:
+    def isa[T: Color](self) -> Bool:
         """Checks if the value is of the given type.
 
         Parameters:
@@ -571,7 +571,7 @@ struct AnyColor(Copyable):
         """
         return self.value.isa[T]()
 
-    fn __getitem_param__[T: Color](ref self) -> ref[self.value] T:
+    def __getitem_param__[T: Color](ref self) -> ref[self.value] T:
         """Gets the value as the given type.
 
         Parameters:
@@ -582,7 +582,7 @@ struct AnyColor(Copyable):
         """
         return self.value[T]
 
-    fn as_hex_string(self) -> String:
+    def as_hex_string(self) -> String:
         """Returns the hex string for the color, if it exists.
 
         Returns:

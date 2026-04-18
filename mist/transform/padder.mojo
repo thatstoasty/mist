@@ -11,7 +11,7 @@ struct PaddingWriter(Movable):
     ```mojo
     from mist.transform import PaddingWriter
 
-    fn main():
+    def main():
         var writer = PaddingWriter(4)
         writer.write("Hello, World!")
         print(writer^.finish())
@@ -29,7 +29,7 @@ struct PaddingWriter(Movable):
     var in_ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
 
-    fn __init__(
+    def __init__(
         out self,
         padding: UInt,
         *,
@@ -49,7 +49,7 @@ struct PaddingWriter(Movable):
         self.cache = String()
         self.ansi_writer = ansi.Writer()
 
-    fn as_string_slice(self) -> StringSlice[origin_of(self.cache)]:
+    def as_string_slice(self) -> StringSlice[origin_of(self.cache)]:
         """Returns the padded result as a `StringSlice`.
 
         Returns:
@@ -57,7 +57,7 @@ struct PaddingWriter(Movable):
         """
         return self.cache
 
-    fn write(mut self, text: StringSlice) -> None:
+    def write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer,
         padding the text with a `self.width` number of spaces.
 
@@ -81,12 +81,12 @@ struct PaddingWriter(Movable):
 
             self.ansi_writer.write(codepoint)
 
-    fn pad(mut self):
+    def pad(mut self):
         """Pads the current line with spaces to the given width."""
         if self.padding > 0 and self.line_len < self.padding:
             self.ansi_writer.write(SPACE * Int(self.padding - self.line_len))
 
-    fn finish(deinit self) -> String:
+    def finish(deinit self) -> String:
         """Finishes the padding operation. Always call it before trying to retrieve the final result.
 
         Returns:
@@ -99,7 +99,7 @@ struct PaddingWriter(Movable):
         return self.cache^
 
 
-fn padding(text: StringSlice, width: UInt) -> String:
+def padding(text: StringSlice, width: UInt) -> String:
     """Right pads `text` with a `width` number of spaces.
 
     Args:
@@ -113,7 +113,7 @@ fn padding(text: StringSlice, width: UInt) -> String:
     ```mojo
     from mist import padding
 
-    fn main():
+    def main():
         print(padding("Hello, World!", 5))
     ```
     """

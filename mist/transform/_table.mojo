@@ -1,9 +1,11 @@
 @fieldwise_init
-struct Interval(ImplicitlyCopyable):
+struct Interval(ImplicitlyCopyable, Writable):
     """Low to high interval of codepoints."""
 
     var start: UInt32
+    """The start of the interval, inclusive."""
     var end: UInt32
+    """The end of the interval, inclusive."""
 
 
 comptime COMBINING: InlineArray[Interval, 43] = [

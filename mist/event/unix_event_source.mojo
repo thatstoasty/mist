@@ -62,7 +62,7 @@ struct PollTimeout:
     var start_time_ns: Int
     """Start time in nanoseconds."""
 
-    fn __init__(out self, timeout_micros: Optional[Int]):
+    def __init__(out self, timeout_micros: Optional[Int]):
         """Initialize a poll timeout.
 
         Args:
@@ -71,7 +71,7 @@ struct PollTimeout:
         self.timeout_micros = timeout_micros
         self.start_time_ns = _get_time_ns()
 
-    fn leftover(self) -> Optional[Int]:
+    def leftover(self) -> Optional[Int]:
         """Get the remaining timeout in microseconds.
 
         Returns:
@@ -89,7 +89,7 @@ struct PollTimeout:
             return 0
         return remaining
 
-    fn elapsed(self) -> Bool:
+    def elapsed(self) -> Bool:
         """Check if the timeout has elapsed.
 
         Returns:
@@ -103,7 +103,7 @@ struct PollTimeout:
             return False
         return remaining.value() == 0
 
-    fn is_zero(self) -> Bool:
+    def is_zero(self) -> Bool:
         """Check if the remaining timeout is zero.
 
         Returns:
@@ -115,7 +115,7 @@ struct PollTimeout:
         return remaining.value() == 0
 
 
-fn _get_time_ns() -> Int:
+def _get_time_ns() -> Int:
     """Get current time in nanoseconds.
 
     Returns:
@@ -146,7 +146,7 @@ struct Parser(Movable):
     var internal_events: Deque[InternalEvent]
     """Queue of parsed internal events."""
 
-    fn __init__(out self):
+    def __init__(out self):
         """Initialize the parser with default buffer sizes."""
         # Buffer for -> 1 <- ANSI escape sequence. 256 bytes should be enough
         # for any reasonable escape sequence.
@@ -156,7 +156,7 @@ struct Parser(Movable):
         # reallocations when processing large amounts of data.
         self.internal_events = Deque[InternalEvent](capacity=128)
 
-    fn advance(mut self, buffer: Span[UInt8, ...], more: Bool):
+    def advance(mut self, buffer: Span[UInt8, ...], more: Bool):
         """Advance the parser with new bytes.
 
         Processes each byte and attempts to parse complete events.
@@ -183,7 +183,7 @@ struct Parser(Movable):
                 # Clear the buffer and continue with another sequence.
                 self.buffer.clear()
 
-    fn next(mut self) -> Optional[InternalEvent]:
+    def next(mut self) -> Optional[InternalEvent]:
         """Get the next parsed event from the queue.
 
         Returns:
@@ -226,7 +226,7 @@ struct UnixInternalEventSource(EventSource, Movable):
     # as it requires signal handling infrastructure not yet available.
     # For now, resize events can be detected by polling terminal size.
 
-    fn __init__(out self, tty: FileDescriptor):
+    def __init__(out self, tty: FileDescriptor):
         """Initialize the event source with a specific file descriptor.
 
         Args:
@@ -238,7 +238,7 @@ struct UnixInternalEventSource(EventSource, Movable):
         self.selector = SelectSelector()
         self.selector.register(self.tty, SelectEvent.READ)
 
-    fn __init__(out self) raises:
+    def __init__(out self) raises:
         """Initialize the event source using stdin as the TTY.
 
         Raises:
@@ -248,7 +248,7 @@ struct UnixInternalEventSource(EventSource, Movable):
             raise Error("stdin is not a terminal")
         self = Self(stdin)
 
-    fn try_read(mut self, timeout: Optional[Int]) raises -> Optional[InternalEvent]:
+    def try_read(mut self, timeout: Optional[Int]) raises -> Optional[InternalEvent]:
         """Try to read an event with an optional timeout.
 
         This method polls for input and parses events. It handles:
@@ -297,7 +297,7 @@ struct UnixInternalEventSource(EventSource, Movable):
                     break
         return None
 
-    fn _read_complete(mut self) raises -> Int:
+    def _read_complete(mut self) raises -> Int:
         """Read from TTY until buffer is full or would block.
 
         Similar to std::io::Read::read_to_end, except this function
