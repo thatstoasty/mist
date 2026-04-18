@@ -1,7 +1,7 @@
 import mist
 
 
-fn main():
+def main():
     # Profile queries for the terminal profile at run time.
     var true_color_style = mist.Style()
 

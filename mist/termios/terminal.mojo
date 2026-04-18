@@ -6,7 +6,7 @@ import mist.termios.c
 
 
 @fieldwise_init
-struct WhenOption(ImplicitlyCopyable, TrivialRegisterPassable):
+struct WhenOption(ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """TTY when values."""
 
     var value: Int32
@@ -22,7 +22,7 @@ struct WhenOption(ImplicitlyCopyable, TrivialRegisterPassable):
 
 
 @fieldwise_init
-struct FlowOption(ImplicitlyCopyable, TrivialRegisterPassable):
+struct FlowOption(ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """TTY flow values."""
 
     var value: Int32
@@ -38,7 +38,7 @@ struct FlowOption(ImplicitlyCopyable, TrivialRegisterPassable):
 
 
 @fieldwise_init
-struct FlushOption(ImplicitlyCopyable, TrivialRegisterPassable):
+struct FlushOption(ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """TTY flow values."""
 
     var value: Int32
@@ -51,7 +51,7 @@ struct FlushOption(ImplicitlyCopyable, TrivialRegisterPassable):
     """Flushes both data received, but not read. And data written, but not transmitted."""
 
 
-fn tcgetattr(file: FileDescriptor) raises -> c.Termios:
+def tcgetattr(file: FileDescriptor) raises -> c.Termios:
     """Return the tty attributes for file descriptor.
     This is a wrapper around `c.tcgetattr()`.
 
@@ -80,7 +80,7 @@ fn tcgetattr(file: FileDescriptor) raises -> c.Termios:
     return terminal_attributes
 
 
-fn tcsetattr(file: FileDescriptor, optional_actions: WhenOption, terminal_attributes: c.Termios) raises -> None:
+def tcsetattr(file: FileDescriptor, optional_actions: WhenOption, terminal_attributes: c.Termios) raises -> None:
     """Set the tty attributes for file descriptor `file` from the attributes,
     which is a list like the one returned by c.tcgetattr(). The when argument determines when the attributes are changed:
     This is a wrapper around `c.tcsetattr()`.
@@ -125,7 +125,7 @@ fn tcsetattr(file: FileDescriptor, optional_actions: WhenOption, terminal_attrib
             raise Error("[UNKNOWN] Failed to set tty attributes. ERRNO: ", errno)
 
 
-fn tcsendbreak(file: FileDescriptor, duration: c.c_int) raises -> None:
+def tcsendbreak(file: FileDescriptor, duration: c.c_int) raises -> None:
     """Send a break on file descriptor `file`.
     A zero duration sends a break for 0.25 - 0.5 seconds; a nonzero duration has a system dependent meaning.
 
@@ -158,7 +158,7 @@ fn tcsendbreak(file: FileDescriptor, duration: c.c_int) raises -> None:
             raise Error("[UNKNOWN] Failed to send break to file descriptor. ERRNO: ", errno)
 
 
-fn tcdrain(file: FileDescriptor) raises -> None:
+def tcdrain(file: FileDescriptor) raises -> None:
     """Wait until all output written to the object referred to by `file` has been transmitted.
 
     Args:
@@ -192,7 +192,7 @@ fn tcdrain(file: FileDescriptor) raises -> None:
             raise Error("[UNKNOWN] Failed to wait for output transmission. ERRNO: ", errno)
 
 
-fn tcflush(file: FileDescriptor, queue_selector: FlushOption) raises -> None:
+def tcflush(file: FileDescriptor, queue_selector: FlushOption) raises -> None:
     """Discard queued data on file descriptor `file`.
 
     Args:
@@ -229,7 +229,7 @@ fn tcflush(file: FileDescriptor, queue_selector: FlushOption) raises -> None:
             raise Error("[UNKNOWN] Failed to flush queued data. ERRNO: ", errno)
 
 
-fn tcflow(file: FileDescriptor, action: FlowOption) raises -> None:
+def tcflow(file: FileDescriptor, action: FlowOption) raises -> None:
     """Suspend or resume input or output on file descriptor `file`.
 
     Args:
@@ -266,7 +266,7 @@ fn tcflow(file: FileDescriptor, action: FlowOption) raises -> None:
             raise Error("[UNKNOWN] Failed to suspend or resume I/O. ERRNO: ", errno)
 
 
-fn tty_name(file_descriptor: FileDescriptor) raises -> String:
+def tty_name(file_descriptor: FileDescriptor) raises -> String:
     """Return the name of the terminal associated with the file descriptor.
 
     Args:
@@ -305,7 +305,7 @@ fn tty_name(file_descriptor: FileDescriptor) raises -> String:
 
 
 # Not available from libc
-# fn tc_getwinsize(file_descriptor: c.c_int) raises -> winsize:
+# def tc_getwinsize(file_descriptor: c.c_int) raises -> winsize:
 #     """Return the window size of the terminal associated to file descriptor file_descriptor as a winsize object. The winsize object is a named tuple with four fields: ws_row, ws_col, ws_xpixel, and ws_ypixel.
 #     """
 #     var winsize_p = winsize()
@@ -316,7 +316,7 @@ fn tty_name(file_descriptor: FileDescriptor) raises -> String:
 #     return winsize_p
 
 
-# fn tc_setwinsize(file_descriptor: c.c_int, winsize: Int32) raises -> Int32:
+# def tc_setwinsize(file_descriptor: c.c_int, winsize: Int32) raises -> Int32:
 #     var status = tcsetwinsize(file_descriptor, winsize)
 #     if status != 0:
 #         raise Error("Failed tcsetwinsize." + String(status))

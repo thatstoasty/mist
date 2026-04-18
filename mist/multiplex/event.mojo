@@ -11,7 +11,7 @@ struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
     comptime READ_WRITE = Self(3)
     """Event for both read and write operations."""
 
-    fn __eq__(self, other: Self) -> Bool:
+    def __eq__(self, other: Self) -> Bool:
         """Equality comparison.
 
         Args:
@@ -22,7 +22,7 @@ struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
         """
         return self.value == other.value
 
-    fn __or__(self, rhs: Self) -> Self:
+    def __or__(self, rhs: Self) -> Self:
         """Bitwise OR operation.
 
         Args:
@@ -33,7 +33,7 @@ struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
         """
         return Self(self.value | rhs.value)
 
-    fn __ior__(mut self, rhs: Self) -> None:
+    def __ior__(mut self, rhs: Self) -> None:
         """Bitwise OR operation.
 
         Args:
@@ -41,7 +41,7 @@ struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
         """
         self = Self(self.value | rhs.value)
 
-    fn __ror__(mut self, lhs: Self) -> None:
+    def __ror__(mut self, lhs: Self) -> None:
         """Bitwise OR operation.
 
         Args:
@@ -49,7 +49,7 @@ struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
         """
         self = Self(lhs.value | self.value)
 
-    fn __and__(self, rhs: Self) -> Self:
+    def __and__(self, rhs: Self) -> Self:
         """Bitwise AND operation.
 
         Args:
@@ -60,7 +60,7 @@ struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
         """
         return Self(self.value & rhs.value)
 
-    fn __bool__(self) -> Bool:
+    def __bool__(self) -> Bool:
         """Boolean conversion.
 
         Returns:

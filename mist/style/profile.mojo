@@ -6,19 +6,22 @@ import mist.style._hue as hue
 from mist.style.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
 
 
-fn _init_global() -> UnsafePointer[NoneType, origin=MutExternalOrigin]:
+def _init_global() -> UnsafePointer[NoneType, origin=MutExternalOrigin]:
     var ptr = alloc[UInt8](1)
     ptr[] = get_color_profile()._value
     return ptr.bitcast[NoneType]()
 
 
-fn _destroy_global(lib: UnsafePointer[NoneType, origin=MutExternalOrigin]):
-    var ptr = lib.bitcast[UInt8]()
+def _destroy_global(lib: Optional[UnsafePointer[NoneType, origin=MutExternalOrigin]]):
+    if not lib:
+        return
+
+    var ptr = lib.value().bitcast[UInt8]()
     ptr.free()
 
 
 @always_inline
-fn get_profile() -> Profile:
+def get_profile() -> Profile:
     """Initializes or gets the global profile value.
 
     This is so we only query the terminal once per program execution.
@@ -26,10 +29,10 @@ fn get_profile() -> Profile:
     Returns:
         Terminal profile value.
     """
-    return _get_global["profile", _init_global, _destroy_global]().bitcast[UInt8]()[]
+    return _get_global["profile", _init_global, _destroy_global]().value().bitcast[UInt8]()[]
 
 
-fn get_color_profile() -> Profile:
+def get_color_profile() -> Profile:
     """Queries the terminal to determine the color profile it supports.
     `ASCII`, `ANSI`, `ANSI256`, or `TRUE_COLOR`.
 
@@ -93,7 +96,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
     """The terminal supports no colors (ASCII only)."""
 
     @implicit
-    fn __init__(out self, value: UInt8):
+    def __init__(out self, value: UInt8):
         """Initialize a new profile with the given profile type.
 
         Args:
@@ -109,7 +112,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
 
         self._value = value
 
-    fn __init__(out self):
+    def __init__(out self):
         """Initialize a new profile with the given profile type.
 
         Notes:
@@ -141,7 +144,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
 
         self = get_profile()
 
-    fn __init__(out self, other: Self):
+    def __init__(out self, other: Self):
         """Initialize a new profile using the value of an existing profile.
 
         Args:
@@ -149,7 +152,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
         """
         self._value = other._value
 
-    fn __eq__(self, other: Self) -> Bool:
+    def __eq__(self, other: Self) -> Bool:
         """Check if the current profile is equal to another profile.
 
         Args:
@@ -160,7 +163,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
         """
         return self._value == other._value
 
-    fn __lt__(self, other: Self) -> Bool:
+    def __lt__(self, other: Self) -> Bool:
         """Check if the current profile is less than another profile.
 
         Args:
@@ -171,7 +174,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
         """
         return self._value < other._value
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes a string representation of the profile to the given writer.
 
         Args:
@@ -188,7 +191,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
         else:
             writer.write("INVALID STATE")
 
-    fn write_repr_to(self, mut writer: Some[Writer]):
+    def write_repr_to(self, mut writer: Some[Writer]):
         """Writes a string representation of the profile to the given writer.
 
         Args:
@@ -196,7 +199,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
         """
         writer.write("Profile(", self._value, ")")
 
-    fn convert_ansi256(self, color: ANSI256Color) -> AnyColor:
+    def convert_ansi256(self, color: ANSI256Color) -> AnyColor:
         """Degrades an ANSI color based on the terminal profile.
 
         Args:
@@ -213,7 +216,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
 
         return color
 
-    fn convert_rgb(self, color: RGBColor) -> AnyColor:
+    def convert_rgb(self, color: RGBColor) -> AnyColor:
         """Degrades an RGB color based on the terminal profile.
 
         Args:
@@ -234,7 +237,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
 
         return color
 
-    fn convert(self, color: AnyColor) -> AnyColor:
+    def convert(self, color: AnyColor) -> AnyColor:
         """Degrades a color based on the terminal profile.
 
         Args:
@@ -258,7 +261,7 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
         # If it somehow gets here, just return No Color until I can figure out how to just return whatever color was passed in.
         return color.value[NoColor]
 
-    fn color(self, value: UInt32) -> AnyColor:
+    def color(self, value: UInt32) -> AnyColor:
         """Creates a `Color` from a number. Valid inputs are hex colors, as well as
         ANSI color codes (0-15, 16-255). If an invalid input is passed in,
         `NoColor` is returned which will not apply any coloring.

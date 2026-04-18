@@ -200,7 +200,7 @@ struct Termios(Copyable, Writable, TrivialRegisterPassable):
     var c_ospeed: c_speed_t
     """Output baudrate."""
 
-    fn __init__(out self):
+    def __init__(out self):
         """Initializes the Termios struct with default values."""
         self.c_cc = StaticTuple[cc_t, Self._CONTROL_CHARACTER_WIDTH]()
         comptime for n in range(Self._CONTROL_CHARACTER_WIDTH):
@@ -213,49 +213,8 @@ struct Termios(Copyable, Writable, TrivialRegisterPassable):
         self.c_ispeed = 0
         self.c_ospeed = 0
 
-    fn write_to(self, mut writer: Some[Writer]):
-        """Writes the contents of the buffer to the writer.
 
-        Args:
-            writer: The writer to write the contents to.
-        """
-        writer.write(
-            "Termios(",
-            "c_iflag=",
-            self.c_iflag,
-            ", ",
-            "c_oflag=",
-            self.c_oflag,
-            ", ",
-            "c_cflag=",
-            self.c_cflag,
-            ", ",
-            "c_lflag=",
-            self.c_lflag,
-            ", ",
-            "c_ispeed=",
-            self.c_ispeed,
-            ", ",
-            "c_ospeed=",
-            self.c_ospeed,
-            ", ",
-            "c_cc=(",
-        )
-
-        comptime for i in range(20):
-            writer.write(self.c_cc[i], ", ")
-        writer.write(")")
-
-    fn __str__(self) -> String:
-        """Converts the Termios struct to a string representation.
-
-        Returns:
-            A string representation of the Termios struct.
-        """
-        return String.write(self)
-
-
-fn tcgetattr[origin: MutOrigin, //](fd: c_int, termios_p: MutPointer[Termios, origin]) -> c_int:
+def tcgetattr[origin: MutOrigin, //](fd: c_int, termios_p: MutPointer[Termios, origin]) -> c_int:
     """Libc POSIX `tcgetattr` function.
 
     Get the parameters associated with the terminal referred to by the file descriptor `fd`.
@@ -281,7 +240,7 @@ fn tcgetattr[origin: MutOrigin, //](fd: c_int, termios_p: MutPointer[Termios, or
     return external_call["tcgetattr", c_int, c_int, MutPointer[Termios, origin]](fd, termios_p)
 
 
-fn tcsetattr[
+def tcsetattr[
     origin: ImmutOrigin
 ](fd: c_int, optional_actions: c_int, termios_p: ImmutPointer[Termios, origin]) -> c_int:
     """Libc POSIX `tcsetattr` function.
@@ -312,7 +271,7 @@ fn tcsetattr[
     )
 
 
-fn tcsendbreak(fd: c_int, duration: c_int) -> c_int:
+def tcsendbreak(fd: c_int, duration: c_int) -> c_int:
     """Libc POSIX `tcsendbreak` function.
 
     Send a break on the terminal referred to by the file descriptor `fd`.
@@ -335,7 +294,7 @@ fn tcsendbreak(fd: c_int, duration: c_int) -> c_int:
     return external_call["tcsendbreak", c_int, c_int, c_int](fd, duration)
 
 
-fn tcdrain(fd: c_int) -> c_int:
+def tcdrain(fd: c_int) -> c_int:
     """Libc POSIX `tcdrain` function.
 
     Drain the output buffer of the terminal referred to by the file descriptor `fd`.
@@ -357,7 +316,7 @@ fn tcdrain(fd: c_int) -> c_int:
     return external_call["tcdrain", c_int, c_int](fd)
 
 
-fn tcflush(fd: c_int, queue_selector: c_int) -> c_int:
+def tcflush(fd: c_int, queue_selector: c_int) -> c_int:
     """Libc POSIX `tcflush` function.
 
     Flush the data transmitted or received on the terminal referred to by the file descriptor `fd`.
@@ -380,7 +339,7 @@ fn tcflush(fd: c_int, queue_selector: c_int) -> c_int:
     return external_call["tcflush", c_int, c_int, c_int](fd, queue_selector)
 
 
-fn tcflow(fd: c_int, action: c_int) -> c_int:
+def tcflow(fd: c_int, action: c_int) -> c_int:
     """Libc POSIX `tcflow` function.
 
     Suspend or resume transmission on the terminal referred to by the file descriptor `fd`.
@@ -403,7 +362,7 @@ fn tcflow(fd: c_int, action: c_int) -> c_int:
     return external_call["tcflow", c_int, c_int, c_int](fd, action)
 
 
-fn cfmakeraw[origin: MutOrigin](termios_p: Pointer[mut=True, Termios, origin]):
+def cfmakeraw[origin: MutOrigin](termios_p: Pointer[mut=True, Termios, origin]):
     """Libc POSIX `cfmakeraw` function.
 
     Set the terminal attributes to raw mode.
@@ -433,17 +392,17 @@ fn cfmakeraw[origin: MutOrigin](termios_p: Pointer[mut=True, Termios, origin]):
 #     var ws_xpixel: UInt8   # Width, in pixels */
 #     var ws_ypixel: UInt8   # Height, in pixels */
 
-#     fn __init__(out self):
+#     def __init__(out self):
 #         self.ws_row = 0
 #         self.ws_col = 0
 #         self.ws_xpixel = 0
 #         self.ws_ypixel = 0
 
 
-# fn tcgetwinsize(fd: c_int, winsize_p: UnsafePointer[winsize]) -> c_int:
+# def tcgetwinsize(fd: c_int, winsize_p: UnsafePointer[winsize]) -> c_int:
 #     """Libc POSIX `tcgetwinsize` function
 #     Reference: https://man.netbsd.org/tcgetwinsize.3
-#     Fn signature: int tcgetwinsize(int fd, struct winsize *gws).
+#     def signature: int tcgetwinsize(int fd, struct winsize *gws).
 
 #     Args:
 #         fd: File descriptor.
@@ -452,10 +411,10 @@ fn cfmakeraw[origin: MutOrigin](termios_p: Pointer[mut=True, Termios, origin]):
 #     return external_call["tcgetwinsize", c_int, c_int, UnsafePointer[winsize]](fd, winsize_p)
 
 
-# fn tcsetwinsize(fd: c_int, winsize_p: UnsafePointer[winsize]) -> c_int:
+# def tcsetwinsize(fd: c_int, winsize_p: UnsafePointer[winsize]) -> c_int:
 #     """Libc POSIX `tcgetwinsize` function
 #     Reference: https://man.netbsd.org/tcsetwinsize.3
-#     Fn signature: int tcsetwinsize(int fd, const struct winsize *sws).
+#     def signature: int tcsetwinsize(int fd, const struct winsize *sws).
 
 #     Args:
 #         fd: File descriptor.
@@ -464,7 +423,7 @@ fn cfmakeraw[origin: MutOrigin](termios_p: Pointer[mut=True, Termios, origin]):
 #     return external_call["tcsetwinsize", c_int, c_int, UnsafePointer[winsize]](fd, winsize_p)
 
 
-fn ttyname(fd: c_int) -> MutExternalPointer[c_char]:
+def ttyname(fd: c_int) -> MutExternalPointer[c_char]:
     """Libc POSIX `ttyname` function.
 
     Get the name of the terminal associated with the file descriptor `fd`.
@@ -486,7 +445,7 @@ fn ttyname(fd: c_int) -> MutExternalPointer[c_char]:
     return external_call["ttyname", MutExternalPointer[c_char], type_of(fd)](fd)
 
 
-fn read[origin: MutOrigin, //](fd: c_int, buf: MutUnsafePointer[NoneType, origin], size: c_size_t) -> c_int:
+def read[origin: MutOrigin, //](fd: c_int, buf: MutUnsafePointer[NoneType, origin], size: c_size_t) -> c_int:
     """Libc POSIX `read` function.
 
     Read `size` bytes from file descriptor `fd` into the buffer `buf`.
@@ -520,7 +479,7 @@ struct _TimeValue(Copyable, TrivialRegisterPassable):
     var microseconds: suseconds_t
 
 
-fn _select(
+def _select(
     nfds: c_int,
     readfds: MutPointer[FileDescriptorBitSet, ...],
     writefds: MutPointer[BitSet[1], ...],
@@ -553,7 +512,7 @@ fn _select(
     ](nfds, readfds, writefds, exceptfds, timeout)
 
 
-fn select(
+def select(
     highest_fd: c_int,
     mut read_fds: FileDescriptorBitSet,
     mut write_fds: BitSet[1],

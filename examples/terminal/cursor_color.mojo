@@ -4,7 +4,7 @@ from mist.terminal.query import get_cursor_color
 from mist.terminal.tty import TTY, Mode
 
 
-fn main() raises:
+def main() raises:
     var color: RGBColor
     with TTY[Mode.RAW]():
         color = get_cursor_color()

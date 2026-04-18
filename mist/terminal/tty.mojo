@@ -55,7 +55,7 @@ struct Mode(Copyable, Equatable, Writable):
     comptime NONE = Self("NONE")
     """No special mode for terminal input. Does not change the terminal state."""
 
-    fn __eq__(self, other: Self) -> Bool:
+    def __eq__(self, other: Self) -> Bool:
         """Check if two modes are equal.
 
         Args:
@@ -90,7 +90,7 @@ struct Direction(Equatable, ImplicitlyCopyable):
     comptime DOWN_RIGHT = Self(7)
     """Direction value for moving the cursor down and right."""
 
-    fn __eq__(self, other: Self) -> Bool:
+    def __eq__(self, other: Self) -> Bool:
         """Check if two directions are equal.
 
         Args:
@@ -101,7 +101,7 @@ struct Direction(Equatable, ImplicitlyCopyable):
         """
         return self.value == other.value
 
-    fn __str__(self) -> String:
+    def __str__(self) -> String:
         """Return a string representation of the direction.
 
         Returns:
@@ -150,7 +150,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
     var scrolling_region: Area
     """The current scrolling region of the terminal."""
 
-    fn __init__(out self) raises:
+    def __init__(out self) raises:
         """Initialize the TTY context manager.
 
         Raises:
@@ -174,7 +174,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         elif Self.mode == Mode.CBREAK:
             self.state = set_cbreak(self.fd)
 
-    fn restore_original_state(mut self, when: WhenOption = WhenOption.TCSADRAIN) raises:
+    def restore_original_state(mut self, when: WhenOption = WhenOption.TCSADRAIN) raises:
         """Restore the original terminal state.
 
         Args:
@@ -185,7 +185,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         tcsetattr(self.fd, when, self.original_state)
 
-    fn __enter__(self) -> Self:
+    def __enter__(self) -> Self:
         """Enter the context manager and set the terminal to the desired mode.
 
         Returns:
@@ -193,7 +193,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         return self
 
-    fn __exit__(mut self) raises:
+    def __exit__(mut self) raises:
         """Restore the original terminal state.
 
         Raises:
@@ -201,7 +201,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         self.restore_original_state()
 
-    fn set_attribute(mut self, optional_actions: WhenOption) raises -> None:
+    def set_attribute(mut self, optional_actions: WhenOption) raises -> None:
         """Set the terminal attributes.
 
         Args:
@@ -212,7 +212,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         tcsetattr(self.fd, optional_actions, self.state)
 
-    fn disable_echo(mut self) raises -> None:
+    def disable_echo(mut self) raises -> None:
         """Disable echoing of characters in the terminal.
 
         Raises:
@@ -221,7 +221,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         self.state.c_lflag &= ~LocalFlag.ECHO.value
         self.set_attribute(WhenOption.TCSADRAIN)
 
-    fn enable_echo(mut self) raises -> None:
+    def enable_echo(mut self) raises -> None:
         """Enable echoing of characters in the terminal.
 
         Raises:
@@ -230,7 +230,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         self.state.c_lflag |= LocalFlag.ECHO.value
         self.set_attribute(WhenOption.TCSADRAIN)
 
-    fn enable_canonical_mode(mut self) raises -> None:
+    def enable_canonical_mode(mut self) raises -> None:
         """Enable canonical mode in the terminal.
 
         Raises:
@@ -239,7 +239,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         self.state.c_lflag |= LocalFlag.ICANON.value
         self.set_attribute(WhenOption.TCSADRAIN)
 
-    fn disable_canonical_mode(mut self) raises -> None:
+    def disable_canonical_mode(mut self) raises -> None:
         """Disable canonical mode in the terminal.
 
         Raises:
@@ -248,7 +248,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         self.state.c_lflag &= ~LocalFlag.ICANON.value
         self.set_attribute(WhenOption.TCSADRAIN)
 
-    fn move_cursor(self, x: UInt16, y: UInt16) -> None:
+    def move_cursor(self, x: UInt16, y: UInt16) -> None:
         """Move the cursor to the specified position.
 
         Args:
@@ -257,23 +257,23 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         move_cursor(x, y)
 
-    fn clear(self) -> None:
+    def clear(self) -> None:
         """Clear the terminal."""
         clear_screen()
 
-    fn hide_cursor(mut self) -> None:
+    def hide_cursor(mut self) -> None:
         """Hide the cursor."""
         if not self.cursor_hidden:
             hide_cursor()
             self.cursor_hidden = True
 
-    fn show_cursor(mut self) -> None:
+    def show_cursor(mut self) -> None:
         """Show the cursor."""
         if self.cursor_hidden:
             show_cursor()
             self.cursor_hidden = False
 
-    fn move_cursor[direction: Direction](self, n: UInt16) -> None:
+    def move_cursor[direction: Direction](self, n: UInt16) -> None:
         """Move the cursor in the specified direction.
 
         Parameters:
@@ -304,7 +304,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
             cursor_down(n)
             cursor_forward(n)
 
-    fn set_cursor_color(self, color: AnyColor) -> None:
+    def set_cursor_color(self, color: AnyColor) -> None:
         """Set the cursor color.
 
         Args:
@@ -312,15 +312,15 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         set_cursor_color(color)
 
-    fn save_cursor_position(self) -> None:
+    def save_cursor_position(self) -> None:
         """Save the current cursor position."""
         save_cursor_position()
 
-    fn restore_cursor_position(self) -> None:
+    def restore_cursor_position(self) -> None:
         """Restore the saved cursor position."""
         restore_cursor_position()
 
-    fn clear_lines(self, n: UInt16) -> None:
+    def clear_lines(self, n: UInt16) -> None:
         """Clear the specified number of lines.
 
         Args:
@@ -328,7 +328,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         clear_lines(n)
 
-    fn set_foreground_color(self, color: AnyColor) -> None:
+    def set_foreground_color(self, color: AnyColor) -> None:
         """Set the foreground color.
 
         Args:
@@ -336,7 +336,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         set_foreground_color(color)
 
-    fn set_background_color(self, color: AnyColor) -> None:
+    def set_background_color(self, color: AnyColor) -> None:
         """Set the background color.
 
         Args:
@@ -344,7 +344,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         set_background_color(color)
 
-    fn background_color(self) raises -> RGBColor:
+    def background_color(self) raises -> RGBColor:
         """Query the terminal for the current background color of the terminal.
 
         Raises:
@@ -355,27 +355,27 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         return get_background_color()
 
-    fn restore_screen(self) -> None:
+    def restore_screen(self) -> None:
         """Restore the screen to its previous state."""
         restore_screen()
 
-    fn save_screen(self) -> None:
+    def save_screen(self) -> None:
         """Save the current screen state."""
         save_screen()
 
-    fn alt_screen(mut self) -> None:
+    def alt_screen(mut self) -> None:
         """Switch to the alternate screen buffer."""
         if not self.alternate_screen:
             enable_alternate_screen()
             self.alternate_screen = True
 
-    fn exit_alt_screen(mut self) -> None:
+    def exit_alt_screen(mut self) -> None:
         """Exit the alternate screen buffer."""
         if self.alternate_screen:
             disable_alternate_screen()
             self.alternate_screen = False
 
-    fn change_scrolling_region(self, top: UInt16, bottom: UInt16) -> None:
+    def change_scrolling_region(self, top: UInt16, bottom: UInt16) -> None:
         """Change the scrolling region of the terminal.
 
         Args:
@@ -384,7 +384,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         change_scrolling_region(top, bottom)
 
-    fn set_window_title(self, title: StringSlice) -> None:
+    def set_window_title(self, title: StringSlice) -> None:
         """Set the terminal window title.
 
         Args:
@@ -392,55 +392,55 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         set_window_title(title)
 
-    fn enable_bracketed_paste(mut self) -> None:
+    def enable_bracketed_paste(mut self) -> None:
         """Enable bracketed paste mode."""
         if not self.bracketed_paste:
             enable_bracketed_paste()
             self.bracketed_paste = True
 
-    fn disable_bracketed_paste(mut self) -> None:
+    def disable_bracketed_paste(mut self) -> None:
         """Disable bracketed paste mode."""
         if self.bracketed_paste:
             disable_bracketed_paste()
             self.bracketed_paste = False
 
-    fn enable_mouse_press(mut self) -> None:
+    def enable_mouse_press(mut self) -> None:
         """Enable mouse press tracking."""
         if not self.tracking_mouse_press:
             enable_mouse_press()
             self.tracking_mouse_press = True
 
-    fn disable_mouse_press(mut self) -> None:
+    def disable_mouse_press(mut self) -> None:
         """Disable mouse press tracking."""
         if self.tracking_mouse_press:
             disable_mouse_press()
             self.tracking_mouse_press = False
 
-    fn enable_mouse(mut self) -> None:
+    def enable_mouse(mut self) -> None:
         """Enable mouse tracking."""
         if not self.tracking_mouse:
             enable_mouse()
             self.tracking_mouse = True
 
-    fn disable_mouse(mut self) -> None:
+    def disable_mouse(mut self) -> None:
         """Disable mouse tracking."""
         if self.tracking_mouse:
             disable_mouse()
             self.tracking_mouse = False
 
-    fn enable_mouse_hilite(mut self) -> None:
+    def enable_mouse_hilite(mut self) -> None:
         """Enable mouse hilite tracking."""
         if not self.tracking_mouse_hilite:
             enable_mouse_hilite()
             self.tracking_mouse_hilite = True
 
-    fn disable_mouse_hilite(mut self) -> None:
+    def disable_mouse_hilite(mut self) -> None:
         """Disable mouse hilite tracking."""
         if self.tracking_mouse_hilite:
             disable_mouse_hilite()
             self.tracking_mouse_hilite = False
 
-    fn terminal_size(self) raises -> Area:
+    def terminal_size(self) raises -> Area:
         """Get the current terminal size.
 
         Raises:
@@ -452,7 +452,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         var dimensions = get_terminal_size()
         return Area(columns=dimensions[0], rows=dimensions[1])
 
-    fn write_bytes(mut self, bytes: Span[Byte, ...]) -> None:
+    def write_bytes(mut self, bytes: Span[Byte, ...]) -> None:
         """Write bytes to the terminal.
 
         Args:
@@ -460,7 +460,7 @@ struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegister
         """
         self.fd.write_bytes(bytes)
 
-    fn write[*Ts: Writable](mut self, *args: *Ts) -> None:
+    def write[*Ts: Writable](mut self, *args: *Ts) -> None:
         """Write to the terminal.
 
         Parameters:

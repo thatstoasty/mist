@@ -10,7 +10,7 @@ struct IndentWriter(Movable, Writable):
     ```mojo
     from mist.transform import indenter as indent
 
-    fn main():
+    def main():
         var writer = indent.IndentWriter(4)
         writer.write("Hello, World!")
         print(writer)
@@ -26,7 +26,7 @@ struct IndentWriter(Movable, Writable):
     var in_ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
 
-    fn __init__(out self, indent: UInt):
+    def __init__(out self, indent: UInt):
         """Initializes a new indent-writer instance.
 
         Args:
@@ -37,7 +37,7 @@ struct IndentWriter(Movable, Writable):
         self.skip_indent = False
         self.in_ansi = False
 
-    fn __str__(self) -> String:
+    def __str__(self) -> String:
         """Returns the indented result as a string by copying the content of the internal buffer.
 
         Returns:
@@ -45,7 +45,7 @@ struct IndentWriter(Movable, Writable):
         """
         return self.ansi_writer.forward
 
-    fn as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
+    def as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
         """Returns the indented result as a string slice by referencing the content of the internal buffer.
 
         Returns:
@@ -53,7 +53,7 @@ struct IndentWriter(Movable, Writable):
         """
         return StringSlice(self.ansi_writer.forward)
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes the content of the buffer to the specified writer.
 
         Args:
@@ -61,7 +61,7 @@ struct IndentWriter(Movable, Writable):
         """
         writer.write(self.ansi_writer.forward)
 
-    fn write(mut self, text: StringSlice) -> None:
+    def write(mut self, text: StringSlice) -> None:
         """Writes the text, `text`, to the writer,
         indenting each line by `self.indent` spaces.
 
@@ -90,7 +90,7 @@ struct IndentWriter(Movable, Writable):
             self.ansi_writer.write(codepoint)
 
 
-fn indent(text: StringSlice, indent: UInt) -> String:
+def indent(text: StringSlice, indent: UInt) -> String:
     """Indents `text` with a `indent` number of spaces.
 
     Args:
@@ -104,7 +104,7 @@ fn indent(text: StringSlice, indent: UInt) -> String:
     ```mojo
     from mist import indent
 
-    fn main():
+    def main():
         print(indent("Hello, World!", 4))
     ```
     """

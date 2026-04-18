@@ -5,7 +5,7 @@ from mist.terminal.tty import TTY, Mode
 from mist.event.event import Char, KeyEvent, MouseEvent
 
 
-fn handle_events(mut reader: EventReader) raises -> None:
+def handle_events(mut reader: EventReader) raises -> None:
     while True:
         var event = reader.read()
         if event.isa[KeyEvent]():
@@ -19,7 +19,7 @@ fn handle_events(mut reader: EventReader) raises -> None:
             print("Received event:", event, end="\r\n")
 
 
-fn main() raises -> None:
+def main() raises -> None:
     print("Reading events from terminal. Press keys or click mouse (Ctrl+C to exit)...")
     var mouse_capture = Mouse.enable_capture()
     try:

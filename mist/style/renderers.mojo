@@ -19,7 +19,7 @@ comptime GRAY = 0xB9BFCA
 
 
 # Convenience functions for quick style application
-fn render_as_color[T: Writable, //](text: T, color: UInt32, profile: Optional[Profile] = None) -> String:
+def render_as_color[T: Writable, //](text: T, color: UInt32, profile: Optional[Profile] = None) -> String:
     """Render the text with the given color.
 
     Parameters:
@@ -38,7 +38,7 @@ fn render_as_color[T: Writable, //](text: T, color: UInt32, profile: Optional[Pr
     return Style(profile.value()).foreground(color).render(text)
 
 
-fn red[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def red[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply red color to the text.
 
     Parameters:
@@ -54,7 +54,7 @@ fn red[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     return render_as_color(text, RED, profile)
 
 
-fn green[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def green[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply green color to the text.
 
     Parameters:
@@ -70,7 +70,7 @@ fn green[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     return render_as_color(text, GREEN, profile)
 
 
-fn yellow[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def yellow[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply yellow color to the text.
 
     Parameters:
@@ -86,7 +86,7 @@ fn yellow[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String
     return render_as_color(text, YELLOW, profile)
 
 
-fn blue[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def blue[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply blue color to the text.
 
     Parameters:
@@ -102,7 +102,7 @@ fn blue[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     return render_as_color(text, BLUE, profile)
 
 
-fn magenta[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def magenta[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply magenta color to the text.
 
     Parameters:
@@ -118,7 +118,7 @@ fn magenta[T: Writable, //](text: T, profile: Optional[Profile] = None) -> Strin
     return render_as_color(text, MAGENTA, profile)
 
 
-fn cyan[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def cyan[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply cyan color to the text.
 
     Parameters:
@@ -134,7 +134,7 @@ fn cyan[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     return render_as_color(text, CYAN, profile)
 
 
-fn gray[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def gray[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply gray color to the text.
 
     Parameters:
@@ -150,7 +150,7 @@ fn gray[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     return render_as_color(text, GRAY, profile)
 
 
-fn render_with_background_color[T: Writable, //](text: T, color: UInt32, profile: Optional[Profile] = None) -> String:
+def render_with_background_color[T: Writable, //](text: T, color: UInt32, profile: Optional[Profile] = None) -> String:
     """Render the text with the given background color.
 
     Parameters:
@@ -169,7 +169,7 @@ fn render_with_background_color[T: Writable, //](text: T, color: UInt32, profile
     return Style(profile.value()).background(color).render(text)
 
 
-fn red_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def red_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply red background color to the text.
 
     Parameters:
@@ -185,7 +185,7 @@ fn red_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -
     return render_with_background_color(text, RED, profile)
 
 
-fn green_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def green_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply green background color to the text.
 
     Parameters:
@@ -201,7 +201,7 @@ fn green_background[T: Writable, //](text: T, profile: Optional[Profile] = None)
     return render_with_background_color(text, GREEN, profile)
 
 
-fn yellow_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def yellow_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply yellow background color to the text.
 
     Parameters:
@@ -217,7 +217,7 @@ fn yellow_background[T: Writable, //](text: T, profile: Optional[Profile] = None
     return render_with_background_color(text, YELLOW, profile)
 
 
-fn blue_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def blue_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply blue background color to the text.
 
     Parameters:
@@ -233,7 +233,7 @@ fn blue_background[T: Writable, //](text: T, profile: Optional[Profile] = None) 
     return render_with_background_color(text, BLUE, profile)
 
 
-fn magenta_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def magenta_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply magenta background color to the text.
 
     Parameters:
@@ -249,7 +249,7 @@ fn magenta_background[T: Writable, //](text: T, profile: Optional[Profile] = Non
     return render_with_background_color(text, MAGENTA, profile)
 
 
-fn cyan_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def cyan_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply cyan background color to the text.
 
     Parameters:
@@ -265,7 +265,7 @@ fn cyan_background[T: Writable, //](text: T, profile: Optional[Profile] = None) 
     return render_with_background_color(text, CYAN, profile)
 
 
-fn gray_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def gray_background[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Apply gray background color to the text.
 
     Parameters:
@@ -281,7 +281,7 @@ fn gray_background[T: Writable, //](text: T, profile: Optional[Profile] = None) 
     return render_with_background_color(text, GRAY, profile)
 
 
-fn bold[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def bold[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Render the text with the bold style applied.
 
     Parameters:
@@ -299,7 +299,7 @@ fn bold[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     return Style(profile.value()).bold().render(text)
 
 
-fn faint[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def faint[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Render the text with the faint style applied.
 
     Parameters:
@@ -317,7 +317,7 @@ fn faint[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     return Style(profile.value()).faint().render(text)
 
 
-fn italic[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def italic[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Render the text with the italic style applied.
 
     Parameters:
@@ -335,7 +335,7 @@ fn italic[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String
     return Style(profile.value()).italic().render(text)
 
 
-fn underline[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def underline[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Render the text with the underline style applied.
 
     Parameters:
@@ -353,7 +353,7 @@ fn underline[T: Writable, //](text: T, profile: Optional[Profile] = None) -> Str
     return Style(profile.value()).underline().render(text)
 
 
-fn overline[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def overline[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Render the text with the overline style applied.
 
     Parameters:
@@ -371,7 +371,7 @@ fn overline[T: Writable, //](text: T, profile: Optional[Profile] = None) -> Stri
     return Style(profile.value()).overline().render(text)
 
 
-fn strikethrough[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
+def strikethrough[T: Writable, //](text: T, profile: Optional[Profile] = None) -> String:
     """Render the text with the strikethrough style applied.
 
     Parameters:

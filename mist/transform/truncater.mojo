@@ -10,7 +10,7 @@ struct TruncateWriter(Movable, Writable):
     ```mojo
     from mist.transform import TruncateWriter
 
-    fn main():
+    def main():
         var writer = TruncateWriter(4, tail=".")
         writer.write("Hello, World!")
         print(String(writer))
@@ -26,7 +26,7 @@ struct TruncateWriter(Movable, Writable):
     var in_ansi: Bool
     """Whether the current character is part of an ANSI escape sequence."""
 
-    fn __init__(out self, width: UInt, tail: String, *, in_ansi: Bool = False):
+    def __init__(out self, width: UInt, tail: String, *, in_ansi: Bool = False):
         """Initializes a new truncate-writer instance.
 
         Args:
@@ -39,7 +39,7 @@ struct TruncateWriter(Movable, Writable):
         self.in_ansi = in_ansi
         self.ansi_writer = ansi.Writer()
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes the truncated result to the given writer.
 
         Args:
@@ -47,7 +47,7 @@ struct TruncateWriter(Movable, Writable):
         """
         writer.write(self.ansi_writer.forward)
 
-    fn as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
+    def as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
         """Returns the truncated result as a string slice by referencing the content of the internal buffer.
 
         Returns:
@@ -55,7 +55,7 @@ struct TruncateWriter(Movable, Writable):
         """
         return StringSlice(self.ansi_writer.forward)
 
-    fn write(mut self, text: StringSlice) -> None:
+    def write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, truncating content at the given printable cell width,
         leaving any ANSI sequences intact.
 
@@ -90,7 +90,7 @@ struct TruncateWriter(Movable, Writable):
             self.ansi_writer.write(codepoint)
 
 
-fn truncate(text: StringSlice, width: UInt, tail: String = "") -> String:
+def truncate(text: StringSlice, width: UInt, tail: String = "") -> String:
     """Truncates `text` at `width` characters. A tail is then added to the end of the string.
 
     Args:
@@ -105,7 +105,7 @@ fn truncate(text: StringSlice, width: UInt, tail: String = "") -> String:
     ```mojo
     from mist import truncate
 
-    fn main():
+    def main():
         print(truncate("Hello, World!", 5, "."))
     ```
     """

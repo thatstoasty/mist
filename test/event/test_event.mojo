@@ -27,7 +27,7 @@ from mist.event.event import (
 )
 
 
-fn test_key_code_equality() raises:
+def test_key_code_equality() raises:
     var up = KeyCode(Up())
     var up2 = KeyCode(Up())
     var left = KeyCode(Left())
@@ -41,7 +41,7 @@ fn test_key_code_equality() raises:
     testing.assert_not_equal(f1, f12, msg="KeyCodes with different values should not be equal")
 
 
-fn test_keyboard_enhancement_flags_equality() raises:
+def test_keyboard_enhancement_flags_equality() raises:
     var a = KeyboardEnhancementFlags(0b0000_0001)
     var b = KeyboardEnhancementFlags(0b0000_0001)
     var c = KeyboardEnhancementFlags(0b0000_0010)
@@ -49,7 +49,7 @@ fn test_keyboard_enhancement_flags_equality() raises:
     testing.assert_not_equal(a, c, msg="Flags with different bits should not be equal")
 
 
-fn test_key_modifiers_equality() raises:
+def test_key_modifiers_equality() raises:
     var m1 = KeyModifiers.SHIFT | KeyModifiers.ALT
     var m2 = KeyModifiers.SHIFT | KeyModifiers.ALT
     var m3 = KeyModifiers.CONTROL
@@ -57,7 +57,7 @@ fn test_key_modifiers_equality() raises:
     testing.assert_not_equal(m1, m3, msg="KeyModifiers with different bits should not be equal")
 
 
-fn test_key_event_state_equality() raises:
+def test_key_event_state_equality() raises:
     var s1 = KeyEventState.CAPS_LOCK | KeyEventState.KEYPAD
     var s2 = KeyEventState.CAPS_LOCK | KeyEventState.KEYPAD
     var s3 = KeyEventState.NUM_LOCK
@@ -65,12 +65,12 @@ fn test_key_event_state_equality() raises:
     testing.assert_not_equal(s1, s3, msg="KeyEventState with different bits should not be equal")
 
 
-fn test_key_event_kind_equality() raises:
+def test_key_event_kind_equality() raises:
     testing.assert_equal(KeyEventKind.Press, KeyEventKind.Press, msg="Press kind should equal itself")
     testing.assert_not_equal(KeyEventKind.Press, KeyEventKind.Release, msg="Different kinds should not be equal")
 
 
-fn test_media_modifier_key_code_equality() raises:
+def test_media_modifier_key_code_equality() raises:
     var media1 = MediaKeyCode.Play
     var media2 = MediaKeyCode.Play
     var media3 = MediaKeyCode.Pause
@@ -84,7 +84,7 @@ fn test_media_modifier_key_code_equality() raises:
     testing.assert_not_equal(mod1, mod3, msg="ModifierKeyCode with different value should not be equal")
 
 
-fn test_keycode_is_same_type() raises:
+def test_keycode_is_same_type() raises:
     var backspace = KeyCode(Backspace())
     var up = KeyCode(Up())
     var up2 = KeyCode(Up())
@@ -92,7 +92,7 @@ fn test_keycode_is_same_type() raises:
     testing.assert_false(up.is_same_type(backspace), msg="Different key variants should not be same type")
 
 
-fn test_keycode_char_equality() raises:
+def test_keycode_char_equality() raises:
     var a1 = KeyCode(Char("a"))
     var a2 = KeyCode(Char("a"))
     var b = KeyCode(Char("b"))
@@ -100,13 +100,13 @@ fn test_keycode_char_equality() raises:
     testing.assert_not_equal(a1, b, msg="Char key codes with different char should not be equal")
 
 
-fn test_key_event_equality_normalized_case() raises:
+def test_key_event_equality_normalized_case() raises:
     var lower = KeyEvent(KeyCode(Char("a")), KeyModifiers.SHIFT)
     var upper = KeyEvent(KeyCode(Char("A")), KeyModifiers.NONE)
     testing.assert_equal(String(lower), String(upper), msg="KeyEvent should normalize case with SHIFT modifier")
 
 
-fn test_mouse_button_equality() raises:
+def test_mouse_button_equality() raises:
     var left1 = MouseButton.Left
     var left2 = MouseButton.Left
     var right = MouseButton.Right
@@ -114,7 +114,7 @@ fn test_mouse_button_equality() raises:
     testing.assert_not_equal(left1, right, msg="MouseButton with different value should not be equal")
 
 
-fn test_mouse_event_type_equality() raises:
+def test_mouse_event_type_equality() raises:
     var press1 = MousePress(MouseButton.Left)
     var press2 = MousePress(MouseButton.Left)
     var press3 = MousePress(MouseButton.Right)
@@ -136,5 +136,5 @@ fn test_mouse_event_type_equality() raises:
     testing.assert_equal(MouseScrollRight(), MouseScrollRight(), msg="MouseScrollRight should be equal")
 
 
-fn main() raises:
+def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

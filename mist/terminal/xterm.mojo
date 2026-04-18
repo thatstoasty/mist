@@ -2,7 +2,7 @@ import mist.style._hue as hue
 from mist.style.color import RGBColor, hex_to_string
 
 
-fn parse_xterm_color(sequence: StringSlice) raises -> Tuple[UInt8, UInt8, UInt8]:
+def parse_xterm_color(sequence: StringSlice) raises -> Tuple[UInt8, UInt8, UInt8]:
     """Parses an xterm color sequence.
 
     Args:
@@ -21,7 +21,7 @@ fn parse_xterm_color(sequence: StringSlice) raises -> Tuple[UInt8, UInt8, UInt8]
     if len(parts) != 3:
         return 0, 0, 0
 
-    fn convert_part_to_color(part: StringSlice) raises -> UInt8:
+    def convert_part_to_color(part: StringSlice) raises -> UInt8:
         """Converts a hex color part to an UInt8.
 
         Args:
@@ -44,13 +44,13 @@ struct XTermColor(Writable):
     var b: UInt8
     """Blue component of the color."""
 
-    fn __init__(out self, color: StringSlice) raises:
+    def __init__(out self, color: StringSlice) raises:
         var rgb = parse_xterm_color(color)
         self.r = rgb[0]
         self.g = rgb[1]
         self.b = rgb[2]
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes the XTermColor to the given writer in the format 'rgb:rr/gg/bb'.
 
         Args:
@@ -72,7 +72,7 @@ struct XTermColor(Writable):
             b_hex,
         )
 
-    fn write_repr_to(self, mut writer: Some[Writer]):
+    def write_repr_to(self, mut writer: Some[Writer]):
         """Writes a string representation of the XTermColor to the given writer.
 
         Args:
@@ -80,7 +80,7 @@ struct XTermColor(Writable):
         """
         writer.write(t"XTermColor(r={Int(self.r)}, g={Int(self.g)}, b={Int(self.b)})")
 
-    fn to_rgb_color(self) -> RGBColor:
+    def to_rgb_color(self) -> RGBColor:
         """Converts the XTermColor to an RGBColor.
 
         Returns:

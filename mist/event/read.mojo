@@ -9,6 +9,7 @@ from mist.event.event import Event
 
 @fieldwise_init
 struct InternalEventReader(Movable):
+    """An internal event reader that reads events from a Unix event source and returns them as internal events."""
     var events: Deque[InternalEvent]
     """A queue of internal events that have been read from the event source but not yet returned by the reader."""
     var source: UnixInternalEventSource
@@ -16,7 +17,7 @@ struct InternalEventReader(Movable):
     var skipped_events: List[InternalEvent]
     """A list of events that were read from the event source but skipped by the reader's filter. This is used to ensure that events that are skipped by the filter are not lost and can be returned by subsequent calls to poll or try_read."""
 
-    fn poll(mut self, timeout: Optional[Int]) raises -> Bool:
+    def poll(mut self, timeout: Optional[Int]) raises -> Bool:
         """Polls for events from the event source. This will read events from the event source
         and add them to the internal event queue.
 
@@ -48,20 +49,7 @@ struct InternalEventReader(Movable):
             self.events.append(event.copy())
             return True
 
-    #         if poll_timeout.elapsed() || maybe_event.is_some() {
-    #             self.events.extend(self.skipped_events.drain(..));
-
-    #             if let Some(event) = maybe_event {
-    #                 self.events.push_front(event);
-    #                 return Ok(true);
-    #             }
-
-    #             return Ok(false);
-    #         }
-    #     }
-    # }
-
-    fn try_read(mut self) raises -> Optional[InternalEvent]:
+    def try_read(mut self) raises -> Optional[InternalEvent]:
         """Tries to read a single event from the event reader. This will return None if no events are available.
 
         Returns:
@@ -74,11 +62,7 @@ struct InternalEventReader(Movable):
             return self.events.popleft()
         return None
 
-        # var event = read_events()
-        # if not event:
-        #     return None
-
-    fn read(mut self) raises -> InternalEvent:
+    def read(mut self) raises -> InternalEvent:
         """Reads a single event from the event reader. This will block until an event is available.
 
         Returns:
@@ -97,15 +81,16 @@ struct InternalEventReader(Movable):
 
 @fieldwise_init
 struct EventReader(Movable):
-    var reader: InternalEventReader
     """An event reader that reads events from an internal event reader and returns them as public events."""
+    var reader: InternalEventReader
+    """Internal event reader."""
 
-    fn __init__(out self) raises:
+    def __init__(out self) raises:
         self.reader = InternalEventReader(
             events=Deque[InternalEvent](), source=UnixInternalEventSource(), skipped_events=List[InternalEvent]()
         )
 
-    fn read(mut self) raises -> Event:
+    def read(mut self) raises -> Event:
         """Reads a single event from the event reader. This will block until an event is available.
 
         Returns:

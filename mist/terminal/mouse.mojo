@@ -31,57 +31,57 @@ comptime DISABLE_MOUSE_PIXELS_MODE = CSI + "?1016l"
 """Disable press, release, move, wheel, extended pixel coordinates `CSI + ?1016 + l = \\x1b[?1016l`."""
 
 
-fn enable_mouse_press() -> None:
+def enable_mouse_press() -> None:
     """Enables X10 mouse mode. Button press events are sent only."""
     print(ENABLE_MOUSE_PRESS, sep="", end="")
 
 
-fn disable_mouse_press() -> None:
+def disable_mouse_press() -> None:
     """Disables X10 mouse mode."""
     print(DISABLE_MOUSE_PRESS, sep="", end="")
 
 
-fn enable_mouse() -> None:
+def enable_mouse() -> None:
     """Enables Mouse Tracking mode."""
     print(ENABLE_MOUSE, sep="", end="")
 
 
-fn disable_mouse() -> None:
+def disable_mouse() -> None:
     """Disables Mouse Tracking mode."""
     print(DISABLE_MOUSE, sep="", end="")
 
 
-fn enable_mouse_hilite() -> None:
+def enable_mouse_hilite() -> None:
     """Enables Hilite Mouse Tracking mode."""
     print(ENABLE_MOUSE_HILITE, sep="", end="")
 
 
-fn disable_mouse_hilite() -> None:
+def disable_mouse_hilite() -> None:
     """Disables Hilite Mouse Tracking mode."""
     print(DISABLE_MOUSE_HILITE, sep="", end="")
 
 
-fn enable_mouse_cell_motion() -> None:
+def enable_mouse_cell_motion() -> None:
     """Enables Cell Motion Mouse Tracking mode."""
     print(ENABLE_MOUSE_CELL_MOTION, sep="", end="")
 
 
-fn disable_mouse_cell_motion() -> None:
+def disable_mouse_cell_motion() -> None:
     """Disables Cell Motion Mouse Tracking mode."""
     print(DISABLE_MOUSE_CELL_MOTION, sep="", end="")
 
 
-fn enable_mouse_all_motion() -> None:
+def enable_mouse_all_motion() -> None:
     """Enables All Motion Mouse mode."""
     print(ENABLE_MOUSE_ALL_MOTION, sep="", end="")
 
 
-fn disable_mouse_all_motion() -> None:
+def disable_mouse_all_motion() -> None:
     """Disables All Motion Mouse mode."""
     print(DISABLE_MOUSE_ALL_MOTION, sep="", end="")
 
 
-fn enable_mouse_extended_mode() -> None:
+def enable_mouse_extended_mode() -> None:
     """Enables Extended Mouse mode (SGR).
 
     This should be enabled in conjunction with `enable_mouse_cell_motion`, and `enable_mouse_all_motion`.
@@ -89,14 +89,14 @@ fn enable_mouse_extended_mode() -> None:
     print(ENABLE_MOUSE_EXTENDED_MODE, sep="", end="")
 
 
-fn disable_mouse_extended_mode() -> None:
+def disable_mouse_extended_mode() -> None:
     """Disables Extended Mouse mode (SGR)."""
     print(DISABLE_MOUSE_EXTENDED_MODE, sep="", end="")
 
 
 struct Mouse(Movable):
     @staticmethod
-    fn enable_capture() -> MouseCapture:
+    def enable_capture() -> MouseCapture:
         """Enables mouse capture and returns a `MouseCapture` instance, which will disable mouse capture on destruction.
         """
         enable_mouse_all_motion()
@@ -108,12 +108,12 @@ struct Mouse(Movable):
 struct MouseCapture(Movable):
     """Linear struct to enable mouse capture on creation and guarantee disable on destruction."""
 
-    fn disable(deinit self) -> None:
+    def disable(deinit self) -> None:
         """Disables mouse capture."""
         disable_mouse_all_motion()
 
 
-fn enable_mouse_pixels_mode() -> None:
+def enable_mouse_pixels_mode() -> None:
     """Enables Pixel Motion Mouse mode (SGR-Pixels).
 
     This should be enabled in conjunction with `enable_mouse_cell_motion`, and
@@ -122,6 +122,6 @@ fn enable_mouse_pixels_mode() -> None:
     print(ENABLE_MOUSE_PIXELS_MODE, sep="", end="")
 
 
-fn disable_mouse_pixels_mode() -> None:
+def disable_mouse_pixels_mode() -> None:
     """Disables Pixel Motion Mouse mode (SGR-Pixels)."""
     print(DISABLE_MOUSE_PIXELS_MODE, sep="", end="")

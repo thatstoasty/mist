@@ -5,7 +5,7 @@ from mist.terminal.tty import TTY, Mode
 from mist.event.event import Char, FocusGained, FocusLost, KeyEvent
 
 
-fn main() raises -> None:
+def main() raises -> None:
     print("Enabling focus change tracking...")
     var focus_change = FocusChange.enable()
     print("Focus change tracking enabled. Try switching to another window and back to see the effect.")

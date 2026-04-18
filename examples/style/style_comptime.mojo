@@ -27,7 +27,7 @@ comptime cyan_background = true_color_style.background(0x66C2CD)
 comptime gray_background = true_color_style.background(0xB9BFCA)
 
 
-fn main():
+def main():
     print(
         "\n\t",
         bold.render("bold"),

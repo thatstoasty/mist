@@ -25,7 +25,7 @@ comptime FileDescriptorBitSet = BitSet[1024]
 """BitSet for file descriptors, with a size of 1024 bits."""
 
 
-fn _select[read_origin: MutOrigin, write_origin: MutOrigin, except_origin: MutOrigin, timeout_origin: MutOrigin, //](
+def _select[read_origin: MutOrigin, write_origin: MutOrigin, except_origin: MutOrigin, timeout_origin: MutOrigin, //](
     nfds: c_int,
     readfds: MutPointer[FileDescriptorBitSet, read_origin],
     writefds: MutPointer[FileDescriptorBitSet, write_origin],
@@ -58,7 +58,7 @@ fn _select[read_origin: MutOrigin, write_origin: MutOrigin, except_origin: MutOr
     ](nfds, readfds, writefds, exceptfds, timeout)
 
 
-fn select(
+def select(
     highest_fd: c_int,
     mut read_fds: FileDescriptorBitSet,
     mut write_fds: FileDescriptorBitSet,
@@ -106,42 +106,6 @@ fn select(
         raise Error("Select has timed out while waiting for file descriptors to become ready.")
 
 
-# fn stdin_select(timeout: Optional[Int] = None) raises -> Event:
-#     """Perform the actual selection, until some monitored file objects are
-#     ready or a timeout expires.
-
-#     Args:
-#         timeout: If timeout > 0, this specifies the maximum wait time, in seconds.
-#             if timeout <= 0, the select() call won't block, and will
-#             report the currently ready file objects
-#             if timeout is None, select() will block until a monitored
-#             file object becomes ready.
-
-#     Returns:
-#         List of (key, events) for ready file objects
-#         `events` is a bitwise mask of `EVENT_READ`|`EVENT_WRITE`.
-#     """
-#     var readers = FileDescriptorBitSet()
-#     readers.set(stdin.value)
-
-#     var tv = TimeValue(0, 0)
-#     if timeout:
-#         tv.tv_sec = Int64(timeout.value())
-
-#     select(
-#         stdin.value + 1,
-#         readers,
-#         FileDescriptorBitSet(),
-#         FileDescriptorBitSet(),
-#         tv,
-#     )
-
-#     if readers.test(0):
-#         return Event(0) | Event.READ
-
-#     return Event(0)
-
-
 @fieldwise_init
 struct SelectSelector(Movable, Selector):
     """Selector implementation using the POSIX `select` function."""
@@ -153,7 +117,7 @@ struct SelectSelector(Movable, Selector):
     var _highest_fd: Int
     """Highest file descriptor registered, used to optimize the select call."""
 
-    fn __init__(out self):
+    def __init__(out self):
         """Initialize the SelectSelector.
 
         This initializes the internal sets for readers and writers, and sets the
@@ -163,7 +127,7 @@ struct SelectSelector(Movable, Selector):
         self.writers = Set[Int]()
         self._highest_fd = 0
 
-    fn register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) -> None:
+    def register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) -> None:
         """Register a file object.
 
         Args:
@@ -179,7 +143,7 @@ struct SelectSelector(Movable, Selector):
         if file_descriptor.value > self._highest_fd:
             self._highest_fd = file_descriptor.value
 
-    fn unregister(mut self, file_descriptor: FileDescriptor, events_to_stop: Event) -> None:
+    def unregister(mut self, file_descriptor: FileDescriptor, events_to_stop: Event) -> None:
         """Unregister a file object.
 
         Args:
@@ -205,7 +169,7 @@ struct SelectSelector(Movable, Selector):
                 # Should only raise KeyError which is fine to skip.
                 pass
 
-    fn select(mut self, timeout: Int = 0) raises -> Dict[Int, Event]:
+    def select(mut self, timeout: Int = 0) raises -> Dict[Int, Event]:
         """Perform the actual selection, until some monitored file objects are
         ready or a timeout expires.
 
@@ -263,7 +227,7 @@ struct SelectSelector(Movable, Selector):
 
         return ready^
 
-    fn close(self) -> None:
+    def close(self) -> None:
         """Close the selector.
 
         This must be called to make sure that any underlying resource is freed.

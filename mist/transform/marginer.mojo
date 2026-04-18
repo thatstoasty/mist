@@ -12,7 +12,7 @@ struct MarginWriter(Movable):
     ```mojo
     from mist.transform import marginer as margin
 
-    fn main():
+    def main():
         var writer = margin.MarginWriter(5, 2)
         writer.write("Hello, World!")
         print(writer^.finish())
@@ -26,7 +26,7 @@ struct MarginWriter(Movable):
     var iw: IndentWriter
     """The indent `Writer`."""
 
-    fn __init__(out self, var pw: PaddingWriter, var iw: IndentWriter):
+    def __init__(out self, var pw: PaddingWriter, var iw: IndentWriter):
         """Initializes the `Writer`.
 
         Args:
@@ -37,7 +37,7 @@ struct MarginWriter(Movable):
         self.pw = pw^
         self.iw = iw^
 
-    fn __init__(out self, pad: UInt, indentation: UInt):
+    def __init__(out self, pad: UInt, indentation: UInt):
         """Initializes a new `Writer`.
 
         Args:
@@ -48,7 +48,7 @@ struct MarginWriter(Movable):
         self.pw = PaddingWriter(pad)
         self.iw = IndentWriter(indentation)
 
-    fn write(mut self, text: StringSlice) -> None:
+    def write(mut self, text: StringSlice) -> None:
         """Writes the text, `content`, to the writer, with the
         padding and indentation applied.
 
@@ -58,7 +58,7 @@ struct MarginWriter(Movable):
         self.iw.write(text)
         self.pw.write(self.iw.as_string_slice())
 
-    fn finish(deinit self) -> String:
+    def finish(deinit self) -> String:
         """Will finish the margin operation. Always call it before trying to retrieve the final result.
 
         Returns:
@@ -68,7 +68,7 @@ struct MarginWriter(Movable):
         return self.buf^
 
 
-fn margin(text: StringSlice, pad: UInt, indent: UInt) -> String:
+def margin(text: StringSlice, pad: UInt, indent: UInt) -> String:
     """Right pads `text` with a `width` number of spaces, and indents it with `margin` spaces.
 
     Args:
@@ -83,7 +83,7 @@ fn margin(text: StringSlice, pad: UInt, indent: UInt) -> String:
     ```mojo
     from mist.transform import margin
 
-    fn main():
+    def main():
         print(margin("Hello, World!", pad=5, indent=2))
     ```
     """

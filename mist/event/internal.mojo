@@ -32,12 +32,7 @@ struct PrimaryDeviceAttributes(ImplicitlyCopyable, InternalEventType, Writable, 
 
     This is a stub - the response is not exposed in the public API.
     """
-
-    var _placeholder: Bool
-    """Placeholder field (compiler workaround for empty structs)."""
-
-    fn __init__(out self):
-        self._placeholder = True
+    pass
 
 
 # ============================================================================
@@ -58,64 +53,70 @@ struct InternalEvent(Copyable, Writable):
         KeyboardEnhancementFlagsResponse,
         PrimaryDeviceAttributes,
     ]
+    """The value of the internal event, which can be one of the following types:
+        - Event: A regular event.
+        - CursorPosition: A response to a cursor position query.
+        - KeyboardEnhancementFlagsResponse: A response to a keyboard enhancement flags query.
+        - PrimaryDeviceAttributes: A response to a primary device attributes query.
+    """
 
     @implicit
-    fn __init__(out self, var event: Event):
+    def __init__(out self, var event: Event):
         self.value = event^
 
     @implicit
-    fn __init__(out self, position: CursorPosition):
+    def __init__(out self, position: CursorPosition):
         self.value = position
 
     @implicit
-    fn __init__(out self, flags: KeyboardEnhancementFlagsResponse):
+    def __init__(out self, flags: KeyboardEnhancementFlagsResponse):
         self.value = flags
 
     @implicit
-    fn __init__(out self, attrs: PrimaryDeviceAttributes):
+    def __init__(out self, attrs: PrimaryDeviceAttributes):
         self.value = attrs
 
-    fn isa[T: InternalEventType](self) -> Bool:
+    def isa[T: InternalEventType](self) -> Bool:
         """Check if the internal event is of the specified type."""
         return self.value.isa[T]()
 
-    fn __getitem_param__[T: InternalEventType](self) -> ref[self.value] T:
+    def __getitem_param__[T: InternalEventType](self) -> ref[self.value] T:
         """Get the internal event as the specified type (asserts the type)."""
         return self.value[T]
 
-    fn is_event(self) -> Bool:
+    def is_event(self) -> Bool:
         """Check if this is a regular Event."""
         return self.value.isa[Event]()
 
-    fn is_cursor_position(self) -> Bool:
+    def is_cursor_position(self) -> Bool:
         """Check if this is a CursorPosition response."""
         return self.value.isa[CursorPosition]()
 
-    fn is_keyboard_enhancement_flags(self) -> Bool:
+    def is_keyboard_enhancement_flags(self) -> Bool:
         """Check if this is a KeyboardEnhancementFlagsResponse."""
         return self.value.isa[KeyboardEnhancementFlagsResponse]()
 
-    fn is_primary_device_attributes(self) -> Bool:
+    def is_primary_device_attributes(self) -> Bool:
         """Check if this is a PrimaryDeviceAttributes response."""
         return self.value.isa[PrimaryDeviceAttributes]()
 
-    fn as_event(ref self) -> ref[self.value] Event:
+    def as_event(ref self) -> ref[self.value] Event:
         """Get the Event (asserts this is an Event)."""
         return self.value[Event]
 
-    fn as_cursor_position(ref self) -> ref[self.value] CursorPosition:
+    def as_cursor_position(ref self) -> ref[self.value] CursorPosition:
         """Get the CursorPosition (asserts this is a CursorPosition)."""
         return self.value[CursorPosition]
 
-    fn as_keyboard_enhancement_flags(ref self) -> ref[self.value] KeyboardEnhancementFlagsResponse:
+    def as_keyboard_enhancement_flags(ref self) -> ref[self.value] KeyboardEnhancementFlagsResponse:
         """Get the KeyboardEnhancementFlagsResponse."""
         return self.value[KeyboardEnhancementFlagsResponse]
 
-    fn as_primary_device_attributes(ref self) -> ref[self.value] PrimaryDeviceAttributes:
+    def as_primary_device_attributes(ref self) -> ref[self.value] PrimaryDeviceAttributes:
         """Get the PrimaryDeviceAttributes."""
         return self.value[PrimaryDeviceAttributes]
 
-    fn write_to(self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         """Writes a string representation of the internal event to the given writer.
 
         Args:
@@ -134,7 +135,7 @@ struct InternalEvent(Copyable, Writable):
         else:
             writer.write("InternalEvent(value=UNKNOWN)")
 
-    fn write_repr_to(self, mut writer: Some[Writer]):
+    def write_repr_to(self, mut writer: Some[Writer]):
         """Writes a string representation of the internal event to the given writer.
 
         Args:

@@ -28,7 +28,7 @@ comptime R_BYTE = Byte(ord("R"))
 """Byte representation of the 'R' character."""
 
 
-fn _select(
+def _select(
     file_descriptor: FileDescriptor,
     mut readers: FileDescriptorBitSet,
     mut writers: BitSet[1],
@@ -78,7 +78,7 @@ fn _select(
     return 0
 
 
-fn wait_for_input(file_descriptor: FileDescriptor, timeout: Int = 100000) raises -> None:
+def wait_for_input(file_descriptor: FileDescriptor, timeout: Int = 100000) raises -> None:
     """Waits for input from stdin.
 
     Args:
@@ -97,7 +97,7 @@ fn wait_for_input(file_descriptor: FileDescriptor, timeout: Int = 100000) raises
             return
 
 
-fn get_background_color() raises -> RGBColor:
+def get_background_color() raises -> RGBColor:
     """Queries the terminal for the background color.
 
     Raises:
@@ -110,7 +110,7 @@ fn get_background_color() raises -> RGBColor:
     return XTermColor(query_osc("11;?")).to_rgb_color()
 
 
-fn has_dark_background() raises -> Bool:
+def has_dark_background() raises -> Bool:
     """Checks if the terminal has a dark background.
 
     Raises:
@@ -138,7 +138,7 @@ struct OSCParseState(Copyable, Equatable, TrivialRegisterPassable):
     comptime FENCE_END_SEARCH = Self(2)
     """State for searching the end of the fence."""
 
-    fn __eq__(self, other: Self) -> Bool:
+    def __eq__(self, other: Self) -> Bool:
         """Equality comparison.
 
         Args:
@@ -150,7 +150,7 @@ struct OSCParseState(Copyable, Equatable, TrivialRegisterPassable):
         return self.value == other.value
 
 
-fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineArray[Byte, ...]) raises -> String:
+def query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineArray[Byte, ...]) raises -> String:
     """Queries the terminal for a specific sequence. Assumes the terminal is in raw mode.
     This function will wrap `sequence` with OSC and BEL, so it should they should not be included in `sequence`.
 
@@ -236,7 +236,7 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
         elif buf[0] != ESC_BYTE:
             raise Error("Unexpected response from terminal. Did not start with ESC.")
 
-        for i in range(0, bytes_read):
+        for i in range(bytes_read):
             ref byte = buf[i]
             if state == OSCParseState.RESPONSE_START_SEARCH:
                 if byte == ESC_BYTE:
@@ -257,7 +257,7 @@ fn query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inli
     raise Error("Failed to read the complete response from stdin. Expected 'R' at the end.")
 
 
-fn query_osc[verify: Bool = True](sequence: StringSlice) raises -> String:
+def query_osc[verify: Bool = True](sequence: StringSlice) raises -> String:
     """Queries the terminal for a specific sequence. Assumes the terminal is in raw mode.
 
     Parameters:
@@ -279,7 +279,7 @@ fn query_osc[verify: Bool = True](sequence: StringSlice) raises -> String:
     return query_osc_buffer[verify](sequence, buffer)
 
 
-fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineArray[Byte, ...]) raises -> String:
+def query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineArray[Byte, ...]) raises -> String:
     """Queries the terminal for a specific sequence. Assumes the terminal is in raw mode.
 
     Parameters:
@@ -322,7 +322,7 @@ fn query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineAr
     return String(from_utf8=Span(buffer)[0 : Int(bytes_read)])
 
 
-fn query[verify: Bool = True](sequence: StringSlice) raises -> String:
+def query[verify: Bool = True](sequence: StringSlice) raises -> String:
     """Queries the terminal for a specific sequence. Assumes the terminal is in raw mode.
 
     Parameters:
@@ -350,7 +350,7 @@ comptime TERMINAL_SIZE_SEQUENCE = CSI + "18t"
 """ANSI sequence to query the terminal size."""
 
 
-fn get_terminal_size() raises -> Tuple[UInt16, UInt16]:
+def get_terminal_size() raises -> Tuple[UInt16, UInt16]:
     """Returns the size of the terminal.
 
     Raises:
@@ -373,7 +373,7 @@ comptime CURSOR_COLOR_SEQUENCE = OSC + "12;?" + BEL
 """ANSI sequence to query the cursor color."""
 
 
-fn get_cursor_color() raises -> RGBColor:
+def get_cursor_color() raises -> RGBColor:
     """Queries the terminal for the cursor color.
 
     Raises:

@@ -61,7 +61,7 @@ Once we have type checking in Mojo, Colors will automatically be degraded to the
 ```mojo
 import mist
 
-fn main() raises:
+def main() raises:
     var profile = mist.Profile()
 
     # will automatically convert the color to the best matching color in the profile.
@@ -122,7 +122,7 @@ You can apply text formatting effects to your text by setting the rules on the `
 ```mojo
 import mist
 
-fn main() raises:
+def main() raises:
     var style = mist.Style()
 
     # Text styles
@@ -151,7 +151,7 @@ import mist
 
 comptime style = mist.Style(mist.TRUE_COLOR_PROFILE)
 
-fn main():
+def main():
     print(style.render("Hello, world!"))
 ```
 
@@ -162,7 +162,7 @@ You can also use quick styling methods to apply formatting and colors to your te
 ```mojo
 from mist import red, green, blue, bold, italic, crossout, red_background, green_background, blue_background, render_as_color, render_with_background_color
 
-fn main():
+def main():
     print(red("Hello, world!"))
     print(green("Hello, world!"))
     print(blue("Hello, world!"))
@@ -191,7 +191,7 @@ In the `mist.terminal` package, you can use the `TTY` context manager as a high-
 ```mojo
 from mist.terminal.tty import TTY, Mode, Area
 
-fn main() raises -> None:
+def main() raises -> None:
     var area: Area
     with TTY[Mode.RAW]() as tty:
         area = tty.terminal_size()
@@ -205,7 +205,7 @@ The `cursor` module provides functions to control the cursor's position on the t
 ```mojo
 from mist.terminal.cursor import Cursor, move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
 
-fn main() raises:
+def main() raises:
     # Move the cursor to a given position
     move_cursor(row, column)
     Cursor.move_to(row, column)
@@ -251,7 +251,7 @@ The `screen` module provides functions to control the terminal screen, such as c
 ```mojo
 from mist.terminal.screen import Screen, reset, restore_screen, save_screen, enable_alternate_screen, disable_alternate_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
 
-fn main() raises:
+def main() raises:
     # Reset the terminal to its default style, removing any active styles
     reset()
     Screen.reset()
@@ -304,7 +304,7 @@ fn main() raises:
 ```mojo
 from mist.terminal.screen import cursor_back, clear_line_right
 
-fn main():
+def main():
     print("hello", end="")
     cursor_back(2)
     clear_line_right()
@@ -317,7 +317,7 @@ fn main():
 ```mojo
 from mist.terminal.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
 
-fn main() raises:
+def main() raises:
     # Sets the terminal window title
     set_window_title(title)
 
@@ -336,7 +336,7 @@ fn main() raises:
 ```mojo
 from mist.terminal.screen import Mouse, enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
 
-fn main() raises:
+def main() raises:
     # Enable X10 mouse mode, only button press events are sent
     enable_mouse_press()
 
@@ -375,7 +375,7 @@ fn main() raises:
 ```mojo
 from mist.terminal.screen import BracketedPaste, enable_bracketed_paste, disable_bracketed_paste
 
-fn main() raises:
+def main() raises:
     # Enables bracketed paste mode
     enable_bracketed_paste()
     var paste = BracketedPaste.enable()
@@ -394,7 +394,7 @@ from mist.terminal.query import query_osc
 from mist.terminal.tty import TTY, Mode
 from mist.color import RGBColor
 
-fn main() raises -> None:
+def main() raises -> None:
     with TTY[Mode.RAW]():
         var xterm_background_color = query_osc("11;?")
 ```
@@ -408,7 +408,7 @@ from mist.event.read import EventReader
 from mist.terminal.tty import TTY, Mode
 from mist.event.event import Char, KeyEvent
 
-fn main() raises -> None:
+def main() raises -> None:
     print("Reading events from terminal. Press keys or click mouse (Ctrl+C to exit)...")
     var reader = EventReader()
     with TTY[Mode.RAW]():
@@ -432,7 +432,7 @@ The `wrap` module lets you unconditionally wrap strings or entire blocks of text
 ```mojo
 from mist.transform import wrap
 
-fn main():
+def main():
     print(wrap("Hello Sekai!", 5))
 ```
 
@@ -451,7 +451,7 @@ The `word_wrap` package lets you word-wrap strings or entire blocks of text.
 ```mojo
 from mist.transform import word_wrap
 
-fn main():
+def main():
     print(word_wrap("Hello Sekai!", 6))
 ```
 
@@ -477,7 +477,7 @@ The `indent` module lets you indent strings or entire blocks of text.
 ```mojo
 from mist.transform import indent
 
-fn main():
+def main():
     print(indent("Hello\nWorld\n  TEST!", 5))
 ```
 
@@ -497,7 +497,7 @@ It takes the minimum indentation of all lines and removes that amount of leading
 ```mojo
 from mist.transform import dedent
 
-fn main():
+def main():
     print(dedent("    Line 1!\n  Line 2!"))
 ```
 
@@ -515,7 +515,7 @@ The `padding` module lets you right pad strings or entire blocks of text.
 ```mojo
 from mist.transform import padding
 
-fn main():
+def main():
     print(padding("Hello\nWorld\nThis is my text!", 15))
 ```
 
@@ -532,7 +532,7 @@ This is my text!
 ```mojo
 from mist.transform import truncate
 
-fn main():
+def main():
     print(truncate("abcdefghikl\nasjdn", 5))
 ```
 
@@ -548,7 +548,7 @@ abcde
 from mist.transform import wrap
 from mist.transform import padding
 
-fn main():
+def main():
     print(padding(wrap("Hello Sekai!", 5), 5))
 ```
 

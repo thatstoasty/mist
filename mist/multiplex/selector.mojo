@@ -16,7 +16,7 @@ trait Selector(Movable):
     efficient implementation on the current platform.
     """
 
-    fn register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) -> None:
+    def register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) -> None:
         """Register a file object.
 
         Args:
@@ -25,7 +25,7 @@ trait Selector(Movable):
         """
         ...
 
-    fn unregister(mut self, file_descriptor: FileDescriptor, events_to_stop: Event) -> None:
+    def unregister(mut self, file_descriptor: FileDescriptor, events_to_stop: Event) -> None:
         """Unregister a file object.
 
         Args:
@@ -37,7 +37,7 @@ trait Selector(Movable):
         """
         ...
 
-    # fn modify(self, fileobj: Int32, events: Int, data):
+    # def modify(self, fileobj: Int32, events: Int, data):
     #     """Change a registered file object monitored events or attached data.
 
     #     Args:
@@ -53,7 +53,7 @@ trait Selector(Movable):
     #     """
     #     ...
 
-    fn select(mut self, timeout: Int = 0) raises -> Dict[Int, Event]:
+    def select(mut self, timeout: Int = 0) raises -> Dict[Int, Event]:
         """Perform the actual selection, until some monitored file objects are
         ready or a timeout expires.
 
@@ -70,14 +70,14 @@ trait Selector(Movable):
         """
         ...
 
-    fn close(self):
+    def close(self):
         """Close the selector.
 
         This must be called to make sure that any underlying resource is freed.
         """
         ...
 
-    # fn get_key(self, fileobj: Int32):
+    # def get_key(self, fileobj: Int32):
     #     """Return the key associated to a registered file object.
 
     #     Returns:
@@ -85,7 +85,7 @@ trait Selector(Movable):
     #     """
     #     ...
 
-    # fn get_map(self):
+    # def get_map(self):
     #     """Return a mapping of file objects to selector keys."""
     #     ...
 
@@ -101,13 +101,13 @@ trait Selector(Movable):
 #     var events: Int32
 #     var data: Any
 
-#     fn __init__(out self, fileobj: Int32, fd: Int32, events: Int32, data: Any):
+#     def __init__(out self, fileobj: Int32, fd: Int32, events: Int32, data: Any):
 #         self.fileobj = fileobj
 #         self.fd = fd
 #         self.events = events
 #         self.data = data
 
-#     fn __repr__(self) -> String:
+#     def __repr__(self) -> String:
 #         return String("SelectorKey(fileobj={}, fd={}, events={}, data={})").format(
 #             self.fileobj, self.fd, self.events, self.data
 #         )

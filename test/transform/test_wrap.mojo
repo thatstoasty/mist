@@ -4,7 +4,7 @@ from std.testing import TestSuite
 from mist import wrap
 
 
-fn test_wrap() raises:
+def test_wrap() raises:
     # Basic wrapping:
     testing.assert_equal(wrap("Hello Sekai!", 5), "Hello\nSekai\n!")
 
@@ -12,7 +12,7 @@ fn test_wrap() raises:
     testing.assert_equal(wrap("foobarfoo", 4, tab_width=0), "foob\narfo\no")
 
 
-fn test_keep_newlines() raises:
+def test_keep_newlines() raises:
     # Newlines in the input are respected if desired
     testing.assert_equal(wrap("f\no\nobar", 3, tab_width=0), "f\no\noba\nr")
 
@@ -20,7 +20,7 @@ fn test_keep_newlines() raises:
     testing.assert_equal(wrap[keep_newlines=False]("f\no\nobar", 3, tab_width=0), "foo\nbar")
 
 
-fn test_preserve_space() raises:
+def test_preserve_space() raises:
     # Leading whitespaces after forceful line break can be preserved if desired
     testing.assert_equal(wrap("foo bar\n  baz", 3, preserve_space=True, tab_width=0), "foo\n ba\nr\n  b\naz")
 
@@ -28,7 +28,7 @@ fn test_preserve_space() raises:
     testing.assert_equal(wrap("foo bar\n  baz", 3, tab_width=0), "foo\nbar\n  b\naz")
 
 
-fn test_tab_width() raises:
+def test_tab_width() raises:
     # Tabs are broken up according to the configured tab_width
     testing.assert_equal(wrap("foo\tbar", 4, preserve_space=True, tab_width=3), "foo \n  ba\nr")
 
@@ -36,7 +36,7 @@ fn test_tab_width() raises:
     testing.assert_equal(wrap("foo\tbar", 4, tab_width=3), "foo \nbar")
 
 
-fn test_noop() raises:
+def test_noop() raises:
     # No-op, should pass through, including trailing whitespace:
     testing.assert_equal(wrap("foobar\n ", 0, tab_width=0), "foobar\n ")
 
@@ -45,7 +45,7 @@ fn test_noop() raises:
 
 
 # TODO: Weirdness with the strings not being equal but length and content is identical.
-# fn test_ansi_sequence() raises:
+# def test_ansi_sequence() raises:
 #     # ANSI sequence codes don't affect length calculation:
 #     testing.assert_equal(
 #         wrap(
@@ -67,9 +67,9 @@ fn test_noop() raises:
 #     )
 
 
-fn test_unicode() raises:
+def test_unicode() raises:
     testing.assert_equal(wrap("Hello Sekai! 🔥", 5), "Hello\nSekai\n! 🔥")
 
 
-fn main() raises:
+def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

@@ -12,12 +12,12 @@ comptime END_BRACKETED_PASTE_SEQ = "201~"
 """End of bracketed paste sequence."""
 
 
-fn enable_bracketed_paste() -> None:
+def enable_bracketed_paste() -> None:
     """Enables bracketed paste."""
     print(ENABLE_BRACKETED_PASTE, sep="", end="")
 
 
-fn disable_bracketed_paste() -> None:
+def disable_bracketed_paste() -> None:
     """Disables bracketed paste."""
     print(DISABLE_BRACKETED_PASTE, sep="", end="")
 
@@ -28,12 +28,12 @@ struct BracketedPaste(Movable):
     """Linear struct to enable bracketed paste on creation and guarantee disable on destruction."""
 
     @staticmethod
-    fn enable() -> Self:
+    def enable() -> Self:
         """Enables bracketed paste and returns a `BracketedPaste` instance, which will disable bracketed paste on destruction.
         """
         enable_bracketed_paste()
         return Self()
 
-    fn disable(deinit self) -> None:
+    def disable(deinit self) -> None:
         """Disables bracketed paste."""
         disable_bracketed_paste()

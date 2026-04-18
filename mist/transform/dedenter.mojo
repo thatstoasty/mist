@@ -1,4 +1,4 @@
-fn _calculate_minimum_indentation(text: StringSlice) -> UInt:
+def _calculate_minimum_indentation(text: StringSlice) -> UInt:
     """Detects the indentation level shared by all lines.
 
     Args:
@@ -27,7 +27,7 @@ fn _calculate_minimum_indentation(text: StringSlice) -> UInt:
     return min_indent
 
 
-fn _apply_dedent(text: StringSlice, indent: UInt) -> String:
+def _apply_dedent(text: StringSlice, indent: UInt) -> String:
     """Returns a copy `text` that's been dedented
     by removing the shared indentation level.
 
@@ -60,7 +60,7 @@ fn _apply_dedent(text: StringSlice, indent: UInt) -> String:
     return buf^
 
 
-fn dedent(text: StringSlice) -> String:
+def dedent(text: StringSlice) -> String:
     """Automatically detects the maximum indentation shared by all lines and
     trims them accordingly.
 
@@ -74,7 +74,7 @@ fn dedent(text: StringSlice) -> String:
     ```mojo
     from mist import dedent
 
-    fn main() -> None:
+    def main() -> None:
         var text = dedent("    Hello, World!\\n    This is a test.\\n    \\n")
         print(text)
     ```

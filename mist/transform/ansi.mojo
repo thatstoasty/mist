@@ -23,7 +23,7 @@ comptime NEWLINE_BYTE = UInt32(ord("\n"))
 """The byte value of the newline character."""
 
 
-fn equals(left: Span[Byte, ...], right: Span[Byte, ...]) -> Bool:
+def equals(left: Span[Byte, ...], right: Span[Byte, ...]) -> Bool:
     """Reports if `left` and `right` are equal.
 
     Args:
@@ -42,7 +42,7 @@ fn equals(left: Span[Byte, ...], right: Span[Byte, ...]) -> Bool:
     return True
 
 
-fn has_suffix(bytes: Span[Byte, ...], suffix: Span[Byte, ...]) -> Bool:
+def has_suffix(bytes: Span[Byte, ...], suffix: Span[Byte, ...]) -> Bool:
     """Reports if the list ends with suffix.
 
     Args:
@@ -60,7 +60,7 @@ fn has_suffix(bytes: Span[Byte, ...], suffix: Span[Byte, ...]) -> Bool:
     return True
 
 
-fn is_terminator(c: Codepoint) -> Bool:
+def is_terminator(c: Codepoint) -> Bool:
     """Reports if the rune is a terminator.
 
     Args:
@@ -73,7 +73,7 @@ fn is_terminator(c: Codepoint) -> Bool:
     return (rune >= 0x40 and rune <= 0x5A) or (rune >= 0x61 and rune <= 0x7A)
 
 
-fn printable_rune_width(text: StringSlice) -> UInt:
+def printable_rune_width(text: StringSlice) -> UInt:
     """Returns the cell width of the given string.
 
     Args:
@@ -111,7 +111,7 @@ struct Writer(Movable, Writable):
     ```mojo
     from mist.transform import ansi
 
-    fn main():
+    def main():
         var writer = ansi.Writer()
         writer.write("Hello, World!")
         print(writer)
@@ -129,7 +129,7 @@ struct Writer(Movable, Writable):
     var seq_changed: Bool
     """Whether the ANSI escape sequence has changed."""
 
-    fn __init__(out self, var forward: String = String()):
+    def __init__(out self, var forward: String = String()):
         """Initializes a new ANSI-writer instance.
 
         Args:
@@ -141,7 +141,7 @@ struct Writer(Movable, Writable):
         self.last_seq = String(capacity=128)
         self.seq_changed = False
 
-    fn write_to[W: write.Writer, //](self, mut writer: W):
+    def write_to[W: write.Writer, //](self, mut writer: W):
         """Writes the content to the given writer.
 
         Parameters:
@@ -152,7 +152,7 @@ struct Writer(Movable, Writable):
         """
         writer.write(self.forward)
 
-    fn write(mut self, content: StringSlice) -> None:
+    def write(mut self, content: StringSlice) -> None:
         """Write content to the ANSI buffer.
 
         Args:
@@ -161,7 +161,7 @@ struct Writer(Movable, Writable):
         for codepoint in content.codepoints():
             self.write(codepoint)
 
-    fn write(mut self, codepoint: Codepoint) -> None:
+    def write(mut self, codepoint: Codepoint) -> None:
         """Write codepoint to the ANSI buffer.
 
         Args:
@@ -188,7 +188,7 @@ struct Writer(Movable, Writable):
         else:
             self.forward.write(codepoint)
 
-    fn last_sequence(self) -> StringSlice[origin_of(self.last_seq)]:
+    def last_sequence(self) -> StringSlice[origin_of(self.last_seq)]:
         """Returns the last ANSI escape sequence.
 
         Returns:
@@ -196,13 +196,13 @@ struct Writer(Movable, Writable):
         """
         return StringSlice(self.last_seq)
 
-    fn reset_ansi(mut self) -> None:
+    def reset_ansi(mut self) -> None:
         """Resets the ANSI escape sequence."""
         if not self.seq_changed:
             return
 
         self.forward.write(ANSI_MARKER + ANSI_ESCAPE)
 
-    fn restore_ansi(mut self) -> None:
+    def restore_ansi(mut self) -> None:
         """Restores the last ANSI escape sequence."""
         self.forward.write(self.last_seq)

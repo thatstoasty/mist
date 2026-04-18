@@ -37,7 +37,7 @@ from mist.event.event import (
 )
 
 
-fn example_key_events() raises:
+def example_key_events() raises:
     """Demonstrates creating and working with keyboard events."""
     print("=== Key Event Examples ===\n")
 
@@ -106,7 +106,7 @@ fn example_key_events() raises:
     print()
 
 
-fn example_mouse_events():
+def example_mouse_events():
     """Demonstrates creating and working with mouse events."""
     print("=== Mouse Event Examples ===\n")
 
@@ -165,7 +165,7 @@ fn example_mouse_events():
     print("\n")
 
 
-fn example_terminal_events() raises:
+def example_terminal_events() raises:
     """Demonstrates creating and working with terminal events."""
     print("=== Terminal Event Examples ===\n")
 
@@ -209,7 +209,7 @@ fn example_terminal_events() raises:
     print("\n")
 
 
-fn example_keyboard_enhancement_flags():
+def example_keyboard_enhancement_flags():
     """Demonstrates keyboard enhancement flags for kitty protocol."""
     print("=== Keyboard Enhancement Flags Examples ===\n")
 
@@ -236,7 +236,7 @@ fn example_keyboard_enhancement_flags():
     print()
 
 
-# fn example_media_and_modifier_keys():
+# def example_media_and_modifier_keys():
 #     """Demonstrates media keys and modifier key codes."""
 #     print("=== Media and Modifier Keys Examples ===\n")
 
@@ -264,7 +264,7 @@ fn example_keyboard_enhancement_flags():
 #     print()
 
 
-fn example_key_code_helpers() raises:
+def example_key_code_helpers() raises:
     """Demonstrates KeyCode helper methods."""
     print("=== KeyCode Helper Methods ===\n")
 
@@ -294,7 +294,7 @@ fn example_key_code_helpers() raises:
     # print()
 
 
-fn main() raises:
+def main() raises:
     """Run all examples."""
     print("╔════════════════════════════════════════════════════════════╗")
     print("║           Mist Terminal Event Examples                     ║")
