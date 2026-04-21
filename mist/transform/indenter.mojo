@@ -37,14 +37,6 @@ struct IndentWriter(Movable, Writable):
         self.skip_indent = False
         self.in_ansi = False
 
-    def __str__(self) -> String:
-        """Returns the indented result as a string by copying the content of the internal buffer.
-
-        Returns:
-            The indented string.
-        """
-        return self.ansi_writer.forward
-
     def as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
         """Returns the indented result as a string slice by referencing the content of the internal buffer.
 

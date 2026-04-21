@@ -17,7 +17,7 @@ on Unix systems. It handles:
 
 ## Notes
 
-- The event source uses select() for multiplexing I/O
+- The event source uses kqueue on macOS and select() on other Unix targets
 
 ## TODO:
 - SIGWINCH signals are handled via a Unix socket pair
@@ -26,6 +26,7 @@ on Unix systems. It handles:
 
 from std.collections import Deque
 from std.sys import stderr, stdin
+from std.sys import CompilationTarget
 from std.sys._libc_errno import get_errno
 
 from std.ffi import c_size_t
@@ -34,10 +35,16 @@ from mist.event.internal import InternalEvent
 from mist.event.parser import parse_event
 from mist.event.source import EventSource
 from mist.multiplex.event import Event as SelectEvent
-from mist.multiplex.select import SelectSelector
+from mist.multiplex.selector import Selector
 from mist.termios.c import read
 
 from mist.event.event import Event, Resize
+
+
+comptime if CompilationTarget.is_macos():
+    from mist.multiplex.kqueue import KQueueSelector
+else:
+    from mist.multiplex.select import SelectSelector
 
 
 # Buffer size for TTY reads. 1024 bytes is enough based on testing
@@ -124,6 +131,91 @@ def _get_time_ns() -> Int:
     return Int(perf_counter_ns())
 
 
+def _read_from_tty(
+    tty: FileDescriptor,
+    mut tty_buffer: InlineArray[UInt8, TTY_BUFFER_SIZE],
+) raises -> Int:
+    """Read from a TTY until data is available or the read would block.
+
+    Args:
+        tty: The terminal file descriptor to read from.
+        tty_buffer: Buffer used to receive the bytes read from the terminal.
+
+    Returns:
+        Number of bytes read, or 0 if the read would block.
+
+    Raises:
+        Error: If read fails with an unrecoverable errno.
+    """
+    while True:
+        var bytes_read = read(
+            Int32(tty.value),
+            tty_buffer.unsafe_ptr().bitcast[NoneType](),
+            c_size_t(TTY_BUFFER_SIZE),
+        )
+
+        if bytes_read >= 0:
+            return Int(bytes_read)
+
+        var errno = get_errno()
+        if errno == errno.EWOULDBLOCK:
+            return 0
+        elif errno == errno.EINTR:
+            continue
+        else:
+            raise Error("read() failed with errno: ", errno.value)
+
+
+def _try_read_from_selector[SelectorType: Selector](
+    mut parser: Parser,
+    tty: FileDescriptor,
+    mut selector: SelectorType,
+    mut tty_buffer: InlineArray[UInt8, TTY_BUFFER_SIZE],
+    timeout: Optional[Int],
+) raises -> Optional[InternalEvent]:
+    """Try to read an event using the configured selector backend.
+
+    Args:
+        parser: Parser used to buffer bytes and emit internal events.
+        tty: Terminal file descriptor monitored for readability.
+        selector: Concrete selector backend used to wait for readiness.
+        tty_buffer: Scratch buffer for reading bytes from the terminal.
+        timeout: Timeout in microseconds, or None for indefinite wait.
+
+    Returns:
+        An InternalEvent if one is available, None if timeout elapsed.
+
+    Raises:
+        Error: If selector polling or TTY reads fail.
+    """
+    var poll_timeout = PollTimeout(timeout)
+    while poll_timeout.leftover().or_else(-1) <= 0:
+        if buffered_event := parser.next():
+            return buffered_event^
+
+        var status = selector.select().get(tty.value)
+        if not status:
+            continue
+
+        if not status.unsafe_value() & SelectEvent.READ:
+            continue
+
+        while True:
+            var read_count = _read_from_tty(tty, tty_buffer)
+            if read_count > 0:
+                parser.advance(
+                    Span(tty_buffer)[0:read_count].get_immutable(),
+                    read_count == TTY_BUFFER_SIZE,
+                )
+
+            if event := parser.next():
+                return event^
+
+            if read_count == 0:
+                break
+    return None
+
+
 # ============================================================================
 # Parser for buffering and parsing events
 # ============================================================================
@@ -203,126 +295,173 @@ struct Parser(Movable):
 # ============================================================================
 
 
-struct UnixInternalEventSource(EventSource, Movable):
-    """Event source for reading terminal input on Unix systems.
+comptime if CompilationTarget.is_macos():
+    struct UnixInternalEventSource(EventSource, Movable):
+        """Event source for reading terminal input on Unix systems.
 
-    This struct manages:
-    - TTY file descriptor for reading input
-    - Parser for buffering and parsing escape sequences
-    - Signal handling for window resize events (SIGWINCH)
+        This struct manages:
+        - TTY file descriptor for reading input
+        - Parser for buffering and parsing escape sequences
+        - Signal handling for window resize events (SIGWINCH)
 
-    Uses select() for multiplexing I/O between the TTY and signal pipe.
-    """
-
-    var parser: Parser
-    """Parser for buffering and converting bytes to events."""
-    var tty_buffer: InlineArray[UInt8, TTY_BUFFER_SIZE]
-    """Buffer for reading from TTY."""
-    var tty: FileDescriptor
-    """TTY file descriptor."""
-    var selector: SelectSelector
-    """Selector for multiplexing TTY using `select`."""
-    # Note: SIGWINCH handling via Unix socket pair is not implemented here
-    # as it requires signal handling infrastructure not yet available.
-    # For now, resize events can be detected by polling terminal size.
-
-    def __init__(out self, tty: FileDescriptor):
-        """Initialize the event source with a specific file descriptor.
-
-        Args:
-            tty: The file descriptor to use for reading input.
+        Uses kqueue for multiplexing I/O on macOS.
         """
-        self.parser = Parser()
-        self.tty_buffer = InlineArray[UInt8, TTY_BUFFER_SIZE](uninitialized=True)
-        self.tty = tty
-        self.selector = SelectSelector()
-        self.selector.register(self.tty, SelectEvent.READ)
 
-    def __init__(out self) raises:
-        """Initialize the event source using stdin as the TTY.
+        var parser: Parser
+        """Parser for buffering and converting bytes to events."""
+        var tty_buffer: InlineArray[UInt8, TTY_BUFFER_SIZE]
+        """Buffer for reading from TTY."""
+        var tty: FileDescriptor
+        """TTY file descriptor."""
+        var selector: KQueueSelector
+        """Selector for multiplexing TTY using `kqueue`."""
+        # Note: SIGWINCH handling via Unix socket pair is not implemented here
+        # as it requires signal handling infrastructure not yet available.
+        # For now, resize events can be detected by polling terminal size.
 
-        Raises:
-            Error: If stdin is not a terminal.
+        def __init__(out self, tty: FileDescriptor) raises:
+            """Initialize the event source with a specific file descriptor.
+
+            Args:
+                tty: The file descriptor to use for reading input.
+
+            Returns:
+                None. Initializes `self` in place.
+
+            Raises:
+                Error: If creating or registering the internal selector fails.
+            """
+            self.parser = Parser()
+            self.tty_buffer = InlineArray[UInt8, TTY_BUFFER_SIZE](uninitialized=True)
+            self.tty = tty
+            self.selector = KQueueSelector()
+            self.selector.register(self.tty, SelectEvent.READ)
+
+        def __init__(out self) raises:
+            """Initialize the event source using stdin as the TTY.
+
+            Returns:
+                None. Initializes `self` in place.
+
+            Raises:
+                Error: If stdin is not a terminal.
+                Error: If constructing the TTY-backed event source fails.
+            """
+            if not stdin.isatty():
+                raise Error("stdin is not a terminal")
+            self = Self(stdin)
+
+        def try_read(mut self, timeout: Optional[Int]) raises -> Optional[InternalEvent]:
+            """Try to read an event with an optional timeout.
+
+            This method polls for input and parses events. It handles:
+            - Buffered events from previous reads
+            - New TTY input
+            - Interrupted system calls (retries automatically)
+
+            Args:
+                timeout: Timeout in microseconds, or None for indefinite wait.
+
+            Raises:
+                Error: If an unrecoverable I/O error occurs.
+
+            Returns:
+                An InternalEvent if one is available, None if timeout elapsed.
+            """
+            return _try_read_from_selector(self.parser, self.tty, self.selector, self.tty_buffer, timeout)
+
+        def _read_complete(mut self) raises -> Int:
+            """Read from TTY until buffer is full or would block.
+
+            Similar to std::io::Read::read_to_end, except this function
+            only fills the given buffer and does not read beyond that.
+
+            Returns:
+                Number of bytes read, or 0 if would block.
+            """
+            return _read_from_tty(self.tty, self.tty_buffer)
+else:
+    struct UnixInternalEventSource(EventSource, Movable):
+        """Event source for reading terminal input on Unix systems.
+
+        This struct manages:
+        - TTY file descriptor for reading input
+        - Parser for buffering and parsing escape sequences
+        - Signal handling for window resize events (SIGWINCH)
+
+        Uses select() for multiplexing I/O on non-macOS Unix targets.
         """
-        if not stdin.isatty():
-            raise Error("stdin is not a terminal")
-        self = Self(stdin)
 
-    def try_read(mut self, timeout: Optional[Int]) raises -> Optional[InternalEvent]:
-        """Try to read an event with an optional timeout.
+        var parser: Parser
+        """Parser for buffering and converting bytes to events."""
+        var tty_buffer: InlineArray[UInt8, TTY_BUFFER_SIZE]
+        """Buffer for reading from TTY."""
+        var tty: FileDescriptor
+        """TTY file descriptor."""
+        var selector: SelectSelector
+        """Selector for multiplexing TTY using `select`."""
+        # Note: SIGWINCH handling via Unix socket pair is not implemented here
+        # as it requires signal handling infrastructure not yet available.
+        # For now, resize events can be detected by polling terminal size.
 
-        This method polls for input and parses events. It handles:
-        - Buffered events from previous reads
-        - New TTY input
-        - Interrupted system calls (retries automatically)
+        def __init__(out self, tty: FileDescriptor) raises:
+            """Initialize the event source with a specific file descriptor.
 
-        Args:
-            timeout: Timeout in microseconds, or None for indefinite wait.
+            Args:
+                tty: The file descriptor to use for reading input.
 
-        Raises:
-            Error: If an unrecoverable I/O error occurs.
+            Returns:
+                None. Initializes `self` in place.
 
-        Returns:
-            An InternalEvent if one is available, None if timeout elapsed.
-        """
-        var poll_timeout = PollTimeout(timeout)
-        while poll_timeout.leftover().or_else(-1) <= 0:
-            # Check if there are buffered events from the last read
-            if buffered_event := self.parser.next():
-                return buffered_event^
+            Raises:
+                Error: If creating or registering the internal selector fails.
+            """
+            self.parser = Parser()
+            self.tty_buffer = InlineArray[UInt8, TTY_BUFFER_SIZE](uninitialized=True)
+            self.tty = tty
+            self.selector = SelectSelector()
+            self.selector.register(self.tty, SelectEvent.READ)
 
-            # First checks if the file descriptor is ready.
-            # If so, checks if the response is either `SelectEvent.READ` or `SelectEvent.READ_WRITE`
-            var status = self.selector.select().get(self.tty.value)
-            if not status:
-                continue
+        def __init__(out self) raises:
+            """Initialize the event source using stdin as the TTY.
 
-            # We just checked that the optional is not None, so we can safely check the value.
-            if not status.unsafe_value() & SelectEvent.READ:
-                continue
+            Returns:
+                None. Initializes `self` in place.
 
-            # TTY is ready for reading
-            while True:
-                var read_count = self._read_complete()
-                if read_count > 0:
-                    self.parser.advance(
-                        Span(self.tty_buffer)[0:read_count].get_immutable(),
-                        read_count == TTY_BUFFER_SIZE,
-                    )
+            Raises:
+                Error: If stdin is not a terminal.
+                Error: If constructing the TTY-backed event source fails.
+            """
+            if not stdin.isatty():
+                raise Error("stdin is not a terminal")
+            self = Self(stdin)
 
-                if event := self.parser.next():
-                    return event^
+        def try_read(mut self, timeout: Optional[Int]) raises -> Optional[InternalEvent]:
+            """Try to read an event with an optional timeout.
 
-                if read_count == 0:
-                    break
-        return None
+            This method polls for input and parses events. It handles:
+            - Buffered events from previous reads
+            - New TTY input
+            - Interrupted system calls (retries automatically)
 
-    def _read_complete(mut self) raises -> Int:
-        """Read from TTY until buffer is full or would block.
+            Args:
+                timeout: Timeout in microseconds, or None for indefinite wait.
 
-        Similar to std::io::Read::read_to_end, except this function
-        only fills the given buffer and does not read beyond that.
+            Raises:
+                Error: If an unrecoverable I/O error occurs.
 
-        Returns:
-            Number of bytes read, or 0 if would block.
-        """
-        while True:
-            var bytes_read = read(
-                Int32(self.tty.value),
-                self.tty_buffer.unsafe_ptr().bitcast[NoneType](),
-                c_size_t(TTY_BUFFER_SIZE),
-            )
+            Returns:
+                An InternalEvent if one is available, None if timeout elapsed.
+            """
+            return _try_read_from_selector(self.parser, self.tty, self.selector, self.tty_buffer, timeout)
 
-            if bytes_read >= 0:
-                return Int(bytes_read)
+        def _read_complete(mut self) raises -> Int:
+            """Read from TTY until buffer is full or would block.
 
-            # Error case
-            var errno = get_errno()
-            # EAGAIN/EWOULDBLOCK - no data available (non-blocking)
-            if errno == errno.EWOULDBLOCK:  # EWOULDBLOCK = EAGAIN on Linux
-                return 0
-            # EINTR - interrupted, retry
-            elif errno == errno.EINTR:
-                continue
-            else:
-                raise Error("read() failed with errno: ", errno.value)
+            Similar to std::io::Read::read_to_end, except this function
+            only fills the given buffer and does not read beyond that.
+
+            Returns:
+                Number of bytes read, or 0 if would block.
+            """
+            return _read_from_tty(self.tty, self.tty_buffer)

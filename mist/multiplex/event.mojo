@@ -2,7 +2,7 @@
 struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
     """Represents an event that can be monitored by the `select` function."""
 
-    var value: Int
+    var value: UInt8
     """Internal value representing the event."""
     comptime READ = Self(1)
     """Event for read operations."""

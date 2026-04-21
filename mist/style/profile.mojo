@@ -6,13 +6,13 @@ import mist.style._hue as hue
 from mist.style.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
 
 
-def _init_global() -> UnsafePointer[NoneType, origin=MutExternalOrigin]:
+def _init_global() -> Optional[UnsafePointer[NoneType, MutExternalOrigin]]:
     var ptr = alloc[UInt8](1)
     ptr[] = get_color_profile()._value
     return ptr.bitcast[NoneType]()
 
 
-def _destroy_global(lib: Optional[UnsafePointer[NoneType, origin=MutExternalOrigin]]):
+def _destroy_global(lib: Optional[UnsafePointer[NoneType, MutExternalOrigin]]):
     if not lib:
         return
 
@@ -144,14 +144,6 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
 
         self = get_profile()
 
-    def __init__(out self, other: Self):
-        """Initialize a new profile using the value of an existing profile.
-
-        Args:
-            other: The profile to copy the value from.
-        """
-        self._value = other._value
-
     def __eq__(self, other: Self) -> Bool:
         """Check if the current profile is equal to another profile.
 
@@ -190,14 +182,6 @@ struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable
             writer.write("ASCII")
         else:
             writer.write("INVALID STATE")
-
-    def write_repr_to(self, mut writer: Some[Writer]):
-        """Writes a string representation of the profile to the given writer.
-
-        Args:
-            writer: The writer to write the string representation to.
-        """
-        writer.write("Profile(", self._value, ")")
 
     def convert_ansi256(self, color: ANSI256Color) -> AnyColor:
         """Degrades an ANSI color based on the terminal profile.
