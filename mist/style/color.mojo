@@ -48,22 +48,6 @@ struct NoColor(Color, TrivialRegisterPassable):
         """
         return True
 
-    def write_to(self, mut writer: Some[Writer]):
-        """Writes the representation to the writer.
-
-        Args:
-            writer: The writer to write the data to.
-        """
-        writer.write("NoColor()")
-
-    def write_repr_to(self, mut writer: Some[Writer]):
-        """Writes the representation to the writer.
-
-        Args:
-            writer: The writer to write the data to.
-        """
-        writer.write("NoColor()")
-
     def sequence[is_background: Bool](self) -> String:
         """Returns an empty string. This function is used to implement the Color trait.
 
@@ -116,22 +100,6 @@ struct ANSIColor(Color, TrivialRegisterPassable):
             other: The ANSIColor to copy.
         """
         self.value = other.value
-
-    def write_to(self, mut writer: Some[Writer]):
-        """Writes the representation to the writer.
-
-        Args:
-            writer: The writer to write the data to.
-        """
-        writer.write("ANSIColor(", self.value, ")")
-
-    def write_repr_to(self, mut writer: Some[Writer]):
-        """Writes the representation to the writer.
-
-        Args:
-            writer: The writer to write the data to.
-        """
-        writer.write("ANSIColor(", self.value, ")")
 
     def __eq__(self, other: ANSIColor) -> Bool:
         """Compares two colors for equality.
@@ -195,22 +163,6 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
             color: The `hue.Color` to convert to an ANSI256Color.
         """
         self.value = hex_to_ansi256(color)
-
-    def write_to(self, mut writer: Some[Writer]):
-        """Writes the representation to the writer.
-
-        Args:
-            writer: The writer to write the data to.
-        """
-        writer.write("ANSI256Color(", self.value, ")")
-
-    def write_repr_to(self, mut writer: Some[Writer]):
-        """Writes the representation to the writer.
-
-        Args:
-            writer: The writer to write the data to.
-        """
-        writer.write("ANSI256Color(", self.value, ")")
 
     def __eq__(self, other: ANSI256Color) -> Bool:
         """Compares two colors for equality.
@@ -348,22 +300,6 @@ struct RGBColor(Color, TrivialRegisterPassable):
             b: The blue component of the color.
         """
         self.value = rgb_to_hex(r, g, b)
-
-    def write_to(self, mut writer: Some[Writer]):
-        """Writes the representation to the writer.
-
-        Args:
-            writer: The writer to write the data to.
-        """
-        writer.write("RGBColor(", self.value, ")")
-
-    def write_repr_to(self, mut writer: Some[Writer]):
-        """Writes the representation to the writer.
-
-        Args:
-            writer: The writer to write the data to.
-        """
-        writer.write("RGBColor(", self.value, ")")
 
     def __eq__(self, other: RGBColor) -> Bool:
         """Compares two colors for equality.

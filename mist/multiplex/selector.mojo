@@ -16,21 +16,27 @@ trait Selector(Movable):
     efficient implementation on the current platform.
     """
 
-    def register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) -> None:
+    def register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) raises -> None:
         """Register a file object.
 
         Args:
             file_descriptor: File object or file descriptor.
             events_to_monitor: Events to monitor.
+
+        Raises:
+            Error: If the selector backend cannot register the file descriptor.
         """
         ...
 
-    def unregister(mut self, file_descriptor: FileDescriptor, events_to_stop: Event) -> None:
+    def unregister(mut self, file_descriptor: FileDescriptor, events_to_stop: Event) raises -> None:
         """Unregister a file object.
 
         Args:
             file_descriptor: File object or file descriptor.
             events_to_stop: Events to stop monitoring.
+
+        Raises:
+            Error: If the selector backend cannot update the registration.
 
         Note:
             If fileobj is registered but has since been closed this does.
@@ -67,13 +73,19 @@ trait Selector(Movable):
         Returns:
             List of (key, events) for ready file objects
             `events` is a bitwise mask of `EVENT_READ`|`EVENT_WRITE`.
+
+        Raises:
+            Error: If the selector backend fails while waiting for readiness.
         """
         ...
 
-    def close(self):
+    def close(mut self) raises:
         """Close the selector.
 
         This must be called to make sure that any underlying resource is freed.
+
+        Raises:
+            Error: If the selector backend fails while releasing resources.
         """
         ...
 

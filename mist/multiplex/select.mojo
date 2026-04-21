@@ -34,6 +34,12 @@ def _select[read_origin: MutOrigin, write_origin: MutOrigin, except_origin: MutO
 ) -> c_int:
     """Libc POSIX `select` function.
 
+    Parameters:
+        read_origin: Origin of the read file descriptor set pointer.
+        write_origin: Origin of the write file descriptor set pointer.
+        except_origin: Origin of the exception file descriptor set pointer.
+        timeout_origin: Origin of the timeout pointer.
+
     Args:
         nfds: The highest-numbered file descriptor in any of the three sets, plus 1.
         readfds: A pointer to the set of file descriptors to read from.
@@ -122,17 +128,24 @@ struct SelectSelector(Movable, Selector):
 
         This initializes the internal sets for readers and writers, and sets the
         highest file descriptor to 0.
+
+        Returns:
+            None. Initializes `self` in place.
         """
         self.readers = Set[Int]()
         self.writers = Set[Int]()
         self._highest_fd = 0
 
-    def register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) -> None:
+    def register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) raises -> None:
         """Register a file object.
 
         Args:
             file_descriptor: File object or file descriptor.
             events_to_monitor: Events to monitor.
+
+        Raises:
+            Error: Propagated from the selector contract if a backend-specific
+                registration failure occurs.
         """
         if events_to_monitor & Event.READ:
             self.readers.add(file_descriptor.value)
@@ -143,12 +156,16 @@ struct SelectSelector(Movable, Selector):
         if file_descriptor.value > self._highest_fd:
             self._highest_fd = file_descriptor.value
 
-    def unregister(mut self, file_descriptor: FileDescriptor, events_to_stop: Event) -> None:
+    def unregister(mut self, file_descriptor: FileDescriptor, events_to_stop: Event) raises -> None:
         """Unregister a file object.
 
         Args:
             file_descriptor: File object or file descriptor.
             events_to_stop: Events to stop monitoring.
+
+        Raises:
+            Error: Propagated from the selector contract if a backend-specific
+                unregistration failure occurs.
 
         #### Notes:
             If `file_descriptor` is registered but has since been closed this does nothing.
@@ -227,9 +244,12 @@ struct SelectSelector(Movable, Selector):
 
         return ready^
 
-    def close(self) -> None:
+    def close(mut self) raises -> None:
         """Close the selector.
 
         This must be called to make sure that any underlying resource is freed.
+
+        Raises:
+            Error: Propagated from the selector contract if cleanup fails.
         """
         pass

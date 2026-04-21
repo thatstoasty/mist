@@ -60,12 +60,12 @@ def test_ansi_color_sequence() raises:
 
 def test_stringify_ansi_color() raises:
     var color = ANSIColor(0)
-    testing.assert_equal(String(color), "ANSIColor(0)")
+    testing.assert_equal(String(color), "ANSIColor(value=0)")
 
 
 def test_represent_ansi_color() raises:
     var color = ANSIColor(0)
-    testing.assert_equal(repr(color), "ANSIColor(0)")
+    testing.assert_equal(repr(color), "ANSIColor(value=SIMD[DType.uint8, 1](0)))")
 
 
 def test_ansi_color_to_rgb() raises:
@@ -99,12 +99,12 @@ def test_ansi256_color_sequence() raises:
 
 def test_stringify_ansi256_color() raises:
     var color = ANSI256Color(0)
-    testing.assert_equal(String(color), "ANSI256Color(0)")
+    testing.assert_equal(String(color), "ANSI256Color(value=0)")
 
 
 def test_represent_ansi256_color() raises:
     var color = ANSI256Color(0)
-    testing.assert_equal(repr(color), "ANSI256Color(0)")
+    testing.assert_equal(repr(color), "ANSI256Color(value=SIMD[DType.uint8, 1](0))")
 
 
 def test_ansi256_color_to_rgb() raises:
@@ -138,12 +138,12 @@ def test_rgb_color_sequence() raises:
 
 def test_stringify_rgb_color() raises:
     var color = RGBColor(0xFFFFFF)
-    testing.assert_equal(String(color), "RGBColor(16777215)")
+    testing.assert_equal(String(color), "RGBColor(value=16777215)")
 
 
 def test_represent_rgb_color() raises:
     var color = RGBColor(0xFFFFFF)
-    testing.assert_equal(repr(color), "RGBColor(16777215)")
+    testing.assert_equal(repr(color), "RGBColor(value=SIMD[DType.uint32, 1](16777215))")
 
 
 def test_rgb_color_to_rgb() raises:
