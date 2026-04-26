@@ -1,4 +1,5 @@
-from mist.terminal.cursor import clear_line_right, cursor_back
+from mist.terminal.cursor import cursor_back
+from mist.terminal.screen import clear_line_right
 
 
 def main() raises:

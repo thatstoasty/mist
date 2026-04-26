@@ -1,4 +1,4 @@
-from mist.terminal.screen import Screen
+from mist.terminal import Screen
 
 
 def main() -> None:

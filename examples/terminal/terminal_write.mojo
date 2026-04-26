@@ -1,4 +1,4 @@
-from mist.terminal.tty import TTY
+from mist.terminal import TTY
 
 
 def main() raises -> None:

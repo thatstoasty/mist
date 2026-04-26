@@ -11,9 +11,7 @@ from mist.event.unix_event_source import UnixInternalEventSource
 
 
 @fieldwise_init
-struct InternalEventReader[
-    T: Selector & ImplicitlyDestructible
-](Movable):
+struct InternalEventReader[T: Selector](Movable):
     """Reads internal events from a selector-parameterized Unix event source."""
 
     var events: Deque[InternalEvent]
@@ -76,9 +74,7 @@ struct InternalEventReader[
 
 
 @fieldwise_init
-struct EventReader[
-    T: Selector & ImplicitlyDestructible
-](Movable):
+struct EventReader[T: Selector](Movable):
     """Public event reader parameterized over the selector backend."""
 
     var reader: InternalEventReader[Self.T]
