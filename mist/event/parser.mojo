@@ -219,145 +219,145 @@ def parse_key_event_kind(kind: UInt8) -> KeyEventKind:
 # ============================================================================
 
 
-def translate_functional_key_code(codepoint: UInt32) -> Optional[Tuple[KeyCode, KeyEventState]]:
+def translate_functional_key_code(codepoint: Codepoint) -> Optional[Tuple[KeyCode, KeyEventState]]:
     """Translate a functional key codepoint to a KeyCode and state.
 
     These are special codepoints defined in the Kitty Keyboard Protocol.
     """
     # Keypad keys (return with KEYPAD state)
-    if codepoint == 57399:
+    if codepoint == Codepoint(57399):
         return (KeyCode(Char("0")), KeyEventState.KEYPAD)
-    elif codepoint == 57400:
+    elif codepoint == Codepoint(57400):
         return (KeyCode(Char("1")), KeyEventState.KEYPAD)
-    elif codepoint == 57401:
+    elif codepoint == Codepoint(57401):
         return (KeyCode(Char("2")), KeyEventState.KEYPAD)
-    elif codepoint == 57402:
+    elif codepoint == Codepoint(57402):
         return (KeyCode(Char("3")), KeyEventState.KEYPAD)
-    elif codepoint == 57403:
+    elif codepoint == Codepoint(57403):
         return (KeyCode(Char("4")), KeyEventState.KEYPAD)
-    elif codepoint == 57404:
+    elif codepoint == Codepoint(57404):
         return (KeyCode(Char("5")), KeyEventState.KEYPAD)
-    elif codepoint == 57405:
+    elif codepoint == Codepoint(57405):
         return (KeyCode(Char("6")), KeyEventState.KEYPAD)
-    elif codepoint == 57406:
+    elif codepoint == Codepoint(57406):
         return (KeyCode(Char("7")), KeyEventState.KEYPAD)
-    elif codepoint == 57407:
+    elif codepoint == Codepoint(57407):
         return (KeyCode(Char("8")), KeyEventState.KEYPAD)
-    elif codepoint == 57408:
+    elif codepoint == Codepoint(57408):
         return (KeyCode(Char("9")), KeyEventState.KEYPAD)
-    elif codepoint == 57409:
+    elif codepoint == Codepoint(57409):
         return (KeyCode(Char(".")), KeyEventState.KEYPAD)
-    elif codepoint == 57410:
+    elif codepoint == Codepoint(57410):
         return (KeyCode(Char("/")), KeyEventState.KEYPAD)
-    elif codepoint == 57411:
+    elif codepoint == Codepoint(57411):
         return (KeyCode(Char("*")), KeyEventState.KEYPAD)
-    elif codepoint == 57412:
+    elif codepoint == Codepoint(57412):
         return (KeyCode(Char("-")), KeyEventState.KEYPAD)
-    elif codepoint == 57413:
+    elif codepoint == Codepoint(57413):
         return (KeyCode(Char("+")), KeyEventState.KEYPAD)
-    elif codepoint == 57414:
+    elif codepoint == Codepoint(57414):
         return (KeyCode(Enter()), KeyEventState.KEYPAD)
-    elif codepoint == 57415:
+    elif codepoint == Codepoint(57415):
         return (KeyCode(Char("=")), KeyEventState.KEYPAD)
-    elif codepoint == 57416:
+    elif codepoint == Codepoint(57416):
         return (KeyCode(Char(",")), KeyEventState.KEYPAD)
-    elif codepoint == 57417:
+    elif codepoint == Codepoint(57417):
         return (KeyCode(Left()), KeyEventState.KEYPAD)
-    elif codepoint == 57418:
+    elif codepoint == Codepoint(57418):
         return (KeyCode(Right()), KeyEventState.KEYPAD)
-    elif codepoint == 57419:
+    elif codepoint == Codepoint(57419):
         return (KeyCode(Up()), KeyEventState.KEYPAD)
-    elif codepoint == 57420:
+    elif codepoint == Codepoint(57420):
         return (KeyCode(Down()), KeyEventState.KEYPAD)
-    elif codepoint == 57421:
+    elif codepoint == Codepoint(57421):
         return (KeyCode(PageUp()), KeyEventState.KEYPAD)
-    elif codepoint == 57422:
+    elif codepoint == Codepoint(57422):
         return (KeyCode(PageDown()), KeyEventState.KEYPAD)
-    elif codepoint == 57423:
+    elif codepoint == Codepoint(57423):
         return (KeyCode(Home()), KeyEventState.KEYPAD)
-    elif codepoint == 57424:
+    elif codepoint == Codepoint(57424):
         return (KeyCode(End()), KeyEventState.KEYPAD)
-    elif codepoint == 57425:
+    elif codepoint == Codepoint(57425):
         return (KeyCode(Insert()), KeyEventState.KEYPAD)
-    elif codepoint == 57426:
+    elif codepoint == Codepoint(57426):
         return (KeyCode(Delete()), KeyEventState.KEYPAD)
-    elif codepoint == 57427:
+    elif codepoint == Codepoint(57427):
         return (KeyCode(KeypadBegin()), KeyEventState.KEYPAD)
 
     # Lock and function keys (return with empty state)
-    elif codepoint == 57358:
+    elif codepoint == Codepoint(57358):
         return (KeyCode(CapsLock()), KeyEventState.NONE)
-    elif codepoint == 57359:
+    elif codepoint == Codepoint(57359):
         return (KeyCode(ScrollLock()), KeyEventState.NONE)
-    elif codepoint == 57360:
+    elif codepoint == Codepoint(57360):
         return (KeyCode(NumLock()), KeyEventState.NONE)
-    elif codepoint == 57361:
+    elif codepoint == Codepoint(57361):
         return (KeyCode(PrintScreen()), KeyEventState.NONE)
-    elif codepoint == 57362:
+    elif codepoint == Codepoint(57362):
         return (KeyCode(Pause()), KeyEventState.NONE)
-    elif codepoint == 57363:
+    elif codepoint == Codepoint(57363):
         return (KeyCode(Menu()), KeyEventState.NONE)
-    elif codepoint >= 57376 and codepoint <= 57398:
+    elif codepoint >= Codepoint(57376) and codepoint <= Codepoint(57398):
         # F13-F35
-        var fn_num = UInt8(codepoint - 57376 + 13)
+        var fn_num = UInt8(codepoint.to_u32() - 57376 + 13)
         return (KeyCode(FunctionKey(fn_num)), KeyEventState.NONE)
 
     # Media keys
-    elif codepoint == 57428:
+    elif codepoint == Codepoint(57428):
         return (KeyCode(MediaKeyCode.Play), KeyEventState.NONE)
-    elif codepoint == 57429:
+    elif codepoint == Codepoint(57429):
         return (KeyCode(MediaKeyCode.Pause), KeyEventState.NONE)
-    elif codepoint == 57430:
+    elif codepoint == Codepoint(57430):
         return (KeyCode(MediaKeyCode.PlayPause), KeyEventState.NONE)
-    elif codepoint == 57431:
+    elif codepoint == Codepoint(57431):
         return (KeyCode(MediaKeyCode.Reverse), KeyEventState.NONE)
-    elif codepoint == 57432:
+    elif codepoint == Codepoint(57432):
         return (KeyCode(MediaKeyCode.Stop), KeyEventState.NONE)
-    elif codepoint == 57433:
+    elif codepoint == Codepoint(57433):
         return (KeyCode(MediaKeyCode.FastForward), KeyEventState.NONE)
-    elif codepoint == 57434:
+    elif codepoint == Codepoint(57434):
         return (KeyCode(MediaKeyCode.Rewind), KeyEventState.NONE)
-    elif codepoint == 57435:
+    elif codepoint == Codepoint(57435):
         return (KeyCode(MediaKeyCode.TrackNext), KeyEventState.NONE)
-    elif codepoint == 57436:
+    elif codepoint == Codepoint(57436):
         return (KeyCode(MediaKeyCode.TrackPrevious), KeyEventState.NONE)
-    elif codepoint == 57437:
+    elif codepoint == Codepoint(57437):
         return (KeyCode(MediaKeyCode.Record), KeyEventState.NONE)
-    elif codepoint == 57438:
+    elif codepoint == Codepoint(57438):
         return (KeyCode(MediaKeyCode.LowerVolume), KeyEventState.NONE)
-    elif codepoint == 57439:
+    elif codepoint == Codepoint(57439):
         return (KeyCode(MediaKeyCode.RaiseVolume), KeyEventState.NONE)
-    elif codepoint == 57440:
+    elif codepoint == Codepoint(57440):
         return (KeyCode(MediaKeyCode.MuteVolume), KeyEventState.NONE)
 
     # Modifier keys
-    elif codepoint == 57441:
+    elif codepoint == Codepoint(57441):
         return (KeyCode(ModifierKeyCode.LeftShift), KeyEventState.NONE)
-    elif codepoint == 57442:
+    elif codepoint == Codepoint(57442):
         return (KeyCode(ModifierKeyCode.LeftControl), KeyEventState.NONE)
-    elif codepoint == 57443:
+    elif codepoint == Codepoint(57443):
         return (KeyCode(ModifierKeyCode.LeftAlt), KeyEventState.NONE)
-    elif codepoint == 57444:
+    elif codepoint == Codepoint(57444):
         return (KeyCode(ModifierKeyCode.LeftSuper), KeyEventState.NONE)
-    elif codepoint == 57445:
+    elif codepoint == Codepoint(57445):
         return (KeyCode(ModifierKeyCode.LeftHyper), KeyEventState.NONE)
-    elif codepoint == 57446:
+    elif codepoint == Codepoint(57446):
         return (KeyCode(ModifierKeyCode.LeftMeta), KeyEventState.NONE)
-    elif codepoint == 57447:
+    elif codepoint == Codepoint(57447):
         return (KeyCode(ModifierKeyCode.RightShift), KeyEventState.NONE)
-    elif codepoint == 57448:
+    elif codepoint == Codepoint(57448):
         return (KeyCode(ModifierKeyCode.RightControl), KeyEventState.NONE)
-    elif codepoint == 57449:
+    elif codepoint == Codepoint(57449):
         return (KeyCode(ModifierKeyCode.RightAlt), KeyEventState.NONE)
-    elif codepoint == 57450:
+    elif codepoint == Codepoint(57450):
         return (KeyCode(ModifierKeyCode.RightSuper), KeyEventState.NONE)
-    elif codepoint == 57451:
+    elif codepoint == Codepoint(57451):
         return (KeyCode(ModifierKeyCode.RightHyper), KeyEventState.NONE)
-    elif codepoint == 57452:
+    elif codepoint == Codepoint(57452):
         return (KeyCode(ModifierKeyCode.RightMeta), KeyEventState.NONE)
-    elif codepoint == 57453:
+    elif codepoint == Codepoint(57453):
         return (KeyCode(ModifierKeyCode.IsoLevel3Shift), KeyEventState.NONE)
-    elif codepoint == 57454:
+    elif codepoint == Codepoint(57454):
         return (KeyCode(ModifierKeyCode.IsoLevel5Shift), KeyEventState.NONE)
 
     return None
@@ -368,7 +368,7 @@ def translate_functional_key_code(codepoint: UInt32) -> Optional[Tuple[KeyCode, 
 # ============================================================================
 
 
-def parse_cb(cb: UInt8) raises -> Tuple[MouseEventKind, KeyModifiers]:
+def parse_cb(cb: Codepoint) raises -> Tuple[MouseEventKind, KeyModifiers]:
     """Parse the mouse button/modifier byte.
 
     Cb is the byte of a mouse input that contains the button being used,
@@ -391,8 +391,9 @@ def parse_cb(cb: UInt8) raises -> Tuple[MouseEventKind, KeyModifiers]:
     Raises:
         ParseError for unsupported button combinations.
     """
-    var button_number = (cb & 0b0000_0011) | ((cb & 0b1100_0000) >> 4)
-    var dragging = (cb & 0b0010_0000) == 0b0010_0000
+    var cb_u32 = cb.to_u32()
+    var button_number = (cb_u32 & 0b0000_0011) | ((cb_u32 & 0b1100_0000) >> 4)
+    var dragging = (cb_u32 & 0b0010_0000) == 0b0010_0000
 
     var kind: MouseEventKind
 
@@ -424,11 +425,11 @@ def parse_cb(cb: UInt8) raises -> Tuple[MouseEventKind, KeyModifiers]:
         raise could_not_parse_event_error()
 
     var modifiers = KeyModifiers.NONE
-    if cb & 0b0000_0100 == 0b0000_0100:
+    if cb_u32 & 0b0000_0100 == 0b0000_0100:
         modifiers = modifiers | KeyModifiers.SHIFT
-    if cb & 0b0000_1000 == 0b0000_1000:
+    if cb_u32 & 0b0000_1000 == 0b0000_1000:
         modifiers = modifiers | KeyModifiers.ALT
-    if cb & 0b0001_0000 == 0b0001_0000:
+    if cb_u32 & 0b0001_0000 == 0b0001_0000:
         modifiers = modifiers | KeyModifiers.CONTROL
 
     return (kind, modifiers)
@@ -456,17 +457,16 @@ def parse_csi_rxvt_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEv
     if len(parts) < 3:
         raise could_not_parse_event_error()
 
-    var cb_raw = UInt8(atol(parts[0]))
-    if cb_raw < 32:
+    var cb_raw = Codepoint.ord(parts[0])
+    if cb_raw < Codepoint(32):
         raise could_not_parse_event_error()
-    var cb = cb_raw - 32
-
+    var cb = Codepoint.from_u32(cb_raw.to_u32() - 32).value() # We already checked that cb_raw is >= 32, so this won't underflow
     var kind_and_mods = parse_cb(cb)
-    var kind = kind_and_mods[0]
-    var modifiers = kind_and_mods[1]
+    ref kind = kind_and_mods[0]
+    ref modifiers = kind_and_mods[1]
 
-    var cx = UInt16(atol(parts[1])) - 1
-    var cy = UInt16(atol(parts[2])) - 1
+    var cx = UInt16(Codepoint.ord(parts[1]).to_u32()) - 1
+    var cy = UInt16(Codepoint.ord(parts[2]).to_u32()) - 1
 
     return InternalEvent(Event(MouseEvent(kind, cx, cy, modifiers)))
 
@@ -489,9 +489,8 @@ def parse_csi_normal_mouse(buffer: Span[UInt8, ...]) raises -> Optional[Internal
 
     if buffer[3] < 32:
         raise could_not_parse_event_error()
-    var cb = buffer[3] - 32
-
-    var kind, modifiers = parse_cb(cb)
+    var cb = Codepoint(buffer[3] - 32) # We already checked that buffer[3] is >= 32, so this won't underflow
+    ref kind, modifiers = parse_cb(cb)
 
     # The upper left character position on the terminal is denoted as 1,1.
     # Subtract 1 to keep it synced with cursor
@@ -535,13 +534,13 @@ def parse_csi_sgr_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEve
     if len(parts) < 3:
         raise could_not_parse_event_error()
 
-    var cb = UInt8(atol(parts[0]))
+    var cb = Codepoint.ord(parts[0])
     var kind, modifiers = parse_cb(cb)
 
     # The upper left character position on the terminal is denoted as 1,1.
     # Subtract 1 to keep it synced with cursor
-    var cx = UInt16(atol(parts[1])) - 1
-    var cy = UInt16(atol(parts[2])) - 1
+    var cx = UInt16(Codepoint.ord(parts[1]).to_u32()) - 1
+    var cy = UInt16(Codepoint.ord(parts[2]).to_u32()) - 1
 
     # When button 3 in Cb is used to represent mouse release, you can't tell
     # which button was released. SGR mode solves this by having the sequence
@@ -585,8 +584,8 @@ def parse_csi_cursor_position(buffer: Span[UInt8, ...]) raises -> Optional[Inter
     if len(parts) < 2:
         raise could_not_parse_event_error()
 
-    var y = UInt16(atol(parts[0])) - 1
-    var x = UInt16(atol(parts[1])) - 1
+    var y = UInt16(Codepoint.ord(parts[0]).to_u32()) - 1
+    var x = UInt16(Codepoint.ord(parts[1]).to_u32()) - 1
 
     return InternalEvent(CursorPosition(x, y))
 
@@ -677,11 +676,11 @@ def parse_csi_modifier_key_code(buffer: Span[UInt8, ...]) raises -> Optional[Int
     if len(parts) > 1:
         # Try to parse modifier:kind format
         var mod_parts = parts[1].split(":")
-        if len(mod_parts) >= 1 and len(mod_parts[0]) > 0:
-            var modifier_mask = UInt8(atol(mod_parts[0]))
+        if len(mod_parts) >= 1 and mod_parts[0].count_codepoints() > 0:
+            var modifier_mask = UInt8(Codepoint.ord(mod_parts[0]).to_u32())
             modifiers = parse_modifiers(modifier_mask)
             if len(mod_parts) >= 2:
-                var kind_code = UInt8(atol(mod_parts[1]))
+                var kind_code = UInt8(Codepoint.ord(mod_parts[1]).to_u32())
                 kind = parse_key_event_kind(kind_code)
     elif len(buffer) > 3:
         # Try to parse single digit modifier
@@ -745,10 +744,10 @@ def parse_csi_special_key_code(buffer: Span[UInt8, ...]) raises -> Optional[Inte
     var s = StringSlice(from_utf8=buffer[2 : len(buffer) - 1])
     var parts = s.split(";")
 
-    if len(parts) < 1 or len(parts[0]) == 0:
+    if len(parts) < 1 or parts[0].byte_length() == 0:
         raise could_not_parse_event_error()
 
-    var first = UInt8(atol(parts[0]))
+    var first = UInt8(Codepoint.ord(parts[0]).to_u32())
 
     var modifiers = KeyModifiers.NONE
     var kind = KeyEventKind.Press
@@ -757,12 +756,12 @@ def parse_csi_special_key_code(buffer: Span[UInt8, ...]) raises -> Optional[Inte
     if len(parts) > 1:
         # Try to parse modifier:kind format
         var mod_parts = String(parts[1]).split(":")
-        if len(mod_parts) >= 1 and len(mod_parts[0]) > 0:
-            var modifier_mask = UInt8(atol(mod_parts[0]))
+        if len(mod_parts) >= 1 and mod_parts[0].byte_length() > 0:
+            var modifier_mask = UInt8(Codepoint.ord(mod_parts[0]).to_u32())
             modifiers = parse_modifiers(modifier_mask)
             state = parse_modifiers_to_state(modifier_mask)
             if len(mod_parts) >= 2:
-                var kind_code = UInt8(atol(mod_parts[1]))
+                var kind_code = UInt8(Codepoint.ord(mod_parts[1]).to_u32())
                 kind = parse_key_event_kind(kind_code)
 
     var keycode: KeyCode
@@ -823,11 +822,11 @@ def parse_csi_u_encoded_key_code(buffer: Span[UInt8, ...]) raises -> Optional[In
         raise could_not_parse_event_error()
 
     # Parse the codepoint(s) - can be multiple separated by :
-    var codepoint_parts = String(parts[0]).split(":")
-    if len(codepoint_parts) < 1 or len(codepoint_parts[0]) == 0:
+    var codepoint_parts = parts[0].split(":")
+    if len(codepoint_parts) < 1 or codepoint_parts[0].count_codepoints() == 0:
         raise could_not_parse_event_error()
 
-    var codepoint = UInt32(atol(codepoint_parts[0]))
+    var codepoint = Codepoint.ord(codepoint_parts[0])
 
     # Parse modifiers and kind
     var modifiers = KeyModifiers.NONE
@@ -835,13 +834,13 @@ def parse_csi_u_encoded_key_code(buffer: Span[UInt8, ...]) raises -> Optional[In
     var state_from_modifiers = KeyEventState.NONE
 
     if len(parts) > 1:
-        var mod_parts = String(parts[1]).split(":")
-        if len(mod_parts) >= 1 and len(mod_parts[0]) > 0:
-            var modifier_mask = UInt8(atol(mod_parts[0]))
+        var mod_parts = parts[1].split(":")
+        if len(mod_parts) >= 1 and mod_parts[0].count_codepoints() > 0:
+            var modifier_mask = UInt8(Codepoint.ord(mod_parts[0]).to_u32())
             modifiers = parse_modifiers(modifier_mask)
             state_from_modifiers = parse_modifiers_to_state(modifier_mask)
             if len(mod_parts) >= 2:
-                var kind_code = UInt8(atol(mod_parts[1]))
+                var kind_code = UInt8(Codepoint.ord(mod_parts[1]).to_u32())
                 kind = parse_key_event_kind(kind_code)
 
     # Translate the codepoint to a keycode
@@ -850,23 +849,23 @@ def parse_csi_u_encoded_key_code(buffer: Span[UInt8, ...]) raises -> Optional[In
 
     var functional = translate_functional_key_code(codepoint)
     if functional:
-        keycode = functional.value()[0].copy()
+        keycode = functional.value()[0]
         state_from_keycode = functional.value()[1]
     else:
         # Try to convert codepoint to character
-        if codepoint == 0x1B:
+        if codepoint == Codepoint(0x1B):
             keycode = Esc()
         # TODO: Why does Enter come through as captial J?
-        elif codepoint == 0x0D or codepoint == 0x0A:  # \r or \n
+        elif codepoint == Codepoint(0x0D) or codepoint == Codepoint(0x0A):  # \r or \n
             keycode = Enter()
-        elif codepoint == 0x09:  # \t
+        elif codepoint == Codepoint(0x09):  # \t
             if modifiers.contains(KeyModifiers.SHIFT):
                 keycode = BackTab()
             else:
                 keycode = Tab()
-        elif codepoint == 0x7F:
+        elif codepoint == Codepoint(0x7F):  # DEL
             keycode = Backspace()
-        elif codepoint <= 0x10FFFF:
+        elif codepoint <= Codepoint(0x10FFFF):
             # Valid Unicode codepoint
             keycode = Char(codepoint)
         else:
@@ -890,8 +889,8 @@ def parse_csi_u_encoded_key_code(buffer: Span[UInt8, ...]) raises -> Optional[In
 
     # Handle shifted alternate keycode
     if modifiers.contains(KeyModifiers.SHIFT) and len(codepoint_parts) > 1:
-        var shifted_codepoint = UInt32(atol(codepoint_parts[1]))
-        if shifted_codepoint <= 0x10FFFF:
+        var shifted_codepoint = Codepoint.ord(codepoint_parts[1])
+        if shifted_codepoint <= Codepoint(0x10FFFF):
             keycode = Char(shifted_codepoint)
             modifiers.remove(KeyModifiers.SHIFT)
 
