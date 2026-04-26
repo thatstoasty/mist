@@ -1,5 +1,5 @@
 from std.collections import Dict, List
-from std.ffi import c_int, external_call, get_errno
+from std.ffi import c_int, external_call, get_errno, ErrNo
 from std.memory import ImmutPointer, MutPointer
 
 from mist.multiplex.event import Event
@@ -15,8 +15,12 @@ struct TimeSpec(ImplicitlyCopyable, TrivialRegisterPassable):
     var tv_nsec: Int64
     """Nanoseconds component."""
 
+    def __init__(out self):
+        """Initialize all fields to zero."""
+        self.tv_sec = 0
+        self.tv_nsec = 0
 
-@fieldwise_init
+
 struct KEvent(ImplicitlyCopyable, TrivialRegisterPassable):
     """Represents Darwin's `struct kevent`."""
 
@@ -32,6 +36,33 @@ struct KEvent(ImplicitlyCopyable, TrivialRegisterPassable):
     """Filter-specific data or returned kernel error code."""
     var udata: UInt
     """Opaque user data."""
+
+    def __init__(out self, ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32 = 0, data: Int = 0, udata: UInt = 0):
+        """Construct a `KEvent` with the specified field values.
+
+        Args:
+            ident: Identifier for the event source, typically a file descriptor.
+            filter: Kernel filter to apply to `ident`.
+            flags: Action and status flags for this event.
+            fflags: Filter-specific flags (default: `0`).
+            data: Filter-specific data or returned kernel error code (default: `0`).
+            udata: Opaque user data (default: `0`).
+        """
+        self.ident = ident
+        self.filter = filter
+        self.flags = flags
+        self.fflags = fflags
+        self.data = data
+        self.udata = udata
+
+    def __init__(out self):
+        """Initialize all fields to zero."""
+        self.ident = 0
+        self.filter = 0
+        self.flags = 0
+        self.fflags = 0
+        self.data = 0
+        self.udata = 0
 
 
 comptime EVFILT_READ = Int16(-1)
@@ -59,6 +90,19 @@ def _kqueue() -> c_int:
     return external_call["kqueue", c_int]()
 
 
+def kqueue() raises -> Int:
+    """Create a new kernel event queue, raising on failure.
+
+    Raises:
+        Error: If `kqueue()` fails.
+    """
+    var queue = _kqueue()
+    if queue == -1:
+        raise Error(t"kqueue() failed with errno: {get_errno()}")
+
+    return Int(queue)
+
+
 def _close(fd: c_int) -> c_int:
     """Close a file descriptor.
 
@@ -69,6 +113,36 @@ def _close(fd: c_int) -> c_int:
         `0` on success, or `-1` if the call fails.
     """
     return external_call["close", c_int](fd)
+
+
+def close(fd: Int32) raises:
+    """Close a file descriptor, raising on failure.
+
+    Args:
+        fd: The file descriptor to close.
+
+    Raises:
+        Error: If `close()` fails.
+    """
+    if _close(fd) == -1:
+        raise Error(t"close() failed with errno: {get_errno()}")
+
+
+def _timeout_to_timespec(timeout_micros: Int) -> TimeSpec:
+    """Convert a microsecond timeout to `timespec`.
+
+    Args:
+        timeout_micros: Timeout in microseconds.
+
+    Returns:
+        A `TimeSpec` value representing the same duration.
+    """
+    if timeout_micros <= 0:
+        return TimeSpec()
+
+    var seconds = timeout_micros // 1000000
+    var remaining_micros = timeout_micros % 1000000
+    return TimeSpec(Int64(seconds), Int64(remaining_micros * 1000))
 
 
 def _kevent[
@@ -114,6 +188,45 @@ def _kevent[
     ](queue, changelist, nchanges, eventlist, nevents, timeout)
 
 
+def kevent(
+    queue: Int,
+    changelist: KEvent,
+    nchanges: Int,
+    mut eventlist: KEvent,
+    nevents: Int,
+    timeout: TimeSpec,
+) raises ErrNo -> Int:
+    """Call `kevent`, raising on failure.
+
+    Args:
+        queue: The kqueue file descriptor.
+        changelist: List of changes to apply.
+        nchanges: Number of entries in `changelist`.
+        eventlist: Output buffer for ready events.
+        nevents: Number of entries available in `eventlist`.
+        timeout: Timeout value.
+
+    Returns:
+        The number of events placed into `eventlist`.
+
+    Raises:
+        Error: If `kevent()` fails.
+    """
+    var result = _kevent(
+        Int32(queue),
+        Pointer(to=changelist),
+        Int32(nchanges),
+        Pointer(to=eventlist),
+        Int32(nevents),
+        Pointer(to=timeout),
+    )
+
+    if result == -1:
+        raise get_errno()
+
+    return Int(result)
+
+
 @fieldwise_init
 struct KQueueSelector(Movable, Selector):
     """Selector implementation using Darwin's `kqueue`."""
@@ -133,13 +246,10 @@ struct KQueueSelector(Movable, Selector):
             Error: If `kqueue()` fails.
         """
         self.registrations = Dict[Int, Event]()
-
-        var queue = _kqueue()
-        if queue == -1:
-            var errno = get_errno()
-            raise Error("kqueue() failed with errno: ", errno.value)
-
-        self.queue = Int(queue)
+        try:
+            self.queue = Int(kqueue())
+        except e:
+            raise Error(t"Failed to initialize KQueueSelector: {e}")
 
     def register(mut self, file_descriptor: FileDescriptor, events_to_monitor: Event) raises -> None:
         """Register a file descriptor with the kernel queue.
@@ -204,34 +314,36 @@ struct KQueueSelector(Movable, Selector):
         if len(self.registrations) == 0:
             return ready^
 
-        var timeout_spec = self._timeout_to_timespec(timeout)
-        var dummy_change = KEvent(0, 0, 0, 0, 0, 0)
-        var empty_event = KEvent(0, 0, 0, 0, 0, 0)
+        var timeout_spec = _timeout_to_timespec(timeout)
+        var dummy_change = KEvent()
+        var empty_event = KEvent()
 
         var max_events = len(self.registrations) * 2
         var events = List[KEvent](capacity=max_events)
         for _ in range(max_events):
             events.append(empty_event)
 
-        var result = _kevent(
-            Int32(self.queue),
-            Pointer(to=dummy_change),
-            0,
-            Pointer(to=events[0]),
-            Int32(max_events),
-            Pointer(to=timeout_spec),
-        )
 
-        if result == -1:
-            var errno = get_errno()
+        var result: Int
+
+        try:
+            result = kevent(
+                self.queue,
+                dummy_change,
+                0,
+                events[0],
+                max_events,
+                timeout_spec,
+            )
+        except errno:
             if errno == errno.EINTR:
                 return Dict[Int, Event]()
-            raise Error("kevent() failed with errno: ", errno.value)
+            raise Error(t"kevent() failed with errno: {errno}")
 
         for idx in range(Int(result)):
-            var event = events[idx]
+            ref event = events[idx]
             if event.flags & EV_ERROR:
-                raise Error("kevent() returned an event error: ", event.data)
+                raise Error(t"kevent() returned an event error: {event.data}")
 
             var file_descriptor = Int(event.ident)
             if event.filter == EVFILT_READ:
@@ -256,11 +368,10 @@ struct KQueueSelector(Movable, Selector):
         if self.queue < 0:
             return
 
-        var result = _close(Int32(self.queue))
-
-        if result == -1:
-            var errno = get_errno()
-            raise Error("close(kqueue) failed with errno: ", errno.value)
+        try:
+            close(Int32(self.queue))
+        except e:
+            raise Error(t"Failed to close KQueueSelector: {e}")
 
     def _submit_change(mut self, file_descriptor: Int, filter: Int16, flags: UInt16) raises -> None:
         """Submit a single registration change to the kernel queue.
@@ -273,25 +384,25 @@ struct KQueueSelector(Movable, Selector):
         Raises:
             Error: If `kevent()` fails or the kernel reports an event error.
         """
-        var change = KEvent(UInt(file_descriptor), filter, flags, 0, 0, 0)
-        var event = KEvent(0, 0, 0, 0, 0, 0)
-        var timeout = TimeSpec(0, 0)
+        var change = KEvent(UInt(file_descriptor), filter, flags)
+        var event = KEvent()
+        var timeout = TimeSpec()
 
-        var result = _kevent(
-            Int32(self.queue),
-            Pointer(to=change),
-            1,
-            Pointer(to=event),
-            1,
-            Pointer(to=timeout),
-        )
-
-        if result == -1:
-            var errno = get_errno()
-            raise Error("kevent() registration failed with errno: ", errno.value)
+        var result: Int
+        try:
+            result = kevent(
+                self.queue,
+                change,
+                1,
+                event,
+                1,
+                timeout,
+            )
+        except errno:
+             raise Error(t"kevent() registration failed with errno: {errno}")
 
         if result == 1 and event.flags & EV_ERROR and event.data != 0:
-            raise Error("kevent() registration failed with kernel error: ", event.data)
+            raise Error(t"kevent() registration failed with kernel error: {event.data}")
 
     def _delete_change(mut self, file_descriptor: Int, filter: Int16) raises -> None:
         """Best-effort removal of a single kernel event registration.
@@ -303,42 +414,26 @@ struct KQueueSelector(Movable, Selector):
         Raises:
             Error: If unregistering fails for reasons other than a missing entry.
         """
-        var change = KEvent(UInt(file_descriptor), filter, EV_DELETE, 0, 0, 0)
-        var event = KEvent(0, 0, 0, 0, 0, 0)
-        var timeout = TimeSpec(0, 0)
+        var change = KEvent(UInt(file_descriptor), filter, EV_DELETE)
+        var event = KEvent()
+        var timeout = TimeSpec()
 
-        var result = _kevent(
-            Int32(self.queue),
-            Pointer(to=change),
-            1,
-            Pointer(to=event),
-            1,
-            Pointer(to=timeout),
-        )
-
-        if result == -1:
-            var errno = get_errno()
+        var result: Int
+        try:
+            result = kevent(
+                self.queue,
+                change,
+                1,
+                event,
+                1,
+                timeout,
+            )
+        except errno:
             if errno == errno.ENOENT:
                 return
-            raise Error("kevent() unregister failed with errno: ", errno.value)
+            raise Error(t"kevent() unregister failed with errno: {errno}")
 
         if result == 1 and event.flags & EV_ERROR and event.data != 0:
-            if Int(event.data) == Int(get_errno().ENOENT.value):
+            if event.data == Int(ErrNo.ENOENT.value):
                 return
-            raise Error("kevent() unregister failed with kernel error: ", event.data)
-
-    def _timeout_to_timespec(self, timeout_micros: Int) -> TimeSpec:
-        """Convert a microsecond timeout to `timespec`.
-
-        Args:
-            timeout_micros: Timeout in microseconds.
-
-        Returns:
-            A `TimeSpec` value representing the same duration.
-        """
-        if timeout_micros <= 0:
-            return TimeSpec(0, 0)
-
-        var seconds = timeout_micros // 1000000
-        var remaining_micros = timeout_micros % 1000000
-        return TimeSpec(Int64(seconds), Int64(remaining_micros * 1000))
+            raise Error(t"kevent() unregister failed with kernel error: {event.data}")

@@ -1,11 +1,14 @@
+from std.sys import CompilationTarget
+
 from mist.event.read import EventReader
+from mist.multiplex.selector import Selector
 from mist.terminal.paste import BracketedPaste
 from mist.terminal.tty import TTY, Mode
 
 from mist.event.event import Char, KeyEvent
 
 
-def handle_events(mut reader: EventReader) raises -> None:
+def handle_events[SelectorType: Selector & ImplicitlyDestructible](mut reader: EventReader[SelectorType]) raises -> None:
     while True:
         var event = reader.read()
         if event.isa[KeyEvent]():
@@ -20,9 +23,19 @@ def handle_events(mut reader: EventReader) raises -> None:
 def main() raises -> None:
     print("Reading events from terminal. Press keys or click mouse (Ctrl+C to exit)...")
     var bracketed_paste = BracketedPaste.enable()
-    try:
-        var reader = EventReader()
-        with TTY[Mode.RAW]():
-            handle_events(reader)
-    finally:
-        bracketed_paste^.disable()
+    comptime if CompilationTarget.is_macos():
+        from mist.multiplex.kqueue import KQueueSelector
+        try:
+            with TTY[Mode.RAW]():
+                var reader = EventReader[KQueueSelector](KQueueSelector())
+                handle_events(reader)
+        finally:
+            bracketed_paste^.disable()
+    else:
+        from mist.multiplex.select import SelectSelector
+        try:
+            with TTY[Mode.RAW]():
+                var reader = EventReader[SelectSelector](SelectSelector())
+                handle_events(reader)
+        finally:
+            bracketed_paste^.disable()

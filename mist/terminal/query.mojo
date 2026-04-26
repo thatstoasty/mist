@@ -212,8 +212,8 @@ def query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inl
     print(query, sep="", end="")
 
     var total_bytes_read = 0
-    var start_idx = 0  # Start of the OSC query response.
-    var end_idx = 0  # End of the OSC query response.
+    var start_idx: UInt = 0  # Start of the OSC query response.
+    var end_idx: UInt = 0  # End of the OSC query response.
 
     # Response should contain three parts:
     # The response to the OSC query that starts with OSC and ends with BEL or ST.
@@ -245,12 +245,12 @@ def query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inl
                     continue
             elif state == OSCParseState.RESPONSE_END_SEARCH:
                 if byte == ESC_BYTE or byte == BEL_BYTE:
-                    end_idx = total_bytes_read + i  # Total bytes read + i = total bytes read from all reads.
+                    end_idx = UInt(total_bytes_read) + i  # Total bytes read + i = total bytes read from all reads.
                     state = OSCParseState.FENCE_END_SEARCH
                     continue
             elif state == OSCParseState.FENCE_END_SEARCH:
                 if byte == R_BYTE:
-                    return String(from_utf8=Span(buffer)[start_idx:end_idx])
+                    return String(from_utf8=Span(buffer)[Int(start_idx):Int(end_idx)])
 
         total_bytes_read += Int(bytes_read)
 
