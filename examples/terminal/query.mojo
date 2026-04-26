@@ -12,5 +12,5 @@ def main() raises -> None:
         color = get_background_color()
         rows, columns = get_terminal_size()
         is_dark_background = has_dark_background()
-    print("Parsed color:", color, "Is dark background:", is_dark_background)
-    print("Terminal dimensions:", rows, "x", columns)
+    print(t"Parsed color: {color}. Is dark background: {is_dark_background}.")
+    print(t"Terminal dimensions: {rows}x{columns}")

@@ -171,9 +171,7 @@ def _try_read_from_selector[T: Selector, //](
     return None
 
 
-struct UnixInternalEventSource[
-    T: Selector & ImplicitlyDestructible
-](EventSource, Movable):
+struct UnixInternalEventSource[T: Selector](EventSource, Movable):
     """Event source for reading terminal input on Unix systems.
 
     This struct manages:

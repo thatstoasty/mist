@@ -1,7 +1,7 @@
 from mist.multiplex.event import Event
 
 
-trait Selector(Movable):
+trait Selector(Movable, ImplicitlyDestructible):
     """Selector abstract base class.
 
     A selector supports registering file objects to be monitored for specific

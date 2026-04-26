@@ -3,7 +3,7 @@ from mist import Profile
 
 
 def render_profiles():
-    var a: String = "Hello World!"
+    var a = "Hello World!"
 
     # ) will automatically convert the color to the best matching color in the profile.
     # ANSI Color Support (0-15)

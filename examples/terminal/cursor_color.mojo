@@ -1,7 +1,5 @@
-from mist.style.color import RGBColor
-from mist.terminal.cursor import Cursor, set_cursor_color
-from mist.terminal.query import get_cursor_color
-from mist.terminal.tty import TTY, Mode
+from mist.style import RGBColor
+from mist.terminal import TTY, Mode, Cursor, set_cursor_color, get_cursor_color
 
 
 def main() raises:
@@ -9,7 +7,7 @@ def main() raises:
     with TTY[Mode.RAW]():
         color = get_cursor_color()
 
-    print("Current cursor color:", color)
+    print(t"Current cursor color: {color}")
     set_cursor_color(RGBColor(0x1793d0))
     print("The cursor is blue now!")
     print("Resetting cursor color...")

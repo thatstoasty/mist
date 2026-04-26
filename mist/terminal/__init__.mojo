@@ -1,4 +1,4 @@
-from mist.terminal.cursor import Cursor
+from mist.terminal.cursor import Cursor, set_cursor_color
 from mist.terminal.focus import FocusChange
 from mist.terminal.mouse import Mouse
 from mist.terminal.paste import BracketedPaste
