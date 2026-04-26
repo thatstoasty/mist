@@ -1,9 +1,6 @@
-import pathlib
-import time
-
-import benchmark
-from benchmark import Bench, BenchConfig, Bencher, BenchId, BenchMetric, ThroughputMeasure
-from mist.color import ANSI256Color, ANSIColor, RGBColor
+from std import pathlib, time, benchmark
+from std.benchmark import Bench, BenchConfig, Bencher, BenchId, BenchMetric, ThroughputMeasure
+from mist.style.color import ANSI256Color, ANSIColor, RGBColor
 
 import mist
 from mist import Profile, dedent, indent, margin, padding, truncate, word_wrap, wrap
@@ -216,7 +213,7 @@ def bench_padding(mut b: Bencher, s: String) raises:
 #         print(e)
 
 
-def main():
+def main() raises:
     var config = BenchConfig()
     config.verbose_timing = True
     config.flush_denormals = True
