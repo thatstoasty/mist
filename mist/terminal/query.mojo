@@ -221,7 +221,7 @@ def query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inl
     # And the cursor position response, which should end with 'R'.
     var stdin = sys.stdin
     if not stdin.isatty():
-        raise Error("STDIN is not a terminal.")
+        raise Error("Failed OSC query: `stdin` is not a tty.")
 
     var state = OSCParseState.RESPONSE_START_SEARCH
     while total_bytes_read < buffer.size:
@@ -312,7 +312,7 @@ def query_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: InlineA
     # Read the response into the provided buffer.
     var stdin = sys.stdin
     if not stdin.isatty():
-        raise Error("STDIN is not a terminal.")
+        raise Error("Failed to query terminal: `stdin` is not a tty.")
 
     wait_for_input(stdin)
     var bytes_read = stdin.read_bytes(buffer)
@@ -363,7 +363,7 @@ def get_terminal_size() raises -> Tuple[UInt16, UInt16]:
     """
     var result = query(TERMINAL_SIZE_SEQUENCE)
     if not result.startswith("\033[8;"):
-        raise Error("Unexpected response from terminal: ", repr(result))
+        raise Error(t"Unexpected response from terminal: {repr(result)}")
 
     var parts = result.split(";")
     return (UInt16(atol(parts[2].split("t")[0])), UInt16(atol(parts[1])))
@@ -385,7 +385,7 @@ def get_cursor_color() raises -> RGBColor:
     """
     var result = query(CURSOR_COLOR_SEQUENCE)
     if not result.startswith("\033]12;"):
-        raise Error("Unexpected response from terminal: ", repr(result))
+        raise Error(t"Unexpected response from terminal: {repr(result)}")
 
     var parts = result.split(";")
     return XTermColor(parts[1]).to_rgb_color()

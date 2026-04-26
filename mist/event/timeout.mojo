@@ -9,7 +9,8 @@ def _get_time_ns() -> Int:
     """
     return Int(perf_counter_ns())
 
-struct PollTimeout:
+
+struct PollTimeout(ImplicitlyCopyable, Writable):
     """Helper for tracking poll timeout remaining time.
 
     This is a simplified version that tracks elapsed time to determine

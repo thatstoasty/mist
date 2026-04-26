@@ -1,5 +1,5 @@
 from std.collections import Dict, List
-from std.ffi import c_int, external_call, get_errno, ErrNo
+from std.ffi import c_int, c_uint, c_short, c_ushort, external_call, get_errno, ErrNo
 from std.memory import ImmutPointer, MutPointer
 
 from mist.multiplex.event import Event
@@ -7,7 +7,7 @@ from mist.multiplex.selector import Selector
 
 
 @fieldwise_init
-struct TimeSpec(ImplicitlyCopyable, TrivialRegisterPassable):
+struct TimeSpec(ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """Represents a POSIX `timespec` value for `kevent`."""
 
     var tv_sec: Int64
@@ -20,24 +20,56 @@ struct TimeSpec(ImplicitlyCopyable, TrivialRegisterPassable):
         self.tv_sec = 0
         self.tv_nsec = 0
 
+    def __init__(out self, microseconds: Int):
+        """Convert a microsecond timeout to `timespec`.
 
-struct KEvent(ImplicitlyCopyable, TrivialRegisterPassable):
+        Args:
+            microseconds: Timeout in microseconds.
+
+        Returns:
+            A `TimeSpec` value representing the same duration.
+        """
+        if microseconds <= 0:
+            return TimeSpec()
+
+        var seconds = microseconds // 1000000
+        var remaining_micros = microseconds % 1000000
+        return TimeSpec(Int64(seconds), Int64(remaining_micros * 1000))
+
+
+comptime uintptr_t = UInt
+"""Type alias for uintptr_t, used for event identifiers and user data."""
+comptime intptr_t = Int
+"""Type alias for intptr_t, used for event data."""
+comptime c_void = NoneType
+"""Type alias for C's void type."""
+
+
+struct KEvent(ImplicitlyCopyable, Writable):
     """Represents Darwin's `struct kevent`."""
 
-    var ident: UInt
+    var ident: uintptr_t
     """Identifier for the event source, typically a file descriptor."""
-    var filter: Int16
+    var filter: c_short
     """Kernel filter to apply to `ident`."""
-    var flags: UInt16
+    var flags: c_ushort
     """Action and status flags for this event."""
-    var fflags: UInt32
+    var fflags: c_uint
     """Filter-specific flags."""
-    var data: Int
+    var data: intptr_t
     """Filter-specific data or returned kernel error code."""
-    var udata: UInt
+    var udata: Optional[MutUnsafePointer[c_void, MutExternalOrigin]]
     """Opaque user data."""
 
-    def __init__(out self, ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32 = 0, data: Int = 0, udata: UInt = 0):
+    def __init__(
+        out self,
+        ident: uintptr_t,
+        filter: c_short,
+        flags: c_ushort,
+        fflags: c_uint = 0,
+        data: intptr_t = 0,
+        udata: Optional[MutUnsafePointer[c_void, MutExternalOrigin]] = None
+    ):
         """Construct a `KEvent` with the specified field values.
 
         Args:
@@ -62,7 +94,7 @@ struct KEvent(ImplicitlyCopyable, TrivialRegisterPassable):
         self.flags = 0
         self.fflags = 0
         self.data = 0
-        self.udata = 0
+        self.udata = None
 
 
 comptime EVFILT_READ = Int16(-1)
@@ -86,6 +118,11 @@ def _kqueue() -> c_int:
 
     Returns:
         A kernel queue file descriptor, or `-1` if the call fails.
+
+    #### C Function signature:
+    ```c
+    int kqueue(void);
+    ```
     """
     return external_call["kqueue", c_int]()
 
@@ -95,6 +132,14 @@ def kqueue() raises -> Int:
 
     Raises:
         Error: If `kqueue()` fails.
+
+    Returns:
+        A kernel queue file descriptor.
+
+    #### C Function signature:
+    ```c
+    int kqueue(void);
+    ```
     """
     var queue = _kqueue()
     if queue == -1:
@@ -111,6 +156,11 @@ def _close(fd: c_int) -> c_int:
 
     Returns:
         `0` on success, or `-1` if the call fails.
+
+    #### C Function signature:
+    ```c
+    int close(int fd);
+    ```
     """
     return external_call["close", c_int](fd)
 
@@ -123,26 +173,14 @@ def close(fd: Int32) raises:
 
     Raises:
         Error: If `close()` fails.
+
+    #### C Function signature:
+    ```c
+    int close(int fd);
+    ```
     """
     if _close(fd) == -1:
         raise Error(t"close() failed with errno: {get_errno()}")
-
-
-def _timeout_to_timespec(timeout_micros: Int) -> TimeSpec:
-    """Convert a microsecond timeout to `timespec`.
-
-    Args:
-        timeout_micros: Timeout in microseconds.
-
-    Returns:
-        A `TimeSpec` value representing the same duration.
-    """
-    if timeout_micros <= 0:
-        return TimeSpec()
-
-    var seconds = timeout_micros // 1000000
-    var remaining_micros = timeout_micros % 1000000
-    return TimeSpec(Int64(seconds), Int64(remaining_micros * 1000))
 
 
 def _kevent[
@@ -314,7 +352,7 @@ struct KQueueSelector(Movable, Selector):
         if len(self.registrations) == 0:
             return ready^
 
-        var timeout_spec = _timeout_to_timespec(timeout)
+        var timeout_spec = TimeSpec(microseconds=timeout)
         var dummy_change = KEvent()
         var empty_event = KEvent()
 
@@ -338,12 +376,12 @@ struct KQueueSelector(Movable, Selector):
         except errno:
             if errno == errno.EINTR:
                 return Dict[Int, Event]()
-            raise Error(t"kevent() failed with errno: {errno}")
+            raise Error(t"Failed to wait for events due to `kevent()` failure with errno: {errno}")
 
         for idx in range(Int(result)):
             ref event = events[idx]
             if event.flags & EV_ERROR:
-                raise Error(t"kevent() returned an event error: {event.data}")
+                raise Error(t"Failed to wait for events due to `kevent()` returning an event error: {event.data}")
 
             var file_descriptor = Int(event.ident)
             if event.filter == EVFILT_READ:
@@ -399,10 +437,10 @@ struct KQueueSelector(Movable, Selector):
                 timeout,
             )
         except errno:
-             raise Error(t"kevent() registration failed with errno: {errno}")
+            raise Error(t"Failed to submit registration change due to `kevent()` failure with errno: {errno}")
 
         if result == 1 and event.flags & EV_ERROR and event.data != 0:
-            raise Error(t"kevent() registration failed with kernel error: {event.data}")
+            raise Error(t"Failed to submit registration change due to kernel error: {event.data}")
 
     def _delete_change(mut self, file_descriptor: Int, filter: Int16) raises -> None:
         """Best-effort removal of a single kernel event registration.
@@ -431,9 +469,9 @@ struct KQueueSelector(Movable, Selector):
         except errno:
             if errno == errno.ENOENT:
                 return
-            raise Error(t"kevent() unregister failed with errno: {errno}")
+            raise Error(t"Failed to unregister due to `kevent()` failure with errno: {errno}")
 
         if result == 1 and event.flags & EV_ERROR and event.data != 0:
             if event.data == Int(ErrNo.ENOENT.value):
                 return
-            raise Error(t"kevent() unregister failed with kernel error: {event.data}")
+            raise Error(t"Failed to unregister due to kernel error: {event.data}")

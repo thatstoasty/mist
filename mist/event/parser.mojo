@@ -465,8 +465,8 @@ def parse_csi_rxvt_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEv
     ref kind = kind_and_mods[0]
     ref modifiers = kind_and_mods[1]
 
-    var cx = UInt16(Codepoint.ord(parts[1]).to_u32()) - 1
-    var cy = UInt16(Codepoint.ord(parts[2]).to_u32()) - 1
+    var cx = UInt16(atol(parts[1])) - 1
+    var cy = UInt16(atol(parts[2])) - 1
 
     return InternalEvent(Event(MouseEvent(kind, cx, cy, modifiers)))
 
@@ -539,8 +539,8 @@ def parse_csi_sgr_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEve
 
     # The upper left character position on the terminal is denoted as 1,1.
     # Subtract 1 to keep it synced with cursor
-    var cx = UInt16(Codepoint.ord(parts[1]).to_u32()) - 1
-    var cy = UInt16(Codepoint.ord(parts[2]).to_u32()) - 1
+    var cx = UInt16(atol(parts[1])) - 1
+    var cy = UInt16(atol(parts[2])) - 1
 
     # When button 3 in Cb is used to represent mouse release, you can't tell
     # which button was released. SGR mode solves this by having the sequence
@@ -584,8 +584,8 @@ def parse_csi_cursor_position(buffer: Span[UInt8, ...]) raises -> Optional[Inter
     if len(parts) < 2:
         raise could_not_parse_event_error()
 
-    var y = UInt16(Codepoint.ord(parts[0]).to_u32()) - 1
-    var x = UInt16(Codepoint.ord(parts[1]).to_u32()) - 1
+    var y = UInt16(atol(parts[0])) - 1
+    var x = UInt16(atol(parts[1])) - 1
 
     return InternalEvent(CursorPosition(x, y))
 

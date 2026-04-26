@@ -2,7 +2,7 @@ from std.collections import BitSet
 from std.sys import CompilationTarget
 from std.time.time import _CTimeSpec
 
-from std.ffi import c_char, c_int, c_size_t, external_call, get_errno
+from std.ffi import c_char, c_int, c_size_t, external_call, get_errno, ErrNo
 from std.utils import StaticTuple
 from std.memory import MutPointer, ImmutPointer
 
@@ -445,7 +445,7 @@ def ttyname(fd: c_int) -> MutExternalPointer[c_char]:
     return external_call["ttyname", MutExternalPointer[c_char], type_of(fd)](fd)
 
 
-def read[origin: MutOrigin, //](fd: c_int, buf: MutUnsafePointer[NoneType, origin], size: c_size_t) -> c_int:
+def read[origin: MutOrigin, //](fd: c_int, buf: MutUnsafePointer[NoneType, origin], size: c_size_t) raises ErrNo -> c_int:
     """Libc POSIX `read` function.
 
     Read `size` bytes from file descriptor `fd` into the buffer `buf`.
@@ -466,7 +466,10 @@ def read[origin: MutOrigin, //](fd: c_int, buf: MutUnsafePointer[NoneType, origi
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/read.3p.html.
     """
-    return external_call["read", c_int, type_of(fd), type_of(buf), type_of(size)](fd, buf, size)
+    var result = external_call["read", c_int, type_of(fd), type_of(buf), type_of(size)](fd, buf, size)
+    if result == -1:
+        raise get_errno()
+    return result
 
 
 comptime FileDescriptorBitSet = BitSet[1024]

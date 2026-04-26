@@ -39,16 +39,16 @@ trait Selector(Movable):
             Error: If the selector backend cannot update the registration.
 
         Note:
-            If fileobj is registered but has since been closed this does.
+            If `file_descriptor` is registered but has since been closed this does.
         """
         ...
 
-    # def modify(self, fileobj: Int32, events: Int, data):
+    # def modify(self, file_descriptor: Int32, events: Int):
     #     """Change a registered file object monitored events or attached data.
 
     #     Args:
-    #         fileobj: file object or file descriptor
-    #         events: events to monitor (bitwise mask of EVENT_READ|EVENT_WRITE)
+    #         file_descriptor: A file descriptor registered with the selector.
+    #         events: events to monitor (bitwise mask of EVENT_READ|EVENT_WRITE).
     #         data: attached data
 
     #     Returns:
@@ -88,38 +88,3 @@ trait Selector(Movable):
             Error: If the selector backend fails while releasing resources.
         """
         ...
-
-    # def get_key(self, fileobj: Int32):
-    #     """Return the key associated to a registered file object.
-
-    #     Returns:
-    #         SelectorKey for this file object.
-    #     """
-    #     ...
-
-    # def get_map(self):
-    #     """Return a mapping of file objects to selector keys."""
-    #     ...
-
-
-# struct SelectorKey():
-#     """Key for a file object in a Selector.
-
-#     A key can be used to identify a registered file object in a Selector.
-#     """
-
-#     var fileobj: Int32
-#     var fd: Int32
-#     var events: Int32
-#     var data: Any
-
-#     def __init__(out self, fileobj: Int32, fd: Int32, events: Int32, data: Any):
-#         self.fileobj = fileobj
-#         self.fd = fd
-#         self.events = events
-#         self.data = data
-
-#     def __repr__(self) -> String:
-#         return String("SelectorKey(fileobj={}, fd={}, events={}, data={})").format(
-#             self.fileobj, self.fd, self.events, self.data
-#         )
