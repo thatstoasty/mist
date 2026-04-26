@@ -57,7 +57,6 @@ struct Parser(Movable):
         for idx in range(len(buffer)):
             var byte = buffer[idx]
             var has_more = idx + 1 < len(buffer) or more
-
             self.buffer.append(byte)
 
             try:
@@ -79,8 +78,7 @@ struct Parser(Movable):
         """
         if len(self.internal_events) > 0:
             try:
-                var event = self.internal_events.popleft()
-                return event^
+                return self.internal_events.popleft()
             except:
                 return None
         return None
@@ -103,28 +101,30 @@ def _read_from_tty(
         Error: If read fails with an unrecoverable errno.
     """
     while True:
-        var bytes_read = read(
-            Int32(tty.value),
-            tty_buffer.unsafe_ptr().bitcast[NoneType](),
-            c_size_t(TTY_BUFFER_SIZE),
-        )
+        var bytes_read: Int32
+        try:
+            bytes_read = read(
+                Int32(tty.value),
+                tty_buffer.unsafe_ptr().bitcast[NoneType](),
+                c_size_t(TTY_BUFFER_SIZE),
+            )
+        except errno:
+            # Return 0 if the read would block, try again if interrupted, otherwise raise an error.
+            if errno == errno.EWOULDBLOCK:
+                return 0
+            elif errno == errno.EINTR:
+                continue
+            else:
+                raise Error(t"Failed to read from TTY, `read()` failed with errno: {errno}")
 
         if bytes_read >= 0:
             return Int(bytes_read)
 
-        var errno = get_errno()
-        if errno == errno.EWOULDBLOCK:
-            return 0
-        elif errno == errno.EINTR:
-            continue
-        else:
-            raise Error("read() failed with errno: ", errno.value)
 
-
-def _try_read_from_selector[SelectorType: Selector](
+def _try_read_from_selector[T: Selector, //](
     mut parser: Parser,
     tty: FileDescriptor,
-    mut selector: SelectorType,
+    mut selector: T,
     mut tty_buffer: InlineArray[UInt8, TTY_BUFFER_SIZE],
     timeout: Optional[Int],
 ) raises -> Optional[InternalEvent]:
@@ -172,14 +172,14 @@ def _try_read_from_selector[SelectorType: Selector](
 
 
 struct UnixInternalEventSource[
-    SelectorType: Selector & ImplicitlyDestructible
+    T: Selector & ImplicitlyDestructible
 ](EventSource, Movable):
     """Event source for reading terminal input on Unix systems.
 
     This struct manages:
-    - TTY file descriptor for reading input
-    - Parser for buffering and parsing escape sequences
-    - Selector-based readiness polling
+    - TTY file descriptor for reading input.
+    - Parser for buffering and parsing escape sequences.
+    - Selector-based readiness polling.
     """
 
     var parser: Parser
@@ -188,10 +188,10 @@ struct UnixInternalEventSource[
     """Buffer for reading from TTY."""
     var tty: FileDescriptor
     """TTY file descriptor."""
-    var selector: Self.SelectorType
+    var selector: Self.T
     """Selector used to multiplex the TTY."""
 
-    def __init__(out self, tty: FileDescriptor, var selector: Self.SelectorType) raises:
+    def __init__(out self, tty: FileDescriptor, var selector: Self.T) raises:
         """Initialize the event source with a specific file descriptor and selector.
 
         Args:
@@ -210,7 +210,7 @@ struct UnixInternalEventSource[
         self.selector = selector^
         self.selector.register(self.tty, SelectEvent.READ)
 
-    def __init__(out self, var selector: Self.SelectorType) raises:
+    def __init__(out self, var selector: Self.T) raises:
         """Initialize the event source using stdin and an explicit selector.
 
         Args:
@@ -224,7 +224,7 @@ struct UnixInternalEventSource[
             Error: If registering the TTY with the selector fails.
         """
         if not stdin.isatty():
-            raise Error("stdin is not a terminal")
+            raise Error("Failed to initialize UnixInternalEventSource: `stdin` is not a terminal")
         self = Self(stdin, selector^)
 
     def try_read(mut self, timeout: Optional[Int]) raises -> Optional[InternalEvent]:

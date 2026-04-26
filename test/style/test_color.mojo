@@ -65,7 +65,7 @@ def test_stringify_ansi_color() raises:
 
 def test_represent_ansi_color() raises:
     var color = ANSIColor(0)
-    testing.assert_equal(repr(color), "ANSIColor(value=SIMD[DType.uint8, 1](0)))")
+    testing.assert_equal(repr(color), "ANSIColor(value=SIMD[DType.uint8, 1](0))")
 
 
 def test_ansi_color_to_rgb() raises:

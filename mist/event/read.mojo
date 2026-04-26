@@ -7,18 +7,18 @@ from mist.event.event import KeyEvent
 from mist.event.internal import InternalEvent
 from mist.multiplex.selector import Selector
 
-from .unix_event_source import UnixInternalEventSource
+from mist.event.unix_event_source import UnixInternalEventSource
 
 
 @fieldwise_init
 struct InternalEventReader[
-    SelectorType: Selector & ImplicitlyDestructible
+    T: Selector & ImplicitlyDestructible
 ](Movable):
     """Reads internal events from a selector-parameterized Unix event source."""
 
     var events: Deque[InternalEvent]
     """Queued internal events ready to be returned."""
-    var source: UnixInternalEventSource[Self.SelectorType]
+    var source: UnixInternalEventSource[Self.T]
     """Event source used to read terminal events."""
     var skipped_events: List[InternalEvent]
     """Events skipped by higher-level filtering and replayed on future reads."""
@@ -77,14 +77,14 @@ struct InternalEventReader[
 
 @fieldwise_init
 struct EventReader[
-    SelectorType: Selector & ImplicitlyDestructible
+    T: Selector & ImplicitlyDestructible
 ](Movable):
     """Public event reader parameterized over the selector backend."""
 
-    var reader: InternalEventReader[Self.SelectorType]
+    var reader: InternalEventReader[Self.T]
     """Internal event reader."""
 
-    def __init__(out self, var source: UnixInternalEventSource[Self.SelectorType]) raises:
+    def __init__(out self, var source: UnixInternalEventSource[Self.T]) raises:
         """Initialize the reader with an explicit event source.
 
         Args:
@@ -93,11 +93,11 @@ struct EventReader[
         Returns:
             None. Initializes `self` in place.
         """
-        self.reader = InternalEventReader[Self.SelectorType](
+        self.reader = InternalEventReader[Self.T](
             events=Deque[InternalEvent](), source=source^, skipped_events=List[InternalEvent]()
         )
 
-    def __init__(out self, var selector: Self.SelectorType) raises:
+    def __init__(out self, var selector: Self.T) raises:
         """Initialize the reader with an explicit selector backend.
 
         Args:
@@ -109,7 +109,7 @@ struct EventReader[
         Raises:
             Error: If constructing the underlying event source fails.
         """
-        var source = UnixInternalEventSource[Self.SelectorType](selector^)
+        var source = UnixInternalEventSource[Self.T](selector^)
         self = Self(source^)
 
     def read(mut self) raises -> Event:
