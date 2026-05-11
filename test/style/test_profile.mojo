@@ -126,7 +126,7 @@ def test_unicode_handling() raises:
     comptime a = "Hello──World!"
     testing.assert_equal(
         TRUE_COLOR_STYLE.underline().foreground(12).render(a),
-        "\x1B[4;94mHello\xe2\x94\x80\xe2\x94\x80World!\x1b[0m",
+        "\x1b[4;94mHello──World!\x1b[0m",
     )
 
 

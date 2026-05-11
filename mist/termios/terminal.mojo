@@ -298,8 +298,8 @@ def tty_name(file_descriptor: FileDescriptor) raises -> String:
 
     # Copy the contents of the C string to a Mojo string.
     # Then free the C string to avoid memory leaks.
-    var result = String(unsafe_from_utf8_ptr=name)
-    libc.free(name.bitcast[NoneType]())
+    var result = String(unsafe_from_utf8_ptr=name.value())
+    libc.free(name.value().bitcast[NoneType]())
 
     return result
 

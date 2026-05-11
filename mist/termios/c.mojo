@@ -423,7 +423,7 @@ def cfmakeraw[origin: MutOrigin](termios_p: Pointer[mut=True, Termios, origin]):
 #     return external_call["tcsetwinsize", c_int, c_int, UnsafePointer[winsize]](fd, winsize_p)
 
 
-def ttyname(fd: c_int) -> MutExternalPointer[c_char]:
+def ttyname(fd: c_int) -> Optional[MutExternalPointer[c_char]]:
     """Libc POSIX `ttyname` function.
 
     Get the name of the terminal associated with the file descriptor `fd`.
@@ -442,7 +442,7 @@ def ttyname(fd: c_int) -> MutExternalPointer[c_char]:
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/ttyname.3p.html.
     """
-    return external_call["ttyname", MutExternalPointer[c_char], type_of(fd)](fd)
+    return external_call["ttyname", Optional[MutExternalPointer[c_char]], type_of(fd)](fd)
 
 
 def read[origin: MutOrigin, //](fd: c_int, buf: MutUnsafePointer[NoneType, origin], size: c_size_t) raises ErrNo -> c_int:
