@@ -27,10 +27,10 @@ build_and_publish = [{ task = "build" }, { task = "publish" }]
 
 [package]
 name = "mist"
-version = "0.2.0"
+version = "0.2.1"
 
 [package.build]
-backend = { name = "pixi-build-mojo", version = "0.1.*", channel = "https://prefix.dev/pixi-build-backends"}
+backend = { name = "pixi-build-mojo", version = "0.1.*" }
 
 [dependencies]
 mojo = ">=1.0.0b1,<2"
