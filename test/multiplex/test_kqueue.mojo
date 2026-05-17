@@ -13,11 +13,12 @@ def test_kqueue_selector_lifecycle() raises -> None:
         Error: If selector creation, registration, polling, unregistration, or
             teardown fails.
     """
-    var selector = KQueueSelector()
-    selector.register(sys.stdin, Event.READ)
-    _ = selector.select(0)
-    selector.unregister(sys.stdin, Event.READ)
-    selector.close()
+    comptime if sys.CompilationTarget.is_macos():
+        var selector = KQueueSelector()
+        selector.register(sys.stdin, Event.READ)
+        _ = selector.select(0)
+        selector.unregister(sys.stdin, Event.READ)
+        selector.close()
 
 
 def main() raises:
