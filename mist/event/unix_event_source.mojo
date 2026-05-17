@@ -144,11 +144,15 @@ def _try_read_from_selector[T: Selector, //](
         Error: If selector polling or TTY reads fail.
     """
     var poll_timeout = PollTimeout(timeout)
-    while poll_timeout.leftover().or_else(-1) <= 0:
+    while True:
         if buffered_event := parser.next():
             return buffered_event^
 
-        var status = selector.select().get(tty.value)
+        var remaining_timeout = poll_timeout.leftover()
+        if remaining_timeout and remaining_timeout.unsafe_value() <= 0:
+            break
+
+        var status = selector.select(timeout=remaining_timeout).get(tty.value)
         if not status:
             continue
 
