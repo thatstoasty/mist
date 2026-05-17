@@ -33,9 +33,8 @@ struct InternalEventReader[T: Selector](Movable):
         Raises:
             Error: Propagated from the underlying event source.
         """
-        var poll_timeout = timeout.value() if timeout else 0
         while True:
-            var maybe_event = self.source.try_read(poll_timeout)
+            var maybe_event = self.source.try_read(timeout)
             if not maybe_event:
                 return False
 

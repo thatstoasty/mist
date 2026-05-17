@@ -152,7 +152,7 @@ def _try_read_from_selector[T: Selector, //](
         if remaining_timeout and remaining_timeout.unsafe_value() <= 0:
             break
 
-        var status = selector.select(timeout=remaining_timeout).get(tty.value)
+        var status = selector.select(timeout=remaining_timeout.unsafe_value() if remaining_timeout else 0).get(tty.value)
         if not status:
             continue
 
@@ -242,11 +242,15 @@ struct UnixInternalEventSource[T: Selector](EventSource, Movable):
             An InternalEvent if one is available, None if timeout elapsed.
         """
         var poll_timeout = PollTimeout(timeout)
-        while poll_timeout.leftover().or_else(-1) <= 0:
+        while True:
             if buffered_event := self.parser.next():
                 return buffered_event^
 
-            var status = self.selector.select().get(self.tty.value)
+            var remaining_timeout = poll_timeout.leftover()
+            if remaining_timeout and remaining_timeout.unsafe_value() <= 0:
+                break
+
+            var status = self.selector.select(timeout=remaining_timeout.unsafe_value() if remaining_timeout else 0).get(self.tty.value)
             if not status:
                 continue
 

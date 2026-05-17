@@ -397,7 +397,7 @@ struct KQueueSelector(Movable, Selector):
 
         return ready^
 
-    def close(self) raises -> None:
+    def close(mut self) raises -> None:
         """Close the underlying kernel queue.
 
         Raises:
