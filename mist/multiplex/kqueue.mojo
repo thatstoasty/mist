@@ -333,7 +333,7 @@ struct KQueueSelector(Movable, Selector):
         if remaining:
             self.registrations[file_descriptor.value] = remaining
         else:
-            self.registrations[file_descriptor.value] = remaining
+            _ = self.registrations.pop(file_descriptor.value)
 
     def select(mut self, timeout: Int = 0) raises -> Dict[Int, Event]:
         """Wait for registered file descriptors to become ready.
