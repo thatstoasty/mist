@@ -117,11 +117,12 @@ struct EventReader[T: Selector](Movable):
         Raises:
             Error: Propagated from the underlying event source.
         """
-        var internal_event = self.reader.read()
-        if not internal_event.is_event():
-            raise Error("expected public event")
+        while True:
+            var internal_event = self.reader.read()
+            if not internal_event.is_event():
+                continue
 
-        ref event = internal_event.as_event()
-        if event.isa[KeyEvent]():
-            return Event(event[KeyEvent])
-        return event.copy()
+            ref event = internal_event.as_event()
+            if event.isa[KeyEvent]():
+                return Event(event[KeyEvent])
+            return event.copy()
