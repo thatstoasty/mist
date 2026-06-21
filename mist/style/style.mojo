@@ -736,19 +736,55 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         """
         return self.add_style[SGR.BRIGHT_WHITE_BACKGROUND_COLOR]()
 
-    def render[T: Writable, //](self, text: T) -> String:
+    def render[*Ts: Writable](self, *text: *Ts, sep: StringSlice = " ") -> String:
         """Renders text with the styles applied to it.
 
+        The writable objects are concatendated together with `sep` in between them,
+        and the styles are applied to the resulting string.
+
         Parameters:
-            T: The type of the text object.
+            Ts: The types of the text objects.
 
         Args:
-            text: The text to render with the styles applied.
+            text: The writable objects to render with the styles applied.
+            sep: The separator to use between the text objects. Defaults to a single space.
 
         Returns:
             The text with the styles applied.
         """
-        if self.profile == Profile.ASCII or len(self.styles) == 0:
-            return String(text)
+        var result = String(capacity=128)
+        comptime for i in range(text.__len__()):
+            result.write(text[i])
+            if sep and i != len(text) - 1:
+                result.write(sep)
 
-        return String(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
+        if self.profile == Profile.ASCII or len(self.styles) == 0:
+            return result^
+
+        return String(CSI, ";".join(self.styles), "m", result, RESET_STYLE)
+
+    def render[W: Writer, *Ts: Writable](self, *text: *Ts, mut writer: W, sep: StringSlice = " "):
+        """Renders text with the styles applied to it.
+
+        Parameters:
+            W: The type of the writer object.
+            Ts: The types of the text objects.
+
+        Args:
+            text: The writable objects to render with the styles applied.
+            writer: The `Writer` to write the rendered text to.
+            sep: The separator to use between the text objects. Defaults to a single space.
+        """
+        if self.profile == Profile.ASCII or len(self.styles) == 0:
+            comptime for i in range(text.__len__()):
+                writer.write(text[i])
+                if sep and i != len(text) - 1:
+                    writer.write(sep)
+            return
+
+        writer.write(CSI, ";".join(self.styles), "m")
+        comptime for i in range(text.__len__()):
+            writer.write(text[i])
+            if sep and i != len(text) - 1:
+                writer.write(sep)
+        writer.write(RESET_STYLE)

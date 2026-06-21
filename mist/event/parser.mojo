@@ -460,7 +460,9 @@ def parse_csi_rxvt_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEv
     var cb_raw = Codepoint.ord(parts[0])
     if cb_raw < Codepoint(32):
         raise could_not_parse_event_error()
-    var cb = Codepoint.from_u32(cb_raw.to_u32() - 32).value() # We already checked that cb_raw is >= 32, so this won't underflow
+    var cb = Codepoint.from_u32(
+        cb_raw.to_u32() - 32
+    ).value()  # We already checked that cb_raw is >= 32, so this won't underflow
     var kind_and_mods = parse_cb(cb)
     ref kind = kind_and_mods[0]
     ref modifiers = kind_and_mods[1]
@@ -489,7 +491,7 @@ def parse_csi_normal_mouse(buffer: Span[UInt8, ...]) raises -> Optional[Internal
 
     if buffer[3] < 32:
         raise could_not_parse_event_error()
-    var cb = Codepoint(buffer[3] - 32) # We already checked that buffer[3] is >= 32, so this won't underflow
+    var cb = Codepoint(buffer[3] - 32)  # We already checked that buffer[3] is >= 32, so this won't underflow
     ref kind, modifiers = parse_cb(cb)
 
     # The upper left character position on the terminal is denoted as 1,1.

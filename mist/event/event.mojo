@@ -19,7 +19,7 @@ from std.utils import Variant
 # ============================================================================
 
 
-struct KeyboardEnhancementFlags(Equatable, Writable, ImplicitlyCopyable, TrivialRegisterPassable):
+struct KeyboardEnhancementFlags(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """Represents special flags that tell compatible terminals to add extra information to keyboard events.
 
     See https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement for more information.
@@ -83,7 +83,7 @@ struct KeyboardEnhancementFlags(Equatable, Writable, ImplicitlyCopyable, Trivial
 
 
 @fieldwise_init
-struct KeyModifiers(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
+struct KeyModifiers(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """Represents key modifiers (shift, control, alt, etc.).
 
     Note: SUPER, HYPER, and META can only be read if
@@ -155,13 +155,14 @@ struct KeyModifiers(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPass
 
         writer.write("+".join(parts))
 
+
 # ============================================================================
 # Key Event State (bitflags)
 # ============================================================================
 
 
 @fieldwise_init
-struct KeyEventState(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
+struct KeyEventState(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """Represents extra state about the key event.
 
     Note: This state can only be read if
@@ -231,7 +232,7 @@ struct KeyEventState(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPas
 
 
 @fieldwise_init
-struct KeyEventKind(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
+struct KeyEventKind(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """Represents a keyboard event kind."""
 
     var value: UInt8
@@ -439,7 +440,7 @@ struct ModifierKeyCode(Equatable, ImplicitlyCopyable, KeyType, TrivialRegisterPa
 # ============================================================================
 
 
-trait KeyType(Writable, Equatable):
+trait KeyType(Equatable, Writable):
     """Marker trait for key types."""
 
     pass
@@ -459,6 +460,7 @@ struct Enter(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
 
     def __eq__(self, other: Self) -> Bool:
         return True
+
 
 @fieldwise_init
 struct Left(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
@@ -556,7 +558,6 @@ struct Insert(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
         return True
 
 
-
 @fieldwise_init
 struct Null(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents a Null key event."""
@@ -636,6 +637,7 @@ struct KeypadBegin(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
 @fieldwise_init
 struct FunctionKey(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents a function key (F1-F12)."""
+
     var number: UInt8
     """Represents a function key (F1-F12). The number field indicates which function key it is (1 for F1, 2 for F2, etc.)."""
 
@@ -654,6 +656,7 @@ struct FunctionKey(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
 @fieldwise_init
 struct Char(Equatable, ImplicitlyCopyable, KeyType):
     """Represents a character key."""
+
     var char: Codepoint
     """The character represented by this key code."""
 
@@ -863,7 +866,9 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Writable):
             if not self.value.isa[type]() or not other.value.isa[type]():
                 continue
 
-            comptime assert conforms_to(type, Equatable), String(t"KeyCode type at index, {i}, must implement Equatable for equality comparison")
+            comptime assert conforms_to(type, Equatable), String(
+                t"KeyCode type at index, {i}, must implement Equatable for equality comparison"
+            )
             ref left = trait_downcast[Equatable](self.value[type])
             ref right = trait_downcast[Equatable](other.value[type])
             if left == right:
@@ -890,7 +895,9 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Writable):
         comptime for i in range(len(Self._type.Ts)):
             comptime type = Self._type.Ts[i]
             if self.value.isa[type]():
-                comptime assert conforms_to(type, Writable), String(t"KeyCode type at index, {i}, must implement Writable for formatting")
+                comptime assert conforms_to(type, Writable), String(
+                    t"KeyCode type at index, {i}, must implement Writable for formatting"
+                )
                 return trait_downcast[Writable](self.value[type]).write_to(writer)
 
     def write_repr_to(self, mut writer: Some[Writer]) -> None:
@@ -904,7 +911,9 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Writable):
         comptime for i in range(len(Self._type.Ts)):
             comptime type = Self._type.Ts[i]
             if self.value.isa[type]():
-                comptime assert conforms_to(type, Writable), String(t"KeyCode type at index, {i}, must implement Writable for formatting")
+                comptime assert conforms_to(type, Writable), String(
+                    t"KeyCode type at index, {i}, must implement Writable for formatting"
+                )
                 return trait_downcast[Writable](self.value[type]).write_repr_to(writer)
 
 
@@ -914,7 +923,7 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Writable):
 
 
 @fieldwise_init
-struct MouseButton(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
+struct MouseButton(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """Represents a mouse button."""
 
     var value: UInt8
@@ -944,7 +953,7 @@ struct MouseButton(Equatable, ImplicitlyCopyable, Writable, TrivialRegisterPassa
 # ============================================================================
 
 
-trait MouseEventType(Writable, Equatable):
+trait MouseEventType(Equatable, Writable):
     """Marker trait for mouse event types."""
 
     ...
@@ -1200,18 +1209,19 @@ struct MouseEvent(EventType, ImplicitlyCopyable, Writable):
     var modifiers: KeyModifiers
     """The key modifiers active when the event occurred."""
 
+
 # ============================================================================
 # Key Event
 # ============================================================================
 
 
-trait InternalEventType(Writable, Equatable):
+trait InternalEventType(Equatable, Writable):
     """Marker trait for internal event types."""
 
     pass
 
 
-trait EventType(Writable, Equatable):
+trait EventType(Equatable, Writable):
     """Event Type marker trait."""
 
     pass

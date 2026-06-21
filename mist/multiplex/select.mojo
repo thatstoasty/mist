@@ -25,7 +25,9 @@ comptime FileDescriptorBitSet = BitSet[1024]
 """BitSet for file descriptors, with a size of 1024 bits."""
 
 
-def _select[read_origin: MutOrigin, write_origin: MutOrigin, except_origin: MutOrigin, timeout_origin: MutOrigin, //](
+def _select[
+    read_origin: MutOrigin, write_origin: MutOrigin, except_origin: MutOrigin, timeout_origin: MutOrigin, //
+](
     nfds: c_int,
     readfds: MutPointer[FileDescriptorBitSet, read_origin],
     writefds: MutPointer[FileDescriptorBitSet, write_origin],

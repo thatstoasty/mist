@@ -10,7 +10,7 @@ comptime BACKGROUND = "48"
 """ANSI code for background colors."""
 
 
-trait Color(ImplicitlyCopyable, Equatable, Writable):
+trait Color(Equatable, ImplicitlyCopyable, Writable):
     """Represents colors that can be displayed in the terminal."""
 
     def sequence[is_background: Bool](self) -> String:

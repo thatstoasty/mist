@@ -250,7 +250,7 @@ def query_osc_buffer[verify: Bool = True](sequence: StringSlice, mut buffer: Inl
                     continue
             elif state == OSCParseState.FENCE_END_SEARCH:
                 if byte == R_BYTE:
-                    return String(from_utf8=Span(buffer)[Int(start_idx):Int(end_idx)])
+                    return String(from_utf8=Span(buffer)[Int(start_idx) : Int(end_idx)])
 
         total_bytes_read += Int(bytes_read)
 

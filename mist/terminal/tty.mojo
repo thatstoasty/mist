@@ -111,7 +111,7 @@ struct Direction(Equatable, ImplicitlyCopyable):
 
 
 @fieldwise_init
-struct Area(ImplicitlyCopyable, Writable, TrivialRegisterPassable):
+struct Area(ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """An area in the terminal defined by its row and column length."""
 
     var columns: UInt16
@@ -121,7 +121,7 @@ struct Area(ImplicitlyCopyable, Writable, TrivialRegisterPassable):
 
 
 @fieldwise_init
-struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, Writable, TrivialRegisterPassable):
+struct TTY[mode: Mode = Mode.NONE](ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """A context manager for terminal state.
 
     Parameters:

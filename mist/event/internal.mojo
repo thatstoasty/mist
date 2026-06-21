@@ -9,7 +9,7 @@ from mist.event.event import Char, Event, InternalEventType, KeyboardEnhancement
 
 
 @fieldwise_init
-struct CursorPosition(ImplicitlyCopyable, InternalEventType, Writable, TrivialRegisterPassable):
+struct CursorPosition(ImplicitlyCopyable, InternalEventType, TrivialRegisterPassable, Writable):
     """A cursor position response (column, row)."""
 
     var column: UInt16
@@ -19,7 +19,7 @@ struct CursorPosition(ImplicitlyCopyable, InternalEventType, Writable, TrivialRe
 
 
 @fieldwise_init
-struct KeyboardEnhancementFlagsResponse(ImplicitlyCopyable, InternalEventType, Writable, TrivialRegisterPassable):
+struct KeyboardEnhancementFlagsResponse(ImplicitlyCopyable, InternalEventType, TrivialRegisterPassable, Writable):
     """The progressive keyboard enhancement flags enabled by the terminal."""
 
     var flags: KeyboardEnhancementFlags
@@ -27,11 +27,12 @@ struct KeyboardEnhancementFlagsResponse(ImplicitlyCopyable, InternalEventType, W
 
 
 @fieldwise_init
-struct PrimaryDeviceAttributes(ImplicitlyCopyable, InternalEventType, Writable, TrivialRegisterPassable):
+struct PrimaryDeviceAttributes(ImplicitlyCopyable, InternalEventType, TrivialRegisterPassable, Writable):
     """Attributes and architectural class of the terminal.
 
     This is a stub - the response is not exposed in the public API.
     """
+
     pass
 
 

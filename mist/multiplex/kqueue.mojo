@@ -58,7 +58,7 @@ struct KEvent(ImplicitlyCopyable, Writable):
     """Filter-specific flags."""
     var data: intptr_t
     """Filter-specific data or returned kernel error code."""
-    var udata: Optional[MutUnsafePointer[c_void, MutExternalOrigin]]
+    var udata: Optional[MutUnsafePointer[c_void, MutUntrackedOrigin]]
     """Opaque user data."""
 
     def __init__(
@@ -68,7 +68,7 @@ struct KEvent(ImplicitlyCopyable, Writable):
         flags: c_ushort,
         fflags: c_uint = 0,
         data: intptr_t = 0,
-        udata: Optional[MutUnsafePointer[c_void, MutExternalOrigin]] = None
+        udata: Optional[MutUnsafePointer[c_void, MutUntrackedOrigin]] = None,
     ):
         """Construct a `KEvent` with the specified field values.
 
@@ -360,7 +360,6 @@ struct KQueueSelector(Movable, Selector):
         var events = List[KEvent](capacity=max_events)
         for _ in range(max_events):
             events.append(empty_event)
-
 
         var result: Int
 

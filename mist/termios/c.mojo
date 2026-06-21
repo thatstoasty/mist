@@ -18,9 +18,9 @@ comptime time_t = Int64
 """C time type."""
 comptime suseconds_t = Int64
 """C microsecond time type."""
-comptime MutExternalPointer = MutUnsafePointer[origin=MutExternalOrigin, ...]
+comptime MutExternalPointer = MutUnsafePointer[origin=MutUntrackedOrigin, ...]
 """A mutable external pointer type."""
-comptime ImmutExternalPointer = ImmutUnsafePointer[origin=ImmutExternalOrigin, ...]
+comptime ImmutExternalPointer = ImmutUnsafePointer[origin=ImmutUntrackedOrigin, ...]
 """An immutable external pointer type."""
 
 comptime tcflag_t = SIMD[(DType.uint32, DType.uint64)[Int(CompilationTarget.is_macos())], 1]
@@ -180,7 +180,7 @@ struct SpecialCharacter(TrivialRegisterPassable):
 
 
 @fieldwise_init
-struct Termios(Copyable, Writable, TrivialRegisterPassable):
+struct Termios(Copyable, TrivialRegisterPassable, Writable):
     """Termios libc."""
 
     comptime _CONTROL_CHARACTER_WIDTH = 20 if CompilationTarget.is_macos() else 32
@@ -445,7 +445,9 @@ def ttyname(fd: c_int) -> Optional[MutExternalPointer[c_char]]:
     return external_call["ttyname", Optional[MutExternalPointer[c_char]], type_of(fd)](fd)
 
 
-def read[origin: MutOrigin, //](fd: c_int, buf: MutUnsafePointer[NoneType, origin], size: c_size_t) raises ErrNo -> c_int:
+def read[
+    origin: MutOrigin, //
+](fd: c_int, buf: MutUnsafePointer[NoneType, origin], size: c_size_t) raises ErrNo -> c_int:
     """Libc POSIX `read` function.
 
     Read `size` bytes from file descriptor `fd` into the buffer `buf`.
