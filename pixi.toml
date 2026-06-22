@@ -12,7 +12,7 @@ preview = ["pixi-build"]
 
 [tasks]
 tests = "sh -c 'find test -name \"test_*.mojo\" -exec mojo -D ASSERT=all -I . {} \\;'"
-benchmarks = "sh -c 'find benchmarks -name \"*.mojo\" -exec mojo -D ASSERT=all -I . {} \\;'"
+benchmarks = "mojo -D ASSERT=all -I . benchmarks/run.mojo --print-relative"
 examples = "sh -c 'find examples -name \"*.mojo\" -exec mojo -D ASSERT=all -I . {} \\;'"
 
 # Linting and Formatting

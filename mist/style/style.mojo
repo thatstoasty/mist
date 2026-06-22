@@ -736,7 +736,40 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         """
         return self.add_style[SGR.BRIGHT_WHITE_BACKGROUND_COLOR]()
 
-    def render[*Ts: Writable](self, *text: *Ts, sep: StringSlice = " ") -> String:
+    def render[T: Writable, //](self, text: T) -> String:
+        """Renders text with the styles applied to it.
+
+        Parameters:
+            T: The type of the text object.
+
+        Args:
+            text: The text to render with the styles applied.
+
+        Returns:
+            The text with the styles applied.
+        """
+        if self.profile == Profile.ASCII or len(self.styles) == 0:
+            return String(text)
+
+        return String(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
+
+    def render[T: Writable, W: Writer, //](self, text: T, mut writer: W):
+        """Renders text with the styles applied to it.
+
+        Parameters:
+            T: The type of the text object.
+            W: The type of the writer object.
+
+        Args:
+            text: The text to render with the styles applied.
+            writer: The `Writer` to write the rendered text to.
+        """
+        if self.profile == Profile.ASCII or len(self.styles) == 0:
+            return writer.write(text)
+
+        return writer.write(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
+
+    def render_many[*Ts: Writable](self, *text: *Ts, sep: StringSlice = " ") -> String:
         """Renders text with the styles applied to it.
 
         The writable objects are concatendated together with `sep` in between them,
@@ -763,7 +796,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
 
         return String(CSI, ";".join(self.styles), "m", result, RESET_STYLE)
 
-    def render[W: Writer, *Ts: Writable](self, *text: *Ts, mut writer: W, sep: StringSlice = " "):
+    def render_many[W: Writer, *Ts: Writable](self, *text: *Ts, mut writer: W, sep: StringSlice = " "):
         """Renders text with the styles applied to it.
 
         Parameters:
