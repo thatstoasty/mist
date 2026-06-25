@@ -1,3 +1,4 @@
+"""Terminal bracketed paste mode control sequences."""
 from mist.terminal.sgr import CSI
 
 
@@ -30,6 +31,9 @@ struct BracketedPaste(Movable):
     @staticmethod
     def enable() -> Self:
         """Enables bracketed paste and returns a `BracketedPaste` instance, which will disable bracketed paste on destruction.
+
+        Returns:
+            A `BracketedPaste` instance that disables bracketed paste when destroyed.
         """
         enable_bracketed_paste()
         return Self()

@@ -12,7 +12,11 @@ from mist.event.unix_event_source import UnixInternalEventSource
 
 @fieldwise_init
 struct InternalEventReader[T: Selector](Movable):
-    """Reads internal events from a selector-parameterized Unix event source."""
+    """Reads internal events from a selector-parameterized Unix event source.
+
+    Parameters:
+        T: The selector implementation used for readiness polling.
+    """
 
     var events: Deque[InternalEvent]
     """Queued internal events ready to be returned."""
@@ -74,7 +78,11 @@ struct InternalEventReader[T: Selector](Movable):
 
 @fieldwise_init
 struct EventReader[T: Selector](Movable):
-    """Public event reader parameterized over the selector backend."""
+    """Public event reader parameterized over the selector backend.
+
+    Parameters:
+        T: The selector implementation used for readiness polling.
+    """
 
     var reader: InternalEventReader[Self.T]
     """Internal event reader."""
@@ -87,6 +95,9 @@ struct EventReader[T: Selector](Movable):
 
         Returns:
             None. Initializes `self` in place.
+
+        Raises:
+            Error: Propagated from constructing the internal reader.
         """
         self.reader = InternalEventReader[Self.T](
             events=Deque[InternalEvent](), source=source^, skipped_events=List[InternalEvent]()

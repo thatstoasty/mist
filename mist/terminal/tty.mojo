@@ -1,3 +1,4 @@
+"""TTY mode management combining cursor, mouse, paste, and screen control."""
 from std import sys
 
 from mist.style.color import AnyColor

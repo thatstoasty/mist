@@ -1,3 +1,4 @@
+"""The `Style` type for composing ANSI text styles and colors."""
 from mist.style.color import AnyColor, NoColor
 
 
@@ -180,7 +181,11 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         self.profile = Profile()
 
     def __init__(out self, *, copy: Self):
-        """Creates a copy of the Style."""
+        """Creates a copy of the Style.
+
+        Args:
+            copy: The Style to copy.
+        """
         self.profile = copy.profile
         self.styles = copy.styles.copy()
 

@@ -1,3 +1,4 @@
+"""POSIX terminal attribute control via `tcgetattr`/`tcsetattr` wrappers."""
 import std.sys._libc as libc
 from std.sys import CompilationTarget
 from std.ffi import get_errno

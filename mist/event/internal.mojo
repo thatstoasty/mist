@@ -1,3 +1,4 @@
+"""Internal event types used by the parser, not exposed in the public API."""
 from std.utils.variant import Variant
 
 from mist.event.event import Char, Event, InternalEventType, KeyboardEnhancementFlags
@@ -63,58 +64,124 @@ struct InternalEvent(Copyable, Writable):
 
     @implicit
     def __init__(out self, var event: Event):
+        """Wraps a regular public `Event` as an `InternalEvent`.
+
+        Args:
+            event: The event to wrap.
+        """
         self.value = event^
 
     @implicit
     def __init__(out self, position: CursorPosition):
+        """Wraps a `CursorPosition` response as an `InternalEvent`.
+
+        Args:
+            position: The cursor position response to wrap.
+        """
         self.value = position
 
     @implicit
     def __init__(out self, flags: KeyboardEnhancementFlagsResponse):
+        """Wraps a `KeyboardEnhancementFlagsResponse` as an `InternalEvent`.
+
+        Args:
+            flags: The keyboard enhancement flags response to wrap.
+        """
         self.value = flags
 
     @implicit
     def __init__(out self, attrs: PrimaryDeviceAttributes):
+        """Wraps `PrimaryDeviceAttributes` as an `InternalEvent`.
+
+        Args:
+            attrs: The primary device attributes response to wrap.
+        """
         self.value = attrs
 
     def isa[T: InternalEventType](self) -> Bool:
-        """Check if the internal event is of the specified type."""
+        """Check if the internal event is of the specified type.
+
+        Parameters:
+            T: The internal event type to check against.
+
+        Returns:
+            True if the internal event holds a value of type `T`, False otherwise.
+        """
         return self.value.isa[T]()
 
     def __getitem_param__[T: InternalEventType](self) -> ref[self.value] T:
-        """Get the internal event as the specified type (asserts the type)."""
+        """Get the internal event as the specified type (asserts the type).
+
+        Parameters:
+            T: The internal event type to retrieve.
+
+        Returns:
+            A reference to the wrapped value as type `T`.
+        """
         return self.value[T]
 
     def is_event(self) -> Bool:
-        """Check if this is a regular Event."""
+        """Check if this is a regular Event.
+
+        Returns:
+            True if the wrapped value is an `Event`, False otherwise.
+        """
         return self.value.isa[Event]()
 
     def is_cursor_position(self) -> Bool:
-        """Check if this is a CursorPosition response."""
+        """Check if this is a CursorPosition response.
+
+        Returns:
+            True if the wrapped value is a `CursorPosition`, False otherwise.
+        """
         return self.value.isa[CursorPosition]()
 
     def is_keyboard_enhancement_flags(self) -> Bool:
-        """Check if this is a KeyboardEnhancementFlagsResponse."""
+        """Check if this is a KeyboardEnhancementFlagsResponse.
+
+        Returns:
+            True if the wrapped value is a `KeyboardEnhancementFlagsResponse`, False otherwise.
+        """
         return self.value.isa[KeyboardEnhancementFlagsResponse]()
 
     def is_primary_device_attributes(self) -> Bool:
-        """Check if this is a PrimaryDeviceAttributes response."""
+        """Check if this is a PrimaryDeviceAttributes response.
+
+        Returns:
+            True if the wrapped value is `PrimaryDeviceAttributes`, False otherwise.
+        """
         return self.value.isa[PrimaryDeviceAttributes]()
 
     def as_event(ref self) -> ref[self.value] Event:
-        """Get the Event (asserts this is an Event)."""
+        """Get the Event (asserts this is an Event).
+
+        Returns:
+            A reference to the wrapped `Event`.
+        """
         return self.value[Event]
 
     def as_cursor_position(ref self) -> ref[self.value] CursorPosition:
-        """Get the CursorPosition (asserts this is a CursorPosition)."""
+        """Get the CursorPosition (asserts this is a CursorPosition).
+
+        Returns:
+            A reference to the wrapped `CursorPosition`.
+        """
         return self.value[CursorPosition]
 
     def as_keyboard_enhancement_flags(ref self) -> ref[self.value] KeyboardEnhancementFlagsResponse:
-        """Get the KeyboardEnhancementFlagsResponse."""
+        """Get the KeyboardEnhancementFlagsResponse.
+
+        Returns:
+            A reference to the wrapped `KeyboardEnhancementFlagsResponse`.
+        """
         return self.value[KeyboardEnhancementFlagsResponse]
 
     def as_primary_device_attributes(ref self) -> ref[self.value] PrimaryDeviceAttributes:
-        """Get the PrimaryDeviceAttributes."""
+        """Get the PrimaryDeviceAttributes.
+
+        Returns:
+            A reference to the wrapped `PrimaryDeviceAttributes`.
+        """
         return self.value[PrimaryDeviceAttributes]
 
     def write_to(self, mut writer: Some[Writer]):

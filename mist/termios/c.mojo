@@ -1,3 +1,4 @@
+"""Low-level C bindings for POSIX termios and TTY system calls."""
 from std.collections import BitSet
 from std.sys import CompilationTarget
 from std.time.time import _CTimeSpec
@@ -19,9 +20,19 @@ comptime time_t = Int64
 comptime suseconds_t = Int64
 """C microsecond time type."""
 comptime MutExternalPointer = MutUnsafePointer[origin=MutUntrackedOrigin, ...]
-"""A mutable external pointer type."""
+"""A mutable external pointer type.
+
+Parameters:
+    type: The pointee type of the pointer.
+    address_space: The address space the pointee is in.
+"""
 comptime ImmutExternalPointer = ImmutUnsafePointer[origin=ImmutUntrackedOrigin, ...]
-"""An immutable external pointer type."""
+"""An immutable external pointer type.
+
+Parameters:
+    type: The pointee type of the pointer.
+    address_space: The address space the pointee is in.
+"""
 
 comptime tcflag_t = SIMD[(DType.uint32, DType.uint64)[Int(CompilationTarget.is_macos())], 1]
 """If `CompilationTarget.is_macos()` is true, use `UInt64`, otherwise use `UInt32`."""
@@ -467,6 +478,9 @@ def read[
 
     #### Notes:
     Reference: https://man7.org/linux/man-pages/man3/read.3p.html.
+
+    Raises:
+        ErrNo: The errno value if the `read()` call fails.
     """
     var result = external_call["read", c_int, type_of(fd), type_of(buf), type_of(size)](fd, buf, size)
     if result == -1:

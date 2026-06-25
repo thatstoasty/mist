@@ -39,41 +39,106 @@ struct KeyboardEnhancementFlags(Equatable, ImplicitlyCopyable, TrivialRegisterPa
     """Represent all keyboard events as CSI-u sequences."""
 
     def __init__(out self, value: UInt8):
+        """Creates a new instance wrapping the given raw bits.
+
+        Args:
+            value: The raw bits representing the enabled keyboard enhancement flags.
+        """
         self.value = value
 
     def __or__(self, other: Self) -> Self:
+        """Returns the bitwise OR of self and other.
+
+        Args:
+            other: The other flags to combine with.
+
+        Returns:
+            A new instance with the union of both flag sets.
+        """
         return Self(self.value | other.value)
 
     def __and__(self, other: Self) -> Self:
+        """Returns the bitwise AND of self and other.
+
+        Args:
+            other: The other flags to combine with.
+
+        Returns:
+            A new instance with only the flags present in both flag sets.
+        """
         return Self(self.value & other.value)
 
     def __xor__(self, other: Self) -> Self:
+        """Returns the bitwise XOR of self and other.
+
+        Args:
+            other: The other flags to combine with.
+
+        Returns:
+            A new instance with the flags present in exactly one of the two flag sets.
+        """
         return Self(self.value ^ other.value)
 
     def __invert__(self) -> Self:
+        """Returns the bitwise complement of self.
+
+        Returns:
+            A new instance with all bits flipped.
+        """
         return Self(~self.value)
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both instances have the same raw bits, False otherwise.
+        """
         return self.value == other.value
 
     def contains(self, other: Self) -> Bool:
-        """Check if this flag set contains all flags from other."""
+        """Check if this flag set contains all flags from other.
+
+        Args:
+            other: The flags to check for.
+
+        Returns:
+            True if all flags in other are set in self, False otherwise.
+        """
         return (self.value & other.value) == other.value
 
     def insert(mut self, other: Self):
-        """Insert the specified flags."""
+        """Insert the specified flags.
+
+        Args:
+            other: The flags to insert.
+        """
         self.value = self.value | other.value
 
     def remove(mut self, other: Self):
-        """Remove the specified flags."""
+        """Remove the specified flags.
+
+        Args:
+            other: The flags to remove.
+        """
         self.value = self.value & (~other.value)
 
     def bits(self) -> UInt8:
-        """Return the raw bits value."""
+        """Return the raw bits value.
+
+        Returns:
+            The raw bits representing the enabled keyboard enhancement flags.
+        """
         return self.value
 
     def is_empty(self) -> Bool:
-        """Check if no flags are set."""
+        """Check if no flags are set.
+
+        Returns:
+            True if no flags are set, False otherwise.
+        """
         return self.value == 0
 
 
@@ -91,50 +156,117 @@ struct KeyModifiers(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Writ
     """
 
     var value: UInt8
+    """The raw bits representing the enabled key modifiers."""
 
     comptime NONE = KeyModifiers(0b0000_0000)
+    """No modifiers are pressed."""
     comptime SHIFT = KeyModifiers(0b0000_0001)
+    """The Shift key is pressed."""
     comptime CONTROL = KeyModifiers(0b0000_0010)
+    """The Control key is pressed."""
     comptime ALT = KeyModifiers(0b0000_0100)
+    """The Alt (Option on macOS) key is pressed."""
     comptime SUPER = KeyModifiers(0b0000_1000)
+    """The Super (Command on macOS) key is pressed."""
     comptime HYPER = KeyModifiers(0b0001_0000)
+    """The Hyper key is pressed."""
     comptime META = KeyModifiers(0b0010_0000)
+    """The Meta key is pressed."""
 
     def __or__(self, other: Self) -> Self:
+        """Returns the bitwise OR of self and other.
+
+        Args:
+            other: The other modifiers to combine with.
+
+        Returns:
+            A new instance with the union of both modifier sets.
+        """
         return Self(self.value | other.value)
 
     def __and__(self, other: Self) -> Self:
+        """Returns the bitwise AND of self and other.
+
+        Args:
+            other: The other modifiers to combine with.
+
+        Returns:
+            A new instance with only the modifiers present in both modifier sets.
+        """
         return Self(self.value & other.value)
 
     def __xor__(self, other: Self) -> Self:
+        """Returns the bitwise XOR of self and other.
+
+        Args:
+            other: The other modifiers to combine with.
+
+        Returns:
+            A new instance with the modifiers present in exactly one of the two modifier sets.
+        """
         return Self(self.value ^ other.value)
 
     def __invert__(self) -> Self:
+        """Returns the bitwise complement of self.
+
+        Returns:
+            A new instance with all bits flipped.
+        """
         return Self(~self.value)
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both instances have the same raw bits, False otherwise.
+        """
         return self.value == other.value
 
     def contains(self, other: Self) -> Bool:
-        """Check if this modifier set contains all modifiers from other."""
+        """Check if this modifier set contains all modifiers from other.
+
+        Args:
+            other: The modifiers to check for.
+
+        Returns:
+            True if all modifiers in other are set in self, False otherwise.
+        """
         return (self.value & other.value) == other.value
 
     def insert(mut self, other: Self):
-        """Insert the specified modifiers."""
+        """Insert the specified modifiers.
+
+        Args:
+            other: The modifiers to insert.
+        """
         self.value = self.value | other.value
 
     def remove(mut self, other: Self):
-        """Remove the specified modifiers."""
+        """Remove the specified modifiers.
+
+        Args:
+            other: The modifiers to remove.
+        """
         self.value = self.value & (~other.value)
 
     def is_empty(self) -> Bool:
-        """Check if no modifiers are set."""
+        """Check if no modifiers are set.
+
+        Returns:
+            True if no modifiers are set, False otherwise.
+        """
         return self.value == 0
 
     def write_to(self, mut writer: Some[Writer]):
         """Format the key modifiers joined by a '+' character.
 
         On macOS, control is "Control", alt is "Option", and super is "Command".
+
+        Args:
+            writer: The writer to write the formatted key modifiers to.
         """
         var parts = List[String]()
         if self.contains(Self.SHIFT):
@@ -182,12 +314,36 @@ struct KeyEventState(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Wri
     """The key event was generated by auto-repeat."""
 
     def __or__(self, other: Self) -> Self:
+        """Returns the bitwise OR of self and other.
+
+        Args:
+            other: The other state to combine with.
+
+        Returns:
+            A new instance with the union of both state sets.
+        """
         return Self(self.value | other.value)
 
     def __and__(self, other: Self) -> Self:
+        """Returns the bitwise AND of self and other.
+
+        Args:
+            other: The other state to combine with.
+
+        Returns:
+            A new instance with only the flags present in both state sets.
+        """
         return Self(self.value & other.value)
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both instances have the same raw bits, False otherwise.
+        """
         return self.value == other.value
 
     def write_to(self, mut writer: Some[Writer]):
@@ -218,11 +374,22 @@ struct KeyEventState(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Wri
         writer.write("KeyEventState(", self.value, ")")
 
     def contains(self, other: Self) -> Bool:
-        """Check if this state contains all flags from other."""
+        """Check if this state contains all flags from other.
+
+        Args:
+            other: The state flags to check for.
+
+        Returns:
+            True if all flags in other are set in self, False otherwise.
+        """
         return (self.value & other.value) == other.value
 
     def is_empty(self) -> Bool:
-        """Check if no state flags are set."""
+        """Check if no state flags are set.
+
+        Returns:
+            True if no state flags are set, False otherwise.
+        """
         return self.value == 0
 
 
@@ -246,9 +413,22 @@ struct KeyEventKind(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Writ
     """Event for key release."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both instances represent the same key event kind, False otherwise.
+        """
         return self.value == other.value
 
     def write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the key event kind to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         if self == Self.Press:
             writer.write("Press")
         elif self == Self.Repeat:
@@ -305,9 +485,22 @@ struct MediaKeyCode(Equatable, ImplicitlyCopyable, KeyType, TrivialRegisterPassa
     """Mute Volume."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both instances represent the same media key, False otherwise.
+        """
         return self.value == other.value
 
     def write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the media key code to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         if self == Self.Play:
             writer.write("Play")
         elif self == Self.Pause:
@@ -389,6 +582,14 @@ struct ModifierKeyCode(Equatable, ImplicitlyCopyable, KeyType, TrivialRegisterPa
     """Iso Level 5 Shift."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both instances represent the same modifier key, False otherwise.
+        """
         return self.value == other.value
 
     def write_to(self, mut writer: Some[Writer]):
@@ -451,6 +652,14 @@ struct Backspace(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Backspace key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Backspace is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -459,6 +668,14 @@ struct Enter(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Enter key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Enter is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -467,6 +684,14 @@ struct Left(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Left key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Left is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -475,6 +700,14 @@ struct Right(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Right key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Right is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -483,6 +716,14 @@ struct Up(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Up key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Up is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -491,6 +732,14 @@ struct Down(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Down key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Down is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -499,6 +748,14 @@ struct Home(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Home key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Home is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -507,6 +764,14 @@ struct End(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the End key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since End is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -515,6 +780,14 @@ struct PageUp(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Page Up key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since PageUp is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -523,6 +796,14 @@ struct PageDown(ImplicitlyCopyable, KeyType):
     """Represents the Page Down key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since PageDown is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -531,6 +812,14 @@ struct Tab(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Tab key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Tab is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -539,6 +828,14 @@ struct BackTab(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Back Tab key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since BackTab is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -547,6 +844,14 @@ struct Delete(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Delete key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Delete is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -555,6 +860,14 @@ struct Insert(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Insert key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Insert is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -563,6 +876,14 @@ struct Null(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents a Null key event."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Null is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -571,6 +892,14 @@ struct Esc(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Escape key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Esc is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -579,6 +908,14 @@ struct CapsLock(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Caps Lock key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since CapsLock is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -587,6 +924,14 @@ struct ScrollLock(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Scroll Lock key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since ScrollLock is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -595,6 +940,14 @@ struct NumLock(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Num Lock key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since NumLock is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -603,6 +956,14 @@ struct PrintScreen(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Print Screen key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since PrintScreen is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -611,6 +972,14 @@ struct Pause(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Pause key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Pause is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -619,6 +988,14 @@ struct Menu(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """Represents the Menu key."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since Menu is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -631,6 +1008,14 @@ struct KeypadBegin(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
     """
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since KeypadBegin is a unit key type with a single possible value.
+        """
         return True
 
 
@@ -650,6 +1035,14 @@ struct FunctionKey(ImplicitlyCopyable, KeyType, TrivialRegisterPassable):
         writer.write("F", self.number)
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both function keys have the same number, False otherwise.
+        """
         return self.number == other.number
 
 
@@ -661,15 +1054,33 @@ struct Char(Equatable, ImplicitlyCopyable, KeyType):
     """The character represented by this key code."""
 
     def __init__(out self, char: UInt32) raises:
+        """Creates a new instance wrapping the given Unicode codepoint.
+
+        Args:
+            char: The Unicode codepoint value to wrap.
+
+        Raises:
+            If the value is not a valid Unicode codepoint.
+        """
         var c = Codepoint.from_u32(char)
         if not c:
             raise Error("Invalid Unicode codepoint: ", char)
         self.char = c.value()
 
     def __init__(out self, char: UInt8):
+        """Creates a new instance wrapping the given byte as a codepoint.
+
+        Args:
+            char: The byte value to wrap as a Codepoint.
+        """
         self.char = Codepoint(char)
 
     def __init__(out self, char: StringSlice):
+        """Creates a new instance from the first codepoint of the given string.
+
+        Args:
+            char: The string whose first codepoint will be wrapped.
+        """
         self.char = Codepoint.ord(char)
 
     def write_to(self, mut writer: Some[Writer]):
@@ -681,9 +1092,25 @@ struct Char(Equatable, ImplicitlyCopyable, KeyType):
         writer.write(self.char)
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both instances represent the same character, False otherwise.
+        """
         return self.char == other.char
 
     def __eq__(self, other: StringSlice) -> Bool:
+        """Checks equality with the first codepoint of a string.
+
+        Args:
+            other: The string whose first codepoint will be compared.
+
+        Returns:
+            True if the character matches the first codepoint of other, False otherwise.
+        """
         return self.char == Codepoint.ord(other)
 
 
@@ -729,110 +1156,245 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Writable):
 
     @implicit
     def __init__(out self, value: Backspace):
+        """Creates a new instance wrapping a Backspace key code.
+
+        Args:
+            value: The Backspace value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Enter):
+        """Creates a new instance wrapping a Enter key code.
+
+        Args:
+            value: The Enter value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Left):
+        """Creates a new instance wrapping a Left key code.
+
+        Args:
+            value: The Left value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Right):
+        """Creates a new instance wrapping a Right key code.
+
+        Args:
+            value: The Right value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Up):
+        """Creates a new instance wrapping a Up key code.
+
+        Args:
+            value: The Up value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Down):
+        """Creates a new instance wrapping a Down key code.
+
+        Args:
+            value: The Down value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Home):
+        """Creates a new instance wrapping a Home key code.
+
+        Args:
+            value: The Home value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: End):
+        """Creates a new instance wrapping a End key code.
+
+        Args:
+            value: The End value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: PageUp):
+        """Creates a new instance wrapping a PageUp key code.
+
+        Args:
+            value: The PageUp value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: PageDown):
+        """Creates a new instance wrapping a PageDown key code.
+
+        Args:
+            value: The PageDown value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Tab):
+        """Creates a new instance wrapping a Tab key code.
+
+        Args:
+            value: The Tab value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: BackTab):
+        """Creates a new instance wrapping a BackTab key code.
+
+        Args:
+            value: The BackTab value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Delete):
+        """Creates a new instance wrapping a Delete key code.
+
+        Args:
+            value: The Delete value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Insert):
+        """Creates a new instance wrapping a Insert key code.
+
+        Args:
+            value: The Insert value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Null):
+        """Creates a new instance wrapping a Null key code.
+
+        Args:
+            value: The Null value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Esc):
+        """Creates a new instance wrapping a Esc key code.
+
+        Args:
+            value: The Esc value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: CapsLock):
+        """Creates a new instance wrapping a CapsLock key code.
+
+        Args:
+            value: The CapsLock value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: ScrollLock):
+        """Creates a new instance wrapping a ScrollLock key code.
+
+        Args:
+            value: The ScrollLock value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: NumLock):
+        """Creates a new instance wrapping a NumLock key code.
+
+        Args:
+            value: The NumLock value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: PrintScreen):
+        """Creates a new instance wrapping a PrintScreen key code.
+
+        Args:
+            value: The PrintScreen value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Pause):
+        """Creates a new instance wrapping a Pause key code.
+
+        Args:
+            value: The Pause value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Menu):
+        """Creates a new instance wrapping a Menu key code.
+
+        Args:
+            value: The Menu value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: KeypadBegin):
+        """Creates a new instance wrapping a KeypadBegin key code.
+
+        Args:
+            value: The KeypadBegin value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: FunctionKey):
+        """Creates a new instance wrapping a FunctionKey key code.
+
+        Args:
+            value: The FunctionKey value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: Char):
+        """Creates a new instance wrapping a Char key code.
+
+        Args:
+            value: The Char value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: MediaKeyCode):
+        """Creates a new instance wrapping a MediaKeyCode key code.
+
+        Args:
+            value: The MediaKeyCode value to wrap.
+        """
         self.value = value
 
     @implicit
     def __init__(out self, value: ModifierKeyCode):
+        """Creates a new instance wrapping a ModifierKeyCode key code.
+
+        Args:
+            value: The ModifierKeyCode value to wrap.
+        """
         self.value = value
 
     def is_same_type(self, other: Self) -> Bool:
@@ -877,11 +1439,25 @@ struct KeyCode(Equatable, ImplicitlyCopyable, Writable):
         return False
 
     def isa[T: KeyType](self) -> Bool:
-        """Returns True if the key code is of type T."""
+        """Returns True if the key code is of type T.
+
+        Parameters:
+            T: The key type to check against.
+
+        Returns:
+            True if the key code is of type T, False otherwise.
+        """
         return self.value.isa[T]()
 
     def __getitem_param__[T: KeyType](ref self) -> ref[self.value] T:
-        """Returns the key code as type T."""
+        """Returns the key code as type T.
+
+        Parameters:
+            T: The key type to return the value as.
+
+        Returns:
+            A reference to the underlying value as type T.
+        """
         return self.value[T]
 
     def write_to(self, mut writer: Some[Writer]) -> None:
@@ -937,9 +1513,22 @@ struct MouseButton(Equatable, ImplicitlyCopyable, TrivialRegisterPassable, Writa
     """Middle mouse button."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True if both instances represent the same mouse button, False otherwise.
+        """
         return self.value == other.value
 
     def write_to(self, mut writer: Some[Writer]):
+        """Writes a string representation of the mouse button to the given writer.
+
+        Args:
+            writer: The writer to write the string representation to.
+        """
         if self == Self.Left:
             writer.write("Left")
         elif self == Self.Right:
@@ -1102,6 +1691,8 @@ struct MouseScrollRight(Equatable, ImplicitlyCopyable, MouseEventType, TrivialRe
 
 
 struct MouseEventKind(ImplicitlyCopyable, Writable):
+    """Represents the kind of mouse event that occurred (press, release, drag, move, or scroll)."""
+
     comptime _type = Variant[
         MousePress,
         MouseRelease,
@@ -1118,42 +1709,96 @@ struct MouseEventKind(ImplicitlyCopyable, Writable):
 
     @implicit
     def __init__(out self, value: MousePress):
+        """Creates a new instance wrapping a MousePress mouse event.
+
+        Args:
+            value: The MousePress value to wrap.
+        """
         self.event = value
 
     @implicit
     def __init__(out self, value: MouseRelease):
+        """Creates a new instance wrapping a MouseRelease mouse event.
+
+        Args:
+            value: The MouseRelease value to wrap.
+        """
         self.event = value
 
     @implicit
     def __init__(out self, value: MouseDrag):
+        """Creates a new instance wrapping a MouseDrag mouse event.
+
+        Args:
+            value: The MouseDrag value to wrap.
+        """
         self.event = value
 
     @implicit
     def __init__(out self, value: MouseMoved):
+        """Creates a new instance wrapping a MouseMoved mouse event.
+
+        Args:
+            value: The MouseMoved value to wrap.
+        """
         self.event = value
 
     @implicit
     def __init__(out self, value: MouseScrollDown):
+        """Creates a new instance wrapping a MouseScrollDown mouse event.
+
+        Args:
+            value: The MouseScrollDown value to wrap.
+        """
         self.event = value
 
     @implicit
     def __init__(out self, value: MouseScrollUp):
+        """Creates a new instance wrapping a MouseScrollUp mouse event.
+
+        Args:
+            value: The MouseScrollUp value to wrap.
+        """
         self.event = value
 
     @implicit
     def __init__(out self, value: MouseScrollLeft):
+        """Creates a new instance wrapping a MouseScrollLeft mouse event.
+
+        Args:
+            value: The MouseScrollLeft value to wrap.
+        """
         self.event = value
 
     @implicit
     def __init__(out self, value: MouseScrollRight):
+        """Creates a new instance wrapping a MouseScrollRight mouse event.
+
+        Args:
+            value: The MouseScrollRight value to wrap.
+        """
         self.event = value
 
     def isa[T: MouseEventType](self) -> Bool:
-        """Returns True if the mouse event kind is of type T."""
+        """Returns True if the mouse event kind is of type T.
+
+        Parameters:
+            T: The mouse event type to check against.
+
+        Returns:
+            True if the mouse event kind is of type T, False otherwise.
+        """
         return self.event.isa[T]()
 
     def __getitem_param__[T: MouseEventType](ref self) -> ref[self.event] T:
-        """Returns the mouse event kind as type T."""
+        """Returns the mouse event kind as type T.
+
+        Parameters:
+            T: The mouse event type to return the value as.
+
+        Returns:
+            A reference to the underlying value as type T.
+        """
         return self.event[T]
 
     def write_to(self, mut writer: Some[Writer]):
@@ -1261,15 +1906,27 @@ struct KeyEvent(Equatable, EventType, ImplicitlyCopyable, Writable):
         self.state = KeyEventState.NONE
 
     def is_press(self) -> Bool:
-        """Returns whether the key event is a press event."""
+        """Returns whether the key event is a press event.
+
+        Returns:
+            True if the key event kind is Press, False otherwise.
+        """
         return self.kind == KeyEventKind.Press
 
     def is_release(self) -> Bool:
-        """Returns whether the key event is a release event."""
+        """Returns whether the key event is a release event.
+
+        Returns:
+            True if the key event kind is Release, False otherwise.
+        """
         return self.kind == KeyEventKind.Release
 
     def is_repeat(self) -> Bool:
-        """Returns whether the key event is a repeat event."""
+        """Returns whether the key event is a repeat event.
+
+        Returns:
+            True if the key event kind is Repeat, False otherwise.
+        """
         return self.kind == KeyEventKind.Repeat
 
     def _normalize_case(self) raises -> KeyEvent:
@@ -1294,6 +1951,17 @@ struct KeyEvent(Equatable, EventType, ImplicitlyCopyable, Writable):
         return result^
 
     def __eq__(self, other: Self) raises -> Bool:
+        """Checks equality with another instance, normalizing case-related modifiers first.
+
+        Args:
+            other: The other key event to compare with.
+
+        Returns:
+            True if both key events represent the same code, modifiers, kind, and state, False otherwise.
+
+        Raises:
+            If normalizing the case of either key event fails.
+        """
         var lhs = self._normalize_case()
         var rhs = other._normalize_case()
         return (
@@ -1331,6 +1999,14 @@ struct FocusGained(EventType, ImplicitlyCopyable, TrivialRegisterPassable):
     """The terminal gained focus."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since FocusGained is a unit event type with a single possible value.
+        """
         return True
 
 
@@ -1339,6 +2015,14 @@ struct FocusLost(EventType, ImplicitlyCopyable, TrivialRegisterPassable):
     """The terminal lost focus."""
 
     def __eq__(self, other: Self) -> Bool:
+        """Checks equality with another instance.
+
+        Args:
+            other: The other instance to compare with.
+
+        Returns:
+            True, since FocusLost is a unit event type with a single possible value.
+        """
         return True
 
 
@@ -1391,26 +2075,56 @@ struct Event(Copyable, InternalEventType, Writable):
 
     @implicit
     def __init__(out self, event: FocusGained):
+        """Creates a new instance wrapping a FocusGained event.
+
+        Args:
+            event: The FocusGained value to wrap.
+        """
         self.value = event
 
     @implicit
     def __init__(out self, event: FocusLost):
+        """Creates a new instance wrapping a FocusLost event.
+
+        Args:
+            event: The FocusLost value to wrap.
+        """
         self.value = event
 
     @implicit
     def __init__(out self, event: KeyEvent):
+        """Creates a new instance wrapping a KeyEvent.
+
+        Args:
+            event: The KeyEvent value to wrap.
+        """
         self.value = event
 
     @implicit
     def __init__(out self, event: MouseEvent):
+        """Creates a new instance wrapping a MouseEvent.
+
+        Args:
+            event: The MouseEvent value to wrap.
+        """
         self.value = event
 
     @implicit
     def __init__(out self, var event: Paste):
+        """Creates a new instance wrapping a Paste event.
+
+        Args:
+            event: The Paste value to wrap.
+        """
         self.value = event^
 
     @implicit
     def __init__(out self, event: Resize):
+        """Creates a new instance wrapping a Resize event.
+
+        Args:
+            event: The Resize value to wrap.
+        """
         self.value = event
 
     def write_to(self, mut writer: Some[Writer]):
@@ -1465,61 +2179,100 @@ struct Event(Copyable, InternalEventType, Writable):
         """Returns True if this is a key press event.
 
         Returns False for key release and repeat events (as well as for non-key events).
+
+        Returns:
+            True if this is a key press event, False otherwise.
         """
         if not self.value.isa[KeyEvent]():
             return False
         return self.value[KeyEvent].kind == KeyEventKind.Press
 
     def is_key_release(self) -> Bool:
-        """Returns True if this is a key release event."""
+        """Returns True if this is a key release event.
+
+        Returns:
+            True if this is a key release event, False otherwise.
+        """
         if not self.value.isa[KeyEvent]():
             return False
         return self.value[KeyEvent].kind == KeyEventKind.Release
 
     def is_key_repeat(self) -> Bool:
-        """Returns True if this is a key repeat event."""
+        """Returns True if this is a key repeat event.
+
+        Returns:
+            True if this is a key repeat event, False otherwise.
+        """
         if not self.value.isa[KeyEvent]():
             return False
         return self.value[KeyEvent].kind == KeyEventKind.Repeat
 
     def as_key_event(self) -> Optional[KeyEvent]:
-        """Returns the key event if this is a key event, otherwise None."""
+        """Returns the key event if this is a key event, otherwise None.
+
+        Returns:
+            The KeyEvent if this is a key event, otherwise None.
+        """
         if self.value.isa[KeyEvent]():
             return self.value[KeyEvent]
         return None
 
     def as_key_press_event(self) -> Optional[KeyEvent]:
-        """Returns the KeyEvent if this is a key press event, otherwise None."""
+        """Returns the KeyEvent if this is a key press event, otherwise None.
+
+        Returns:
+            The KeyEvent if this is a key press event, otherwise None.
+        """
         if self.is_key_press():
             return self.value[KeyEvent]
         return None
 
     def as_key_release_event(self) -> Optional[KeyEvent]:
-        """Returns the KeyEvent if this is a key release event, otherwise None."""
+        """Returns the KeyEvent if this is a key release event, otherwise None.
+
+        Returns:
+            The KeyEvent if this is a key release event, otherwise None.
+        """
         if self.is_key_release():
             return self.value[KeyEvent]
         return None
 
     def as_key_repeat_event(self) -> Optional[KeyEvent]:
-        """Returns the KeyEvent if this is a key repeat event, otherwise None."""
+        """Returns the KeyEvent if this is a key repeat event, otherwise None.
+
+        Returns:
+            The KeyEvent if this is a key repeat event, otherwise None.
+        """
         if self.is_key_repeat():
             return self.value[KeyEvent]
         return None
 
     def as_mouse_event(self) -> Optional[MouseEvent]:
-        """Returns the mouse event if this is a mouse event, otherwise None."""
+        """Returns the mouse event if this is a mouse event, otherwise None.
+
+        Returns:
+            The MouseEvent if this is a mouse event, otherwise None.
+        """
         if self.value.isa[MouseEvent]():
             return self.value[MouseEvent]
         return None
 
     def as_paste_event(self) -> Optional[String]:
-        """Returns the pasted string if this is a paste event, otherwise None."""
+        """Returns the pasted string if this is a paste event, otherwise None.
+
+        Returns:
+            The pasted string if this is a paste event, otherwise None.
+        """
         if self.value.isa[Paste]():
             return self.value[Paste].content
         return None
 
     def as_resize_event(self) -> Optional[Tuple[UInt16, UInt16]]:
-        """Returns the size as a tuple (columns, rows) if this is a resize event."""
+        """Returns the size as a tuple (columns, rows) if this is a resize event.
+
+        Returns:
+            A tuple of (columns, rows) if this is a resize event, otherwise None.
+        """
         if self.value.isa[Resize]():
             ref r = self.value[Resize]
             return (r.columns, r.rows)

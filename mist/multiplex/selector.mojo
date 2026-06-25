@@ -1,3 +1,4 @@
+"""Defines the `Selector` trait shared by platform-specific I/O multiplexers."""
 from mist.multiplex.event import Event
 
 

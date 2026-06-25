@@ -1,3 +1,4 @@
+"""Text transformation writers: indenting, padding, wrapping, and more."""
 from mist.transform.dedenter import dedent
 from mist.transform.indenter import IndentWriter, indent
 from mist.transform.marginer import MarginWriter, margin

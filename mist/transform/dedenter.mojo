@@ -1,3 +1,6 @@
+"""Removes common leading indentation from multi-line text."""
+
+
 def _calculate_minimum_indentation(text: StringSlice) -> UInt:
     """Detects the indentation level shared by all lines.
 

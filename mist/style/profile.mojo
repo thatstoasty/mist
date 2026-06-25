@@ -1,3 +1,4 @@
+"""Detects and represents the terminal's supported color profile."""
 from std.os import abort, getenv
 from std.sys.defines import get_defined_string
 from std.ffi import _get_global, external_call

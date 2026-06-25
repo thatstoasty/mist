@@ -187,6 +187,9 @@ struct UnixInternalEventSource[T: Selector](EventSource, Movable):
     - TTY file descriptor for reading input.
     - Parser for buffering and parsing escape sequences.
     - Selector-based readiness polling.
+
+    Parameters:
+        T: The selector implementation used for readiness polling.
     """
 
     var parser: Parser

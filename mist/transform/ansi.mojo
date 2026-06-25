@@ -1,3 +1,4 @@
+"""ANSI escape sequence constants and byte values used by text transforms."""
 from std.io import write
 
 from mist.transform.unicode import char_width, string_width

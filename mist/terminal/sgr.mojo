@@ -1,3 +1,5 @@
+"""ANSI/SGR escape sequence constants used to build control sequences."""
+
 # ANSI Operations
 comptime ESC = "\x1b"
 """Escape character."""

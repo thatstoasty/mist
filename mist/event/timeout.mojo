@@ -1,3 +1,4 @@
+"""Utilities for tracking poll/select timeout remaining time."""
 from std.time import perf_counter_ns
 
 

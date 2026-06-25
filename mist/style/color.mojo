@@ -1,3 +1,4 @@
+"""Color types and conversions for representing terminal colors."""
 import mist.style._hue as hue
 from mist._utils import lut
 from mist.style._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS

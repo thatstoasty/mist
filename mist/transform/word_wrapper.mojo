@@ -1,3 +1,4 @@
+"""A writer that wraps written content on word boundaries."""
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE, SPACE, SPACE_BYTE
 

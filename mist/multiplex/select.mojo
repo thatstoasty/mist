@@ -1,3 +1,4 @@
+"""A `Selector` implementation backed by the POSIX `select` system call."""
 from std.collections import BitSet, Set
 from std.sys import stdin
 from std.memory import MutPointer
@@ -89,6 +90,9 @@ def select(
 
     #### Reference
     https://man7.org/linux/man-pages/man2/select.2.html.
+
+    Raises:
+        Error: If the underlying `select()` call fails or times out.
     """
     var result = _select(
         highest_fd,
@@ -203,6 +207,10 @@ struct SelectSelector(Movable, Selector):
         - If timeout > 0, this specifies the maximum wait time, in microseconds.
         - If timeout <= 0, the select() call won't block, and will report
           the currently ready file objects.
+
+        Raises:
+            Error: If the underlying `select()` call fails for a reason
+                other than timing out.
         """
         var tv = TimeValue(0, Int64(timeout))
 

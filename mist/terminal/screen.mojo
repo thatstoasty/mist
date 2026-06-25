@@ -1,3 +1,4 @@
+"""Terminal screen, line, and scroll control sequences."""
 from mist.style.color import AnyColor
 from mist.terminal.cursor import cursor_up_sequence
 from mist.terminal.sgr import BEL, CSI, OSC
@@ -199,6 +200,9 @@ struct Screen(ImplicitlyCopyable):
     @staticmethod
     def enable_alternate_screen() -> AlternateScreen:
         """Enables the alternate screen and returns an `AlternateScreen` instance, which will disable the alternate screen on destruction.
+
+        Returns:
+            An `AlternateScreen` instance that disables it when destroyed.
         """
         enable_alternate_screen()
         return AlternateScreen()

@@ -1,3 +1,4 @@
+"""Creates OSC8 terminal hyperlinks."""
 from mist.terminal.sgr import OSC, ST
 
 

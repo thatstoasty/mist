@@ -1,3 +1,4 @@
+"""A `Selector` implementation backed by Darwin's `kqueue` mechanism."""
 from std.collections import Dict, List
 from std.ffi import c_int, c_uint, c_short, c_ushort, external_call, get_errno, ErrNo
 from std.memory import ImmutPointer, MutPointer

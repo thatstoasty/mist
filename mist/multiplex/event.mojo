@@ -1,3 +1,6 @@
+"""Defines the bitflag `Event` type used to describe readiness events."""
+
+
 @fieldwise_init
 struct Event(Boolable, Equatable, ImplicitlyCopyable, TrivialRegisterPassable):
     """Represents an event that can be monitored by the `select` function."""
