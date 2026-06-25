@@ -1,3 +1,4 @@
+"""The `Style` type for composing ANSI text styles and colors."""
 from mist.style.color import AnyColor, NoColor
 
 
@@ -180,7 +181,11 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         self.profile = Profile()
 
     def __init__(out self, *, copy: Self):
-        """Creates a copy of the Style."""
+        """Creates a copy of the Style.
+
+        Args:
+            copy: The Style to copy.
+        """
         self.profile = copy.profile
         self.styles = copy.styles.copy()
 
@@ -752,3 +757,72 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             return String(text)
 
         return String(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
+
+    def render[T: Writable, W: Writer, //](self, text: T, mut writer: W):
+        """Renders text with the styles applied to it.
+
+        Parameters:
+            T: The type of the text object.
+            W: The type of the writer object.
+
+        Args:
+            text: The text to render with the styles applied.
+            writer: The `Writer` to write the rendered text to.
+        """
+        if self.profile == Profile.ASCII or len(self.styles) == 0:
+            return writer.write(text)
+
+        return writer.write(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
+
+    def render_many[*Ts: Writable](self, *text: *Ts, sep: StringSlice = " ") -> String:
+        """Renders text with the styles applied to it.
+
+        The writable objects are concatendated together with `sep` in between them,
+        and the styles are applied to the resulting string.
+
+        Parameters:
+            Ts: The types of the text objects.
+
+        Args:
+            text: The writable objects to render with the styles applied.
+            sep: The separator to use between the text objects. Defaults to a single space.
+
+        Returns:
+            The text with the styles applied.
+        """
+        var result = String(capacity=128)
+        comptime for i in range(text.__len__()):
+            result.write(text[i])
+            if sep and i != len(text) - 1:
+                result.write(sep)
+
+        if self.profile == Profile.ASCII or len(self.styles) == 0:
+            return result^
+
+        return String(CSI, ";".join(self.styles), "m", result, RESET_STYLE)
+
+    def render_many[W: Writer, *Ts: Writable](self, *text: *Ts, mut writer: W, sep: StringSlice = " "):
+        """Renders text with the styles applied to it.
+
+        Parameters:
+            W: The type of the writer object.
+            Ts: The types of the text objects.
+
+        Args:
+            text: The writable objects to render with the styles applied.
+            writer: The `Writer` to write the rendered text to.
+            sep: The separator to use between the text objects. Defaults to a single space.
+        """
+        if self.profile == Profile.ASCII or len(self.styles) == 0:
+            comptime for i in range(text.__len__()):
+                writer.write(text[i])
+                if sep and i != len(text) - 1:
+                    writer.write(sep)
+            return
+
+        writer.write(CSI, ";".join(self.styles), "m")
+        comptime for i in range(text.__len__()):
+            writer.write(text[i])
+            if sep and i != len(text) - 1:
+                writer.write(sep)
+        writer.write(RESET_STYLE)

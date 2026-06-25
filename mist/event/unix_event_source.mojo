@@ -21,6 +21,7 @@ comptime TTY_BUFFER_SIZE: Int = 1024
 """Buffer size for TTY reads. 1024 bytes is enough based on testing
 showing max reads of ~1022 bytes on macOS/Linux."""
 
+
 struct Parser(Movable):
     """Parser for buffering terminal input and producing events.
 
@@ -121,7 +122,9 @@ def _read_from_tty(
             return Int(bytes_read)
 
 
-def _try_read_from_selector[T: Selector, //](
+def _try_read_from_selector[
+    T: Selector, //
+](
     mut parser: Parser,
     tty: FileDescriptor,
     mut selector: T,
@@ -152,7 +155,9 @@ def _try_read_from_selector[T: Selector, //](
         if remaining_timeout and remaining_timeout.unsafe_value() <= 0:
             break
 
-        var status = selector.select(timeout=remaining_timeout.unsafe_value() if remaining_timeout else 0).get(tty.value)
+        var status = selector.select(timeout=remaining_timeout.unsafe_value() if remaining_timeout else 0).get(
+            tty.value
+        )
         if not status:
             continue
 
@@ -182,6 +187,9 @@ struct UnixInternalEventSource[T: Selector](EventSource, Movable):
     - TTY file descriptor for reading input.
     - Parser for buffering and parsing escape sequences.
     - Selector-based readiness polling.
+
+    Parameters:
+        T: The selector implementation used for readiness polling.
     """
 
     var parser: Parser
@@ -250,7 +258,9 @@ struct UnixInternalEventSource[T: Selector](EventSource, Movable):
             if remaining_timeout and remaining_timeout.unsafe_value() <= 0:
                 break
 
-            var status = self.selector.select(timeout=remaining_timeout.unsafe_value() if remaining_timeout else 0).get(self.tty.value)
+            var status = self.selector.select(timeout=remaining_timeout.unsafe_value() if remaining_timeout else 0).get(
+                self.tty.value
+            )
             if not status:
                 continue
 

@@ -1,3 +1,4 @@
+"""Terminal focus-change event tracking control sequences."""
 from mist.terminal.sgr import BEL, CSI, OSC
 
 
@@ -27,6 +28,9 @@ struct FocusChange(Movable):
     @staticmethod
     def enable() -> Self:
         """Enables focus change tracking and returns a `FocusChange` instance, which will disable focus change tracking on destruction.
+
+        Returns:
+            A `FocusChange` instance that disables tracking when destroyed.
         """
         enable_focus_change()
         return Self()

@@ -1,3 +1,4 @@
+"""A writer that wraps written content to a fixed printable cell width."""
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE_BYTE, SPACE, SPACE_BYTE
 from mist.transform.unicode import char_width

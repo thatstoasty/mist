@@ -1,3 +1,4 @@
+"""Terminal mouse tracking and capture control sequences."""
 from mist.terminal.sgr import CSI
 
 
@@ -95,9 +96,14 @@ def disable_mouse_extended_mode() -> None:
 
 
 struct Mouse(Movable):
+    """A namespace for mouse capture functions."""
+
     @staticmethod
     def enable_capture() -> MouseCapture:
         """Enables mouse capture and returns a `MouseCapture` instance, which will disable mouse capture on destruction.
+
+        Returns:
+            A `MouseCapture` instance that disables capture when destroyed.
         """
         enable_mouse_all_motion()
         return MouseCapture()

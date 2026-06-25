@@ -1,3 +1,4 @@
+"""A writer that indents written content by a fixed number of spaces."""
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE_BYTE, SPACE
 

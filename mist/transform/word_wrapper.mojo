@@ -1,3 +1,4 @@
+"""A writer that wraps written content on word boundaries."""
 import mist.transform.ansi
 from mist.transform.ansi import NEWLINE, SPACE, SPACE_BYTE
 
@@ -152,7 +153,10 @@ struct WordWrapWriter[keep_newlines: Bool = True](Movable):
                 # add a line break if the current word would exceed the line's
                 # character limit
                 var word_width = ansi.printable_rune_width(self.word)
-                if word_width < self.limit and self.line_len + UInt(self.space.count_codepoints()) + word_width > self.limit:
+                if (
+                    word_width < self.limit
+                    and self.line_len + UInt(self.space.count_codepoints()) + word_width > self.limit
+                ):
                     self.add_newline()
 
     def finish(deinit self) -> String:

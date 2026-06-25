@@ -81,6 +81,17 @@ from mist.event.event import (  # Key types; Mouse event types; Event types
 
 
 def starts_with[pattern: StringSlice](buffer: Span[UInt8, ...]) -> Bool:
+    """Check whether the buffer starts with the given byte pattern.
+
+    Parameters:
+        pattern: The byte pattern to check for at the start of the buffer.
+
+    Args:
+        buffer: The input buffer.
+
+    Returns:
+        True if the buffer starts with pattern, False otherwise.
+    """
     for expected, actual in zip(pattern.as_bytes(), buffer):
         if expected != actual:
             return False
@@ -88,7 +99,17 @@ def starts_with[pattern: StringSlice](buffer: Span[UInt8, ...]) -> Bool:
 
 
 def assert_starts_with[pattern: StringSlice](buffer: Span[UInt8, ...]) raises:
-    """Assert that the buffer starts with the CSI sequence."""
+    """Assert that the buffer starts with the given pattern.
+
+    Parameters:
+        pattern: The byte pattern the buffer must start with.
+
+    Args:
+        buffer: The input buffer.
+
+    Raises:
+        Error if the buffer does not start with pattern.
+    """
     # TODO: Test which is faster - converting pattern to bytes at comptime or comparing as string slices
     # if not StringSlice(from_utf8=buffer).startswith(pattern):
     #     raise Error("Buffer does not start with expected pattern: ", pattern)
@@ -98,6 +119,17 @@ def assert_starts_with[pattern: StringSlice](buffer: Span[UInt8, ...]) raises:
 
 
 def ends_with[pattern: StringSlice](buffer: Span[UInt8, ...]) -> Bool:
+    """Check whether the buffer ends with the given byte pattern.
+
+    Parameters:
+        pattern: The byte pattern to check for at the end of the buffer.
+
+    Args:
+        buffer: The input buffer.
+
+    Returns:
+        True if the buffer ends with pattern, False otherwise.
+    """
     for expected, actual in zip(reversed(pattern.as_bytes()), reversed(buffer)):
         if expected != actual:
             return False
@@ -105,7 +137,17 @@ def ends_with[pattern: StringSlice](buffer: Span[UInt8, ...]) -> Bool:
 
 
 def assert_ends_with[pattern: StringSlice](buffer: Span[UInt8, ...]) raises:
-    """Assert that the buffer ends with the CSI sequence."""
+    """Assert that the buffer ends with the given pattern.
+
+    Parameters:
+        pattern: The byte pattern the buffer must end with.
+
+    Args:
+        buffer: The input buffer.
+
+    Raises:
+        Error if the buffer does not end with pattern.
+    """
     if not ends_with[pattern](buffer):
         raise Error("Buffer does not start with expected pattern: ", pattern)
 
@@ -116,7 +158,11 @@ def assert_ends_with[pattern: StringSlice](buffer: Span[UInt8, ...]) raises:
 
 
 def could_not_parse_event_error() -> Error:
-    """Create a parse error for failed event parsing."""
+    """Create a parse error for failed event parsing.
+
+    Returns:
+        An Error indicating an event could not be parsed.
+    """
     return Error("Could not parse an event")
 
 
@@ -223,6 +269,13 @@ def translate_functional_key_code(codepoint: Codepoint) -> Optional[Tuple[KeyCod
     """Translate a functional key codepoint to a KeyCode and state.
 
     These are special codepoints defined in the Kitty Keyboard Protocol.
+
+    Args:
+        codepoint: The Kitty Keyboard Protocol functional key codepoint.
+
+    Returns:
+        A tuple of (KeyCode, KeyEventState) if codepoint is a recognized
+        functional key, otherwise None.
     """
     # Keypad keys (return with KEYPAD state)
     if codepoint == Codepoint(57399):
@@ -445,6 +498,9 @@ def parse_csi_rxvt_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEv
 
     Returns:
         Optional InternalEvent containing the mouse event.
+
+    Raises:
+        ParseError if the buffer does not match the rxvt mouse format.
     """
     # Buffer should start with ESC [ and end with M
     assert_starts_with[CSI](buffer)
@@ -460,7 +516,9 @@ def parse_csi_rxvt_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEv
     var cb_raw = Codepoint.ord(parts[0])
     if cb_raw < Codepoint(32):
         raise could_not_parse_event_error()
-    var cb = Codepoint.from_u32(cb_raw.to_u32() - 32).value() # We already checked that cb_raw is >= 32, so this won't underflow
+    var cb = Codepoint.from_u32(
+        cb_raw.to_u32() - 32
+    ).value()  # We already checked that cb_raw is >= 32, so this won't underflow
     var kind_and_mods = parse_cb(cb)
     ref kind = kind_and_mods[0]
     ref modifiers = kind_and_mods[1]
@@ -481,6 +539,9 @@ def parse_csi_normal_mouse(buffer: Span[UInt8, ...]) raises -> Optional[Internal
 
     Returns:
         Optional InternalEvent containing the mouse event.
+
+    Raises:
+        ParseError if the control byte encodes an unsupported button combination.
     """
     # Buffer should start with ESC [ M
     assert_starts_with[CSI + "M"](buffer)
@@ -489,7 +550,7 @@ def parse_csi_normal_mouse(buffer: Span[UInt8, ...]) raises -> Optional[Internal
 
     if buffer[3] < 32:
         raise could_not_parse_event_error()
-    var cb = Codepoint(buffer[3] - 32) # We already checked that buffer[3] is >= 32, so this won't underflow
+    var cb = Codepoint(buffer[3] - 32)  # We already checked that buffer[3] is >= 32, so this won't underflow
     ref kind, modifiers = parse_cb(cb)
 
     # The upper left character position on the terminal is denoted as 1,1.
@@ -520,6 +581,10 @@ def parse_csi_sgr_mouse(buffer: Span[UInt8, ...]) raises -> Optional[InternalEve
 
     Returns:
         Optional InternalEvent containing the mouse event.
+
+    Raises:
+        ParseError if the parameters cannot be parsed or the control byte
+        encodes an unsupported button combination.
     """
     # Buffer should start with ESC [ <
     assert_starts_with[CSI + "<"](buffer)
@@ -572,6 +637,9 @@ def parse_csi_cursor_position(buffer: Span[UInt8, ...]) raises -> Optional[Inter
 
     Returns:
         Optional InternalEvent containing the cursor position.
+
+    Raises:
+        ParseError if the parameters cannot be parsed.
     """
     # Buffer should start with CSI (ESC [) and end with R
     assert_starts_with[CSI](buffer)
@@ -605,6 +673,9 @@ def parse_csi_keyboard_enhancement_flags(buffer: Span[UInt8, ...]) raises -> Opt
 
     Returns:
         Optional InternalEvent containing the keyboard enhancement flags.
+
+    Raises:
+        ParseError if the buffer does not match the expected format.
     """
     # Buffer should start with ESC [ ? and end with u
     assert_starts_with[CSI + "?"](buffer)
@@ -644,6 +715,9 @@ def parse_csi_primary_device_attributes(buffer: Span[UInt8, ...]) raises -> Opti
 
     Returns:
         Optional InternalEvent containing primary device attributes.
+
+    Raises:
+        ParseError if the buffer does not match the expected format.
     """
     # Buffer should start with ESC [ ? and end with c
     assert_starts_with[CSI + "?"](buffer)
@@ -664,6 +738,9 @@ def parse_csi_modifier_key_code(buffer: Span[UInt8, ...]) raises -> Optional[Int
 
     Returns:
         Optional InternalEvent containing the key event.
+
+    Raises:
+        ParseError if the final key byte is not recognized.
     """
     # Parse the string portion between ESC[ and the final byte
     assert_starts_with[CSI](buffer)
@@ -736,6 +813,10 @@ def parse_csi_special_key_code(buffer: Span[UInt8, ...]) raises -> Optional[Inte
 
     Returns:
         Optional InternalEvent containing the key event.
+
+    Raises:
+        ParseError if the parameters cannot be parsed or the number does not
+        map to a known special key code.
     """
     # Parse the string portion between ESC[ and ~
     assert_starts_with[CSI](buffer)
@@ -810,6 +891,9 @@ def parse_csi_u_encoded_key_code(buffer: Span[UInt8, ...]) raises -> Optional[In
 
     Returns:
         Optional InternalEvent containing the key event.
+
+    Raises:
+        ParseError if the codepoint or modifier parameters cannot be parsed.
     """
     # Parse the string portion between ESC[ and u
     assert_starts_with[CSI](buffer)
@@ -914,6 +998,9 @@ def parse_csi_bracketed_paste(buffer: Span[UInt8, ...]) raises -> Optional[Inter
 
     Returns:
         Optional InternalEvent containing the paste event.
+
+    Raises:
+        ParseError if the buffer does not start with the bracketed paste prefix.
     """
     # Check if we have the end sequence
     # ESC [ 2 0 1 ~ = \x1b[201~
@@ -1035,43 +1122,81 @@ def char_code_to_event(code: KeyCode) -> KeyEvent:
 # ============================================================================
 
 comptime E_BYTE = "E".as_bytes()[0]
+"""ASCII byte value for 'E'."""
 comptime O_BYTE = "O".as_bytes()[0]
+"""ASCII byte value for 'O'."""
 comptime D_BYTE = "D".as_bytes()[0]
+"""ASCII byte value for 'D'."""
 comptime C_BYTE = "C".as_bytes()[0]
+"""ASCII byte value for 'C'."""
 comptime A_BYTE = "A".as_bytes()[0]
+"""ASCII byte value for 'A'."""
 comptime B_BYTE = "B".as_bytes()[0]
+"""ASCII byte value for 'B'."""
 comptime H_BYTE = "H".as_bytes()[0]
+"""ASCII byte value for 'H'."""
 comptime F_BYTE = "F".as_bytes()[0]
+"""ASCII byte value for 'F'."""
 comptime P_BYTE = "P".as_bytes()[0]
+"""ASCII byte value for 'P'."""
 comptime S_BYTE = "S".as_bytes()[0]
+"""ASCII byte value for 'S'."""
 comptime Z_BYTE = "Z".as_bytes()[0]
+"""ASCII byte value for 'Z'."""
 comptime M_BYTE = "M".as_bytes()[0]
+"""ASCII byte value for 'M'."""
 comptime I_BYTE = "I".as_bytes()[0]
+"""ASCII byte value for 'I'."""
 comptime Q_BYTE = "Q".as_bytes()[0]
+"""ASCII byte value for 'Q'."""
 comptime R_BYTE = "R".as_bytes()[0]
+"""ASCII byte value for 'R'."""
 comptime LBRACKET_BYTE = "[".as_bytes()[0]
+"""ASCII byte value for '['."""
 comptime CR_BYTE = "\r".as_bytes()[0]
+"""ASCII byte value for carriage return ('\\r')."""
 comptime LF_BYTE = "\n".as_bytes()[0]
+"""ASCII byte value for line feed ('\\n')."""
 comptime TAB_BYTE = "\t".as_bytes()[0]
+"""ASCII byte value for tab ('\\t')."""
 comptime SEMICOLON_BYTE = ";".as_bytes()[0]
+"""ASCII byte value for ';'."""
 comptime QUESTION_BYTE = "?".as_bytes()[0]
+"""ASCII byte value for '?'."""
 comptime TILDE_BYTE = "~".as_bytes()[0]
+"""ASCII byte value for '~'."""
 comptime u_BYTE = "u".as_bytes()[0]
+"""ASCII byte value for 'u'."""
 comptime c_BYTE = "c".as_bytes()[0]
+"""ASCII byte value for 'c'."""
 comptime m_BYTE = "m".as_bytes()[0]
+"""ASCII byte value for 'm'."""
 comptime ZERO_BYTE = "0".as_bytes()[0]
+"""ASCII byte value for '0'."""
 comptime ONE_BYTE = "1".as_bytes()[0]
+"""ASCII byte value for '1'."""
 comptime TWO_BYTE = "2".as_bytes()[0]
+"""ASCII byte value for '2'."""
 comptime THREE_BYTE = "3".as_bytes()[0]
+"""ASCII byte value for '3'."""
 comptime FOUR_BYTE = "4".as_bytes()[0]
+"""ASCII byte value for '4'."""
 comptime NINE_BYTE = "9".as_bytes()[0]
+"""ASCII byte value for '9'."""
 comptime LESS_THAN_BYTE = "<".as_bytes()[0]
+"""ASCII byte value for '<'."""
 comptime DEL_BYTE = 0x7F
+"""ASCII byte value for the DEL (delete) control character."""
 comptime CTRL_A = 0x01
+"""Control character for Ctrl+A."""
 comptime CTRL_Z = 0x1A
+"""Control character for Ctrl+Z."""
 comptime CTRL_SPACE = 0x00
+"""Control character for Ctrl+Space (NUL)."""
 comptime CTRL_4 = 0x1C
+"""Control character for Ctrl+4 (file separator)."""
 comptime CTRL_7 = 0x1F
+"""Control character for Ctrl+7 (unit separator)."""
 
 
 def parse_csi(buffer: Span[UInt8, ...]) raises -> Optional[InternalEvent]:

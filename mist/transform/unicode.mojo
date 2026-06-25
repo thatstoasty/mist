@@ -1,3 +1,4 @@
+"""Unicode codepoint and string display-width calculations."""
 from mist._utils import lut
 from mist.transform._table import AMBIGUOUS, COMBINING, DOUBLE_WIDTH, EMOJI, NARROW, NON_PRINT, Interval
 

@@ -1,3 +1,4 @@
+"""Sends desktop notifications via terminal OSC escape sequences."""
 from mist.terminal.sgr import OSC, ST
 
 

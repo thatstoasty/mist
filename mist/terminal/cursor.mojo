@@ -1,3 +1,4 @@
+"""Terminal cursor movement and color control sequences."""
 from mist.style.color import AnyColor
 from mist.terminal.query import get_cursor_color
 from mist.terminal.sgr import BEL, CSI, OSC
@@ -201,6 +202,8 @@ def cursor_prev_line(n: UInt16) -> None:
 
 
 struct Cursor:
+    """A namespace for cursor movement and color functions."""
+
     @staticmethod
     def up(n: UInt16) -> None:
         """Moves the cursor up a given number of lines.
@@ -274,6 +277,12 @@ struct Cursor:
         Args:
             color: The color to set.
             initial_color: The initial color of the cursor. If not provided, it will be queried from the terminal. Providing this can be useful if you want to avoid the overhead of querying the terminal for the cursor color, which can be slow.
+
+        Returns:
+            A `CursorColor` instance that restores the original color when destroyed.
+
+        Raises:
+            Error: If querying the terminal for the initial cursor color fails.
         """
         var original_color = get_cursor_color() if initial_color.isa[NoColor]() else initial_color.copy()
         set_cursor_color(color)
@@ -292,6 +301,8 @@ def set_cursor_color(color: AnyColor) -> None:
 @fieldwise_init
 @explicit_destroy("Calling `reset()` is required to reset the cursor color to its original value.")
 struct CursorColor:
+    """Linear struct that restores the cursor's original color on destruction."""
+
     var original_color: AnyColor
     """The original color of the cursor before it was changed."""
 

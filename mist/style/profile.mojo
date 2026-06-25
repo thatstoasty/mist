@@ -1,3 +1,4 @@
+"""Detects and represents the terminal's supported color profile."""
 from std.os import abort, getenv
 from std.sys.defines import get_defined_string
 from std.ffi import _get_global, external_call
@@ -6,13 +7,13 @@ import mist.style._hue as hue
 from mist.style.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
 
 
-def _init_global() -> Optional[UnsafePointer[NoneType, MutExternalOrigin]]:
+def _init_global() -> Optional[UnsafePointer[NoneType, MutUntrackedOrigin]]:
     var ptr = alloc[UInt8](1)
     ptr[] = get_color_profile()._value
     return ptr.bitcast[NoneType]()
 
 
-def _destroy_global(lib: Optional[UnsafePointer[NoneType, MutExternalOrigin]]):
+def _destroy_global(lib: Optional[UnsafePointer[NoneType, MutUntrackedOrigin]]):
     if not lib:
         return
 
@@ -82,7 +83,7 @@ def get_color_profile() -> Profile:
     return Profile.ASCII
 
 
-struct Profile(Comparable, ImplicitlyCopyable, Writable, TrivialRegisterPassable):
+struct Profile(Comparable, ImplicitlyCopyable, TrivialRegisterPassable, Writable):
     """The color profile for the terminal."""
 
     var _value: UInt8

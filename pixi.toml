@@ -12,7 +12,7 @@ preview = ["pixi-build"]
 
 [tasks]
 tests = "sh -c 'find test -name \"test_*.mojo\" -exec mojo -D ASSERT=all -I . {} \\;'"
-benchmarks = "sh -c 'find benchmarks -name \"*.mojo\" -exec mojo -D ASSERT=all -I . {} \\;'"
+benchmarks = "mojo -D ASSERT=all -I . benchmarks/run.mojo --print-relative"
 examples = "sh -c 'find examples -name \"*.mojo\" -exec mojo -D ASSERT=all -I . {} \\;'"
 
 # Linting and Formatting
@@ -27,19 +27,19 @@ build_and_publish = [{ task = "build" }, { task = "publish" }]
 
 [package]
 name = "mist"
-version = "0.2.1"
+version = "0.2.2"
 
 [package.build]
 backend = { name = "pixi-build-mojo", version = "0.1.*" }
 
 [dependencies]
-mojo = ">=1.0.0b1,<2"
+mojo = ">=1.0.0b2,<2"
 
 [package.host-dependencies]
-mojo-compiler = ">=1.0.0b1,<1.0.0b2"
+mojo-compiler = ">=1.0.0b2,<1.0.0b3"
 
 [package.build-dependencies]
-mojo-compiler = ">=1.0.0b1,<1.0.0b2"
+mojo-compiler = ">=1.0.0b2,<1.0.0b3"
 
 [package.run-dependencies]
-mojo-compiler = ">=1.0.0b1,<1.0.0b2"
+mojo-compiler = ">=1.0.0b2,<1.0.0b3"

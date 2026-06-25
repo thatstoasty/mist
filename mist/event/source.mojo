@@ -1,3 +1,4 @@
+"""Defines the `EventSource` trait for reading internal terminal events."""
 from mist.event.internal import InternalEvent
 
 

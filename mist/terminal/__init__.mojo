@@ -1,3 +1,4 @@
+"""Terminal control sequences for cursor, mouse, screen, and TTY management."""
 from mist.terminal.cursor import Cursor, set_cursor_color
 from mist.terminal.focus import FocusChange
 from mist.terminal.mouse import Mouse

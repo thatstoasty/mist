@@ -1,3 +1,4 @@
+"""Parsing and representing xterm `rgb:rr/gg/bb` color sequences."""
 import mist.style._hue as hue
 from mist.style.color import RGBColor, hex_to_string
 
@@ -37,6 +38,8 @@ def parse_xterm_color(sequence: StringSlice) raises -> Tuple[UInt8, UInt8, UInt8
 
 @fieldwise_init
 struct XTermColor(Writable):
+    """Represents an xterm RGB color reported via an `rgb:rr/gg/bb` sequence."""
+
     var r: UInt8
     """Red component of the color."""
     var g: UInt8
@@ -45,6 +48,14 @@ struct XTermColor(Writable):
     """Blue component of the color."""
 
     def __init__(out self, color: StringSlice) raises:
+        """Initializes the XTermColor by parsing an `rgb:rr/gg/bb` sequence.
+
+        Args:
+            color: The xterm color sequence to parse.
+
+        Raises:
+            Error: If the sequence is not a valid xterm color sequence.
+        """
         var rgb = parse_xterm_color(color)
         self.r = rgb[0]
         self.g = rgb[1]

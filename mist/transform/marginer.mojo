@@ -1,3 +1,4 @@
+"""A writer that applies both indentation and padding as a margin."""
 import mist.transform.ansi
 from mist.transform.indenter import IndentWriter
 from mist.transform.padder import PaddingWriter

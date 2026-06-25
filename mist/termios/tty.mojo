@@ -1,3 +1,4 @@
+"""Helpers for putting a TTY into raw or cbreak mode."""
 import mist.termios.c
 from std.ffi import external_call
 from mist.termios.c import ControlFlag, InputFlag, LocalFlag, OutputFlag, SpecialCharacter

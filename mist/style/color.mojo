@@ -1,3 +1,4 @@
+"""Color types and conversions for representing terminal colors."""
 import mist.style._hue as hue
 from mist._utils import lut
 from mist.style._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
@@ -10,7 +11,7 @@ comptime BACKGROUND = "48"
 """ANSI code for background colors."""
 
 
-trait Color(ImplicitlyCopyable, Equatable, Writable):
+trait Color(Equatable, ImplicitlyCopyable, Writable):
     """Represents colors that can be displayed in the terminal."""
 
     def sequence[is_background: Bool](self) -> String:
