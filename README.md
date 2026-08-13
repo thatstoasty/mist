@@ -3,8 +3,8 @@
 `mist` is an ANSI aware toolkit that enables you to:
 
 * Style and transform text on the terminal.
-* Control terminal screen and cursor behavior.
-* Read terminal events such as key presses and mouse events.
+
+> NOTE: Terminal control functionality has moved over to [Termctl](https://github.com/thatstoasty/termctl)!
 
 ![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-1.0.0-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
