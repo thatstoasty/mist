@@ -259,7 +259,24 @@ def hex_to_string(value: UInt32) -> String:
 
     var result = String()
     var v = value
-    comptime HEX_CHARS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
+    comptime HEX_CHARS: Array[StaticString, 16] = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+    ]
 
     while v > 0:
         var digit = Int(v & 0xF)
