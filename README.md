@@ -4,7 +4,7 @@
 
 * Style and transform text on the terminal.
 
-> NOTE: Terminal control functionality has moved over to [Termctl](https://github.com/thatstoasty/termctl)!
+> NOTE: Terminal control functionality has moved over to [Termctl](https://github.com/thatstoasty/termctl) and [mojo-termios](https://github.com/thatstoasty/mojo-termios)!
 
 ![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-1.0.0-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
