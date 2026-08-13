@@ -39,16 +39,16 @@ comptime DELTA = 1.0 / 255.0
 """The tolerance used when comparing colors using `AlmostEqualColor`."""
 
 # This is the default reference white point.
-comptime D65: InlineArray[Float64, 3] = [0.95047, 1.00000, 1.08883]
+comptime D65: Array[Float64, 3] = [0.95047, 1.00000, 1.08883]
 """The default reference white point, D65."""
 
-comptime XYZ_TO_RGB_MATRIX: InlineArray[InlineArray[Float64, 3], 3] = [
+comptime XYZ_TO_RGB_MATRIX: Array[Array[Float64, 3], 3] = [
     [3.2409699419045214, -1.5373831775700935, -0.49861076029300328],
     [-0.96924363628087983, 1.8759675015077207, 0.041555057407175613],
     [0.055630079696993609, -0.20397695888897657, 1.0569715142428786],
 ]
 """The matrix used to convert from XYZ to RGB."""
-comptime hSLuvD65: InlineArray[Float64, 3] = [0.95045592705167, 1.0, 1.089057750759878]
+comptime hSLuvD65: Array[Float64, 3] = [0.95045592705167, 1.0, 1.089057750759878]
 """The reference white point for HSLuv, D65."""
 
 comptime KAPPA = 903.2962962962963
@@ -71,7 +71,7 @@ def length_of_ray_until_intersect(theta: Float64, x: Float64, y: Float64) -> Flo
     return y / (math.sin(theta) - x * math.cos(theta))
 
 
-def get_bounds(l: Float64) -> InlineArray[InlineArray[Float64, 2], 6]:
+def get_bounds(l: Float64) -> Array[Array[Float64, 2], 6]:
     """Returns the bounds for the given luminance value.
 
     Args:
@@ -80,7 +80,7 @@ def get_bounds(l: Float64) -> InlineArray[InlineArray[Float64, 2], 6]:
     Returns:
         The bounds for the given luminance value.
     """
-    var ret: InlineArray[InlineArray[Float64, 2], 6] = [
+    var ret: Array[Array[Float64, 2], 6] = [
         [0, 0],
         [0, 0],
         [0, 0],
@@ -227,7 +227,7 @@ def LuvLch_to_HSLuv(var l: Float64, var c: Float64, h: Float64) -> Tuple[Float64
 
 
 @fieldwise_init
-struct Color(Copyable, TrivialRegisterPassable, Writable):
+struct Color(TrivialRegisterPassable, Writable):
     """A color represented by red, green, and blue values.
     RGB values are stored internally using sRGB (standard RGB) values in the range 0-1.
     """
@@ -238,16 +238,6 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
     """The green value, between 0 to 1."""
     var B: Float64
     """The blue value, between 0 to 1."""
-
-    def __init__(out self, other: Self):
-        """Initializes a new `Color` by copying the values from another `Color`.
-
-        Args:
-            other: The other `Color` to copy the values from.
-        """
-        self.R = other.R
-        self.G = other.G
-        self.B = other.B
 
     def __init__(out self, R: UInt8, G: UInt8, B: UInt8):
         """Initializes a new `Color` with the given red, green, and blue values.
@@ -283,14 +273,6 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         self.G = (hex >> 8 & 0xFF).cast[DType.uint8]().cast[DType.float64]() / 255.0
         self.B = (hex & 0xFF).cast[DType.uint8]().cast[DType.float64]() / 255.0
 
-    def write_to(self, mut writer: Some[Writer]):
-        """Writes the string representation of the color to the given writer.
-
-        Args:
-            writer: The writer to write the string representation to.
-        """
-        writer.write("Color(", self.R, ", ", self.G, ", ", self.B, ")")
-
     def hex(self) -> UInt32:
         """Converts red, green, and blue values to a number in hexadecimal format.
 
@@ -316,7 +298,7 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         var rgb = self.linear_rgb()
         return linear_rgb_to_xyz(rgb[0], rgb[1], rgb[2])
 
-    def Luv_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
+    def Luv_white_ref(self, wref: Array[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE L*u*v* space, taking into account
         a given reference white. (i.e. the monitor's white)
         L* is in [0..1] and both u* and v* are in about [-1..1].
@@ -330,7 +312,7 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         var xyz = self.xyz()
         return xyz_to_Luv_white_ref(xyz[0], xyz[1], xyz[2], wref)
 
-    def LuvLCh_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
+    def LuvLCh_white_ref(self, wref: Array[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE LuvLCh space, taking into account
         a given reference white. (i.e. the monitor's white).
 
@@ -545,7 +527,7 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         var XYZ = self.xyz()
         return xyz_to_xyY(XYZ[0], XYZ[1], XYZ[2])
 
-    def xyy_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
+    def xyy_white_ref(self, wref: Array[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE xyY space, taking into account
         a given reference white. (i.e. the monitor's white)
         (Note that the reference white is only used for black input.)
@@ -569,7 +551,7 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         var xyz = self.xyz()
         return xyz_to_lab(xyz[0], xyz[1], xyz[2])
 
-    def lab_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
+    def lab_white_ref(self, wref: Array[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to CIE L*a*b* space, taking into account
         a given reference white. (i.e. the monitor's white).
 
@@ -618,8 +600,8 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         Returns:
             The distance between the two colors in Lab space.
         """
-        l1, a1, b1 = self.lab()
-        l2, a2, b2 = other.lab()
+        var l1, a1, b1 = self.lab()
+        var l2, a2, b2 = other.lab()
 
         # NOTE: Since all those formulas expect L,a,b values 100x larger than we
         #       have them in this library, we either need to adjust all constants
@@ -830,7 +812,7 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         """
         return self.hcl_white_ref(materialize[D65]())
 
-    def hcl_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
+    def hcl_white_ref(self, wref: Array[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to HCL space, taking into account
         a given reference white. (i.e. the monitor's white)
         H values are in [0..360], C and L values are in [0..1].
@@ -841,7 +823,7 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         Returns:
             The Hue, Chroma, and Luminance values.
         """
-        L, a, b = self.lab_white_ref(wref)
+        var L, a, b = self.lab_white_ref(wref)
         return lab_to_hcl(L, a, b)
 
     def blend_hcl(self, other: Self, t: Float64) -> Self:
@@ -855,8 +837,8 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         Returns:
             The blended color.
         """
-        h1, c1, l1 = self.hcl()
-        h2, c2, l2 = other.hcl()
+        var h1, c1, l1 = self.hcl()
+        var h2, c2, l2 = other.hcl()
 
         if c1 <= 0.00015 and c2 >= 0.00015:
             h1 = h2
@@ -875,7 +857,7 @@ struct Color(Copyable, TrivialRegisterPassable, Writable):
         """
         return self.Luv_LCh_white_ref(materialize[D65]())
 
-    def Luv_LCh_white_ref(self, wref: InlineArray[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
+    def Luv_LCh_white_ref(self, wref: Array[Float64, 3]) -> Tuple[Float64, Float64, Float64]:
         """Converts the given color to LuvLCh space, taking into account
         a given reference white. (i.e. the monitor's white)
         h values are in [0..360], c and l values are in [0..1].
@@ -1177,7 +1159,7 @@ def xyz_to_xyY(X: Float64, Y: Float64, Z: Float64) -> Tuple[Float64, Float64, Fl
 
 
 def xyz_to_xyY_white_ref(
-    X: Float64, Y: Float64, Z: Float64, wref: InlineArray[Float64, 3]
+    X: Float64, Y: Float64, Z: Float64, wref: Array[Float64, 3]
 ) -> Tuple[Float64, Float64, Float64]:
     """Converts the given XYZ color to CIE xyY space, taking into account
     a given reference white. (i.e. the monitor's white).
@@ -1235,7 +1217,7 @@ def xyy(x: Float64, y: Float64, Y: Float64) -> Color:
     Returns:
         The new Color.
     """
-    X, new_Y, Z = xyy_to_xyz(x, y, Y)
+    var X, new_Y, Z = xyy_to_xyz(x, y, Y)
     return xyz(X, new_Y, Z)
 
 
@@ -1253,8 +1235,6 @@ def lab_f(t: Float64) -> Float64:
         The calculated value.
     """
     if t > 6.0 / 29.0 * 6.0 / 29.0 * 6.0 / 29.0:
-        # if is_compile_time():
-        #     abort("Cannot call `math.cbrt` at compile time. Please execute it at runtime.")
         return math.cbrt(t)
     return t / 3.0 * 29.0 / 6.0 * 29.0 / 6.0 + 4.0 / 29.0
 
@@ -1276,7 +1256,7 @@ def xyz_to_lab(x: Float64, y: Float64, z: Float64) -> Tuple[Float64, Float64, Fl
 
 
 def xyz_to_lab_white_ref(
-    x: Float64, y: Float64, z: Float64, wref: InlineArray[Float64, 3]
+    x: Float64, y: Float64, z: Float64, wref: Array[Float64, 3]
 ) -> Tuple[Float64, Float64, Float64]:
     """Use a given reference white point to convert the given XYZ color to L*a*b* space.
 
@@ -1325,7 +1305,7 @@ def lab_to_xyz(l: Float64, a: Float64, b: Float64) -> Tuple[Float64, Float64, Fl
 
 
 def lab_to_xyz_white_ref(
-    l: Float64, a: Float64, b: Float64, wref: InlineArray[Float64, 3]
+    l: Float64, a: Float64, b: Float64, wref: Array[Float64, 3]
 ) -> Tuple[Float64, Float64, Float64]:
     """Use a given reference white point to convert the given L*a*b* color to XYZ space.
 
@@ -1362,7 +1342,7 @@ def lab(l: Float64, a: Float64, b: Float64) -> Color:
     return xyz(XYZ[0], XYZ[1], XYZ[2])
 
 
-def lab_white_ref(l: Float64, a: Float64, b: Float64, wref: InlineArray[Float64, 3]) -> Color:
+def lab_white_ref(l: Float64, a: Float64, b: Float64, wref: Array[Float64, 3]) -> Color:
     """Generates a color by using data given in CIE L*a*b* space, taking
     into account a given reference white. (i.e. the monitor's white).
 
@@ -1430,7 +1410,7 @@ def Luv(l: Float64, u: Float64, v: Float64) -> Color:
     return xyz(XYZ[0], XYZ[1], XYZ[2])
 
 
-def Luv_white_ref(l: Float64, u: Float64, v: Float64, wref: InlineArray[Float64, 3]) -> Color:
+def Luv_white_ref(l: Float64, u: Float64, v: Float64, wref: Array[Float64, 3]) -> Color:
     """Generates a color by using data given in CIE L*u*v* space, taking
     into account a given reference white. (i.e. the monitor's white)
     L* is in [0..1] and both u* and v* are in about [-1..1].
@@ -1510,7 +1490,7 @@ def hcl_to_Lab(h: Float64, c: Float64, l: Float64) -> Tuple[Float64, Float64, Fl
     return l, a, b
 
 
-def hcl_white_ref(h: Float64, c: Float64, l: Float64, wref: InlineArray[Float64, 3]) -> Color:
+def hcl_white_ref(h: Float64, c: Float64, l: Float64, wref: Array[Float64, 3]) -> Color:
     """Generates a color by using data given in HCL space, taking
     into account a given reference white. (i.e. the monitor's white)
     H values are in [0..360], C and L values are in [0..1].
@@ -1560,7 +1540,7 @@ def LuvLChToLuv(l: Float64, c: Float64, h: Float64) -> Tuple[Float64, Float64, F
     return l, c * math.cos(H), c * math.sin(H)
 
 
-def LuvLCh_white_ref(l: Float64, c: Float64, h: Float64, wref: InlineArray[Float64, 3]) -> Color:
+def LuvLCh_white_ref(l: Float64, c: Float64, h: Float64, wref: Array[Float64, 3]) -> Color:
     """Generates a color by using data given in LuvLCh space, taking
     into account a given reference white. (i.e. the monitor's white)
     h values are in [0..360], C and L values are in [0..1].
@@ -1623,7 +1603,7 @@ def linear_rgb_to_xyz(r: Float64, g: Float64, b: Float64) -> Tuple[Float64, Floa
 
 
 def luv_to_xyz_white_ref(
-    l: Float64, u: Float64, v: Float64, wref: InlineArray[Float64, 3]
+    l: Float64, u: Float64, v: Float64, wref: Array[Float64, 3]
 ) -> Tuple[Float64, Float64, Float64]:
     """Converts the given CIE L*u*v* color to XYZ space, taking into account
     a given reference white. (i.e. the monitor's white).
@@ -1687,7 +1667,7 @@ def xyz_to_uv(x: Float64, y: Float64, z: Float64) -> Tuple[Float64, Float64]:
 
 
 def xyz_to_Luv_white_ref(
-    x: Float64, y: Float64, z: Float64, wref: InlineArray[Float64, 3]
+    x: Float64, y: Float64, z: Float64, wref: Array[Float64, 3]
 ) -> Tuple[Float64, Float64, Float64]:
     """Converts the given XYZ color to CIE L*u*v* space, taking into account.
 

@@ -1,7 +1,7 @@
 """Color types and conversions for representing terminal colors."""
-import mist.style._hue as hue
+import mist._hue as hue
 from mist._utils import lut
-from mist.style._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
+from mist._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
 from std.utils import Variant
 
 
@@ -259,11 +259,11 @@ def hex_to_string(value: UInt32) -> String:
 
     var result = String()
     var v = value
-    comptime HEX_CHARS = "0123456789abcdef"
+    comptime HEX_CHARS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
 
     while v > 0:
         var digit = Int(v & 0xF)
-        result = HEX_CHARS[digit] + result
+        result = lut[HEX_CHARS](digit) + result
         v >>= 4
 
     return result
@@ -416,7 +416,7 @@ def hex_to_ansi256(color: hue.Color) -> UInt8:
     var gv = 8 + 10 * gray_index  # same value for r/g/b, 0..255
 
     # Calculate the represented colors back from the index
-    comptime i2cv: InlineArray[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
+    comptime i2cv: Array[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
 
     # Return the one which is nearer to the original input rgb value
     var color_dist = color.distance_HSLuv(hue.Color(R=lut[i2cv](r), G=lut[i2cv](g), B=lut[i2cv](b)))
@@ -470,14 +470,6 @@ struct AnyColor(Copyable):
         """
         self.value = value
 
-    def __init__(out self, other: Self):
-        """Initializes the AnyColor with another AnyColor.
-
-        Args:
-            other: The AnyColor to copy.
-        """
-        self.value = other.value
-
     def sequence[is_background: Bool](self) -> String:
         """Sequence returns the ANSI Sequence for the color.
 
@@ -508,7 +500,7 @@ struct AnyColor(Copyable):
         """
         return self.value.isa[T]()
 
-    def __getitem_param__[T: Color](ref self) -> ref[self.value] T:
+    def __getitem_param__[T: Color](ref self) -> ref[origin_of(self.value)._get_owned_interior["value"]] T:
         """Gets the value as the given type.
 
         Parameters:

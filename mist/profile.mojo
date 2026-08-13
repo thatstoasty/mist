@@ -2,23 +2,25 @@
 from std.os import abort, getenv
 from std.sys.defines import get_defined_string
 from std.ffi import _get_global, external_call
+from std.memory.alloc import unsafe_alloc
 
-import mist.style._hue as hue
-from mist.style.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
-
-
-def _init_global() -> Optional[UnsafePointer[NoneType, MutUntrackedOrigin]]:
-    var ptr = alloc[UInt8](1)
-    ptr[] = get_color_profile()._value
-    return ptr.bitcast[NoneType]()
+import mist._hue as hue
+from mist.color import ANSI256Color, ANSIColor, AnyColor, NoColor, RGBColor, ansi256_to_ansi, hex_to_ansi256
 
 
-def _destroy_global(lib: Optional[UnsafePointer[NoneType, MutUntrackedOrigin]]):
+def _init_global() -> Optional[Pointer[NoneType, MutUntrackedOrigin]]:
+    var ptr = unsafe_alloc[Profile](1)
+    ptr[] = get_color_profile()
+    return ptr.unsafe_bitcast[NoneType]()
+
+
+def _destroy_global(lib: Optional[Pointer[NoneType, MutUntrackedOrigin]]):
     if not lib:
         return
 
-    var ptr = lib.value().bitcast[UInt8]()
-    ptr.free()
+    var ptr = lib.value().unsafe_bitcast[Profile]()
+    ptr.unsafe_deinit_pointee()
+    ptr.unsafe_free()
 
 
 @always_inline
@@ -30,7 +32,7 @@ def get_profile() -> Profile:
     Returns:
         Terminal profile value.
     """
-    return _get_global["profile", _init_global, _destroy_global]().value().bitcast[UInt8]()[]
+    return _get_global["profile", _init_global, _destroy_global]().value().unsafe_bitcast[Profile]()[]
 
 
 def get_color_profile() -> Profile:
@@ -61,7 +63,7 @@ def get_color_profile() -> Profile:
         return Profile.ANSI256
 
     # TERM is used by most terminals to indicate color support.
-    var TRUE_COLOR_TERMINALS: InlineArray[String, 6] = [
+    var TRUE_COLOR_TERMINALS = [
         "alacritty",
         "contour",
         "rio",
@@ -69,7 +71,7 @@ def get_color_profile() -> Profile:
         "xterm-ghostty",
         "xterm-kitty",
     ]
-    var ANSI_TERMINALS: InlineArray[String, 2] = ["linux", "xterm"]
+    var ANSI_TERMINALS = ["linux", "xterm"]
     if term in TRUE_COLOR_TERMINALS:
         return Profile.TRUE_COLOR
     elif term in ANSI_TERMINALS:
@@ -83,7 +85,7 @@ def get_color_profile() -> Profile:
     return Profile.ASCII
 
 
-struct Profile(Comparable, ImplicitlyCopyable, TrivialRegisterPassable, Writable):
+struct Profile(Comparable, Defaultable, TrivialRegisterPassable, Writable):
     """The color profile for the terminal."""
 
     var _value: UInt8
@@ -108,7 +110,7 @@ struct Profile(Comparable, ImplicitlyCopyable, TrivialRegisterPassable, Writable
             This is to workaround the virtality of raising functions.
         """
         if value > 3:
-            self._value = 0
+            self._value = 3
             return
 
         self._value = value

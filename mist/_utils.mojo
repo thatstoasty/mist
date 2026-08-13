@@ -1,17 +1,17 @@
 from std.builtin.globals import global_constant
 
 
-comptime StackArray[T: Copyable, size: Int] = InlineArray[T, size]
+comptime StackArray[T: Copyable & Deinitable, length: Int] = Array[T, length]
 """A stack-allocated array of fixed size.
 
 Parameters:
     T: The type of the elements in the array.
-    size: The size of the array.
+    length: The length of the array.
 """
 
 
 @always_inline
-def lut[I: Indexer, //, A: StackArray](i: I) -> A.ElementType:
+def lut[I: Indexer, //, A: StackArray](i: I) -> A.T:
     """Returns the value at the given index from a global constant array.
 
     Parameters:

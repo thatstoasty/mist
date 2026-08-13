@@ -142,8 +142,8 @@ def print_relative_performance(
             var speedup = new_val / old_val
 
             var sign = "+" if diff_pct >= 0 else ""
-            var diff_str = String(sign + String(diff_pct)[byte=0:5] + "%")
-            var speedup_str = String(String(speedup)[byte=0:4] + "x")
+            var diff_str = String(sign + String(diff_pct)[byte=0:3] + "%")
+            var speedup_str = String(String(speedup)[byte=0:3] + "x")
             var old_str = String(String(old_val)[byte=0:6])
             var new_str = String(String(new_val)[byte=0:6])
 

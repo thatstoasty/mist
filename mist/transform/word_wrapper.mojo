@@ -1,5 +1,5 @@
 """A writer that wraps written content on word boundaries."""
-import mist.transform.ansi
+from mist.transform import ansi
 from mist.transform.ansi import NEWLINE, SPACE, SPACE_BYTE
 
 
@@ -11,7 +11,7 @@ comptime DEFAULT_BREAKPOINT = "-"
 
 @fieldwise_init
 @explicit_destroy("Call finish() to retrieve the final result and destroy the writer.")
-struct WordWrapWriter[keep_newlines: Bool = True](Movable):
+struct WordWrapWriter[keep_newlines: Bool = True](Deinitable where False, Movable):
     """A word-wrapping writer that wraps content based on words at the given limit.
 
     Parameters:

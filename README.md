@@ -3,10 +3,10 @@
 `mist` is an ANSI aware toolkit that enables you to:
 
 * Style and transform text on the terminal.
-* Control terminal screen and cursor behavior.
-* Read terminal events such as key presses and mouse events.
 
-![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-1.0.0b2-orange)
+> NOTE: Terminal control functionality has moved over to [Termctl](https://github.com/thatstoasty/termctl) and [mojo-termios](https://github.com/thatstoasty/mojo-termios)!
+
+![Mojo Version](https://img.shields.io/badge/Mojo%F0%9F%94%A5-1.0.0-orange)
 ![Build Status](https://github.com/thatstoasty/mist/actions/workflows/build.yml/badge.svg)
 ![Test Status](https://github.com/thatstoasty/mist/actions/workflows/test.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -38,7 +38,7 @@ There's two ways to build `mist` from source: directly from the Git repository o
 Run the following commands in your terminal:
 
 ```bash
-pixi add -g "https://github.com/thatstoasty/mist.git" --tag v0.2.2 && pixi install
+pixi add mist --git "https://github.com/thatstoasty/mist.git" --tag "v0.3.0" && pixi install
 ```
 
 #### Building from source: Local
@@ -60,6 +60,7 @@ Once we have type checking in Mojo, Colors will automatically be degraded to the
 
 ```mojo
 import mist
+from mist import Profile
 
 def main() raises:
     var profile = mist.Profile()
@@ -80,25 +81,20 @@ def main() raises:
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    style = mist.Style(mist.ASCII_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(Profile.ASCII).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
 
     # ANSI Color Support (0-15)
-    style = mist.Style(mist.ANSI_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(Profile.ANSI).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
 
     # ANSI256 Color Support (16-255)
-    style = mist.Style(mist.ANSI256_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(Profile.ANSI256).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
 
     # RGBColor Support (Hex Codes)
-    style = mist.Style(mist.TRUE_COLOR_PROFILE).foreground(0xc9a0dc)
+    style = mist.Style(Profile.TRUE_COLOR).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
-
-    # It also supports using the Profile of the Style to instead of passing Profile().color().
-    style = mist.Style(Profile(TRUE_COLOR)).foreground(0xc9a0dc)
-    print(style.render("Hello World!"))
-
 ```
 
 ![Profiles](https://github.com/thatstoasty/mist/blob/main/doc/tapes/profiles.gif)
@@ -129,7 +125,7 @@ def main() raises:
     _ = style.bold()
     _ = style.faint()
     _ = style.italic()
-    _ = style.crossout()
+    _ = style.strikethrough()
     _ = style.underline()
     _ = style.overline()
 
@@ -148,8 +144,9 @@ def main() raises:
 
 ```mojo
 import mist
+from mist import Profile
 
-comptime style = mist.Style(mist.TRUE_COLOR_PROFILE)
+comptime style = mist.Style(Profile.TRUE_COLOR)
 
 def main():
     print(style.render("Hello, world!"))
@@ -160,7 +157,7 @@ def main():
 You can also use quick styling methods to apply formatting and colors to your text.
 
 ```mojo
-from mist import red, green, blue, bold, italic, crossout, red_background, green_background, blue_background, render_as_color, render_with_background_color
+from mist import red, green, blue, bold, italic, strikethrough, red_background, green_background, blue_background, render_as_color, render_with_background_color
 
 def main():
     print(red("Hello, world!"))
@@ -171,273 +168,9 @@ def main():
     print(blue_background("Hello, world!"))
     print(bold("Hello, world!"))
     print(italic("Hello, world!"))
-    print(crossout("Hello, world!"))
+    print(strikethrough("Hello, world!"))
     print(render_as_color("Hello, world!", 0xc9a0dc))
     print(render_with_background_color("Hello, world!", 0xc9a0dc))
-```
-
-## Terminal Control
-
-### Termios
-
-`mist` offers a `termios` module that allows you to control terminal settings such as echo, canonical mode, and more. This is useful for creating interactive command-line applications.
-
-TODO: Example of using `termios` to change terminal settings.
-
-### TTY Context Manager
-
-In the `mist.terminal` package, you can use the `TTY` context manager as a high-level interface to manage terminal settings rather than using the `termios` module directly. This context manager allows you to temporarily change terminal settings and automatically restores them when exiting the context.
-
-```mojo
-from mist.terminal.tty import TTY, Mode, Area
-
-def main() raises -> None:
-    var area: Area
-    with TTY[Mode.RAW]() as tty:
-        area = tty.terminal_size()
-    print("Terminal dimensions:", area.columns, "x", area.rows)
-```
-
-### Cursor Positioning
-
-The `cursor` module provides functions to control the cursor's position on the terminal. You can alternatively use the `Cursor` struct which provides the same functionality with a more object-oriented interface. It doesn't store any state, it just groups the functions into a commonm namespace for ease of use.
-
-```mojo
-from mist.terminal.cursor import Cursor, move_cursor, save_cursor_position, restore_cursor_position, cursor_up, cursor_down, cursor_forward, cursor_back, cursor_next_line, cursor_prev_line
-
-def main() raises:
-    # Move the cursor to a given position
-    move_cursor(row, column)
-    Cursor.move_to(row, column)
-
-    # Move the cursor up a given number of lines
-    cursor_up(n)
-    Cursor.up(n)
-
-    # Move the cursor down a given number of lines
-    cursor_down(n)
-    Cursor.down(n)
-
-    # Move the cursor up a given number of lines
-    cursor_forward(n)
-    Cursor.forward(n)
-
-    # Move the cursor backwards a given number of cells
-    cursor_back(n)
-    Cursor.back(n)
-
-    # Move the cursor down a given number of lines and place it at the beginning
-    # of the line
-    cursor_next_line(n)
-    Cursor.next_line(n)
-
-    # Move the cursor up a given number of lines and place it at the beginning of
-    # the line
-    cursor_prev_line(n)
-    Cursor.prev_line(n)
-
-    # Save the cursor position
-    save_cursor_position()
-
-    # Restore a saved cursor position
-    restore_cursor_position()
-
-```
-
-### Screen
-
-The `screen` module provides functions to control the terminal screen, such as clearing the screen, changing the scrolling region, and more. You can also use the `Screen` struct which provides the same functionality with a more object-oriented interface.
-
-```mojo
-from mist.terminal.screen import Screen, reset, restore_screen, save_screen, enable_alternate_screen, disable_alternate_screen, clear_screen, clear_line, clear_lines, change_scrolling_region, insert_lines, delete_lines
-
-def main() raises:
-    # Reset the terminal to its default style, removing any active styles
-    reset()
-    Screen.reset()
-
-    # Saves the screen state
-    save_screen()
-    Screen.save()
-
-    # Restores a previously saved screen state
-    restore_screen()
-    Screen.restore()
-
-    # Switch to the altscreen. The former view can be restored with ExitAltScreen()
-    enable_alternate_screen()
-    Screen.enable_alternate_screen()
-
-    # Exit the altscreen and return to the former terminal view
-    disable_alternate_screen()
-    Screen.disable_alternate_screen()
-
-    # Clear the visible portion of the terminal
-    clear_screen()
-    Screen.clear()
-
-    # Clear the current line
-    clear_line()
-    Screen.clear_line()
-
-    # Clear a given number of lines
-    clear_lines(n)
-    Screen.clear_lines(n)
-
-    # Set the scrolling region of the terminal
-    change_scrolling_region(top, bottom)
-    Screen.change_scrolling_region(top, bottom)
-
-    # Insert the given number of lines at the top of the scrollable region, pushing
-    # lines below down
-    insert_lines(n)
-    Screen.insert_lines(n)
-
-    # Delete the given number of lines, pulling any lines in the scrollable region
-    # below up
-    delete_lines(n)
-    Screen.delete_lines(n)
-```
-
-## Example using cursor and screen operations
-
-```mojo
-from mist.terminal.screen import cursor_back, clear_line_right
-
-def main():
-    print("hello", end="")
-    cursor_back(2)
-    clear_line_right()
-```
-
-![Cursor](https://github.com/thatstoasty/mist/blob/main/doc/tapes/cursor.gif)
-
-### Session
-
-```mojo
-from mist.terminal.screen import set_window_title, set_foreground_color, set_background_color, set_cursor_color
-
-def main() raises:
-    # Sets the terminal window title
-    set_window_title(title)
-
-    # Sets the default foreground color
-    set_foreground_color(color)
-
-    # Sets the default background color
-    set_background_color(color)
-
-    # Sets the cursor color
-    set_cursor_color(color)
-```
-
-### Mouse
-
-```mojo
-from mist.terminal.screen import Mouse, enable_mouse_press, disable_mouse_press, enable_mouse, disable_mouse, enable_mouse_hilite, disable_mouse_hilite, enable_mouse_cell_motion, disable_mouse_cell_motion, enable_mouse_all_motion, disable_mouse_all_motion
-
-def main() raises:
-    # Enable X10 mouse mode, only button press events are sent
-    enable_mouse_press()
-
-    # Disable X10 mouse mode
-    disable_mouse_press()
-
-    # Enable Mouse Tracking mode
-    enable_mouse()
-
-    # Disable Mouse Tracking mode
-    disable_mouse()
-
-    # Enable Hilite Mouse Tracking mode
-    enable_mouse_hilite()
-
-    # Disable Hilite Mouse Tracking mode
-    disable_mouse_hilite()
-
-    # Enable Cell Motion Mouse Tracking mode
-    enable_mouse_cell_motion()
-
-    # Disable Cell Motion Mouse Tracking mode
-    disable_mouse_cell_motion()
-
-    # Enable All Motion Mouse mode
-    enable_mouse_all_motion()
-    var mouse_capture = Mouse.enable_capture()
-
-    # Disable All Motion Mouse mode
-    disable_mouse_all_motion()
-    mouse_capture^.disable()
-```
-
-### Bracketed Paste
-
-```mojo
-from mist.terminal.screen import BracketedPaste, enable_bracketed_paste, disable_bracketed_paste
-
-def main() raises:
-    # Enables bracketed paste mode
-    enable_bracketed_paste()
-    var paste = BracketedPaste.enable()
-
-    # Disables bracketed paste mode
-    disable_bracketed_paste()
-    paste^.disable()
-```
-
-### Terminal Querying
-
-The `mist.terminal.query` module provides functions to query terminal properties such as size, color support, and more.
-
-```mojo
-from mist.terminal.query import query_osc
-from mist.terminal.tty import TTY, Mode
-from mist.color import RGBColor
-
-def main() raises -> None:
-    with TTY[Mode.RAW]():
-        var xterm_background_color = query_osc("11;?")
-```
-
-## Reading Terminal Events
-
-`mist` provides an `EventReader` struct that allows you to read events from the terminal, such as key presses, mouse events, and focus gained/lost.
-
-```mojo
-from std.sys import CompilationTarget
-
-from mist.event.read import EventReader
-from mist.terminal.tty import TTY, Mode
-from mist.event.event import Char, KeyEvent
-
-def main() raises -> None:
-    print("Reading events from terminal. Press keys or click mouse (Ctrl+C to exit)...")
-    comptime if CompilationTarget.is_macos():
-        from mist.multiplex.kqueue import KQueueSelector
-        with TTY[Mode.RAW]():
-            var reader = EventReader[KQueueSelector](KQueueSelector())
-            while True:
-                var event = reader.read()
-                if event.isa[KeyEvent]():
-                    print(event[KeyEvent].code, end="\r\n")
-                    if event[KeyEvent].code.isa[Char]() and event[KeyEvent].code[Char] == "q":
-                        print("Exiting on 'q' key press.", end="\r\n")
-                        break
-                else:
-                    print("Received event:", event, end="\r\n")
-    else:
-        from mist.multiplex.select import SelectSelector
-        with TTY[Mode.RAW]():
-            var reader = EventReader[SelectSelector](SelectSelector())
-            while True:
-                var event = reader.read()
-                if event.isa[KeyEvent]():
-                    print(event[KeyEvent].code, end="\r\n")
-                    if event[KeyEvent].code.isa[Char]() and event[KeyEvent].code[Char] == "q":
-                        print("Exiting on 'q' key press.", end="\r\n")
-                        break
-                else:
-                    print("Received event:", event, end="\r\n")
 ```
 
 ## ANSI Aware Text Transformation
@@ -482,7 +215,10 @@ Sekai!
 #### ANSI Example
 
 ```mojo
-print(word_wrap("I really \x1B[38;2;249;38;114mlove\x1B[0m Mojo!", 10))
+from mist.transform import word_wrap
+
+def main():
+    print(word_wrap("I really \x1B[38;2;249;38;114mlove\x1B[0m Mojo!", 10))
 ```
 
 ![ANSI Example Output](https://github.com/thatstoasty/mist/blob/main/doc/images/weave.png)
@@ -583,7 +319,3 @@ Color chart lifted from [termenv](https://github.com/muesli/termenv), give their
 ![ANSI color chart](https://github.com/thatstoasty/mist/blob/main/doc/images/color-chart.png)
 
 ## TODO
-
-* Get terminal resizing to work.
-* Add more terminal query examples.
-* Fix show/hide cursor.

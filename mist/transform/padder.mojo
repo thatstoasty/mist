@@ -1,11 +1,11 @@
 """A writer that pads written content to a given printable cell width."""
-import mist.transform.ansi
+from mist.transform import ansi
 from mist.transform.ansi import NEWLINE_BYTE, SPACE
 from mist.transform.unicode import char_width
 
 
 @explicit_destroy("Call finish() to retrieve the final result and destroy the writer.")
-struct PaddingWriter(Movable):
+struct PaddingWriter(Deinitable where False, Movable):
     """A padding writer that pads content to the given printable cell width.
 
     #### Examples:

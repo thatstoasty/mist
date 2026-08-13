@@ -8,7 +8,7 @@ struct Interval(ImplicitlyCopyable, Writable):
     """The end of the interval, inclusive."""
 
 
-comptime COMBINING: InlineArray[Interval, 43] = [
+comptime COMBINING: Array[Interval, 43] = [
     Interval(0x0300, 0x036F),
     Interval(0x0483, 0x0489),
     Interval(0x07EB, 0x07F3),
@@ -54,7 +54,7 @@ comptime COMBINING: InlineArray[Interval, 43] = [
     Interval(0x1E8D0, 0x1E8D6),
 ]
 
-comptime DOUBLE_WIDTH: InlineArray[Interval, 116] = [
+comptime DOUBLE_WIDTH: Array[Interval, 116] = [
     Interval(0x1100, 0x115F),
     Interval(0x231A, 0x231B),
     Interval(0x2329, 0x232A),
@@ -173,7 +173,7 @@ comptime DOUBLE_WIDTH: InlineArray[Interval, 116] = [
     Interval(0x30000, 0x3FFFD),
 ]
 
-comptime AMBIGUOUS: InlineArray[Interval, 179] = [
+comptime AMBIGUOUS: Array[Interval, 179] = [
     Interval(0x00A1, 0x00A1),
     Interval(0x00A4, 0x00A4),
     Interval(0x00A7, 0x00A8),
@@ -355,7 +355,7 @@ comptime AMBIGUOUS: InlineArray[Interval, 179] = [
     Interval(0x100000, 0x10FFFD),
 ]
 
-comptime NARROW: InlineArray[Interval, 7] = [
+comptime NARROW: Array[Interval, 7] = [
     Interval(0x0020, 0x007E),
     Interval(0x00A2, 0x00A3),
     Interval(0x00A5, 0x00A6),
@@ -365,7 +365,7 @@ comptime NARROW: InlineArray[Interval, 7] = [
     Interval(0x2985, 0x2986),
 ]
 
-comptime neutral: InlineArray[Interval, 826] = [
+comptime NEUTRAL: Array[Interval, 827] = [
     Interval(0x0000, 0x001F),
     Interval(0x007F, 0x00A0),
     Interval(0x00A9, 0x00A9),
@@ -1195,7 +1195,7 @@ comptime neutral: InlineArray[Interval, 826] = [
     Interval(0xE0020, 0xE007F),
 ]
 
-comptime EMOJI: InlineArray[Interval, 76] = [
+comptime EMOJI: Array[Interval, 76] = [
     Interval(0x203C, 0x203C),
     Interval(0x2049, 0x2049),
     Interval(0x2122, 0x2122),
@@ -1274,13 +1274,13 @@ comptime EMOJI: InlineArray[Interval, 76] = [
     Interval(0x1FC00, 0x1FFFD),
 ]
 
-comptime PRIVATE: InlineArray[Interval, 3] = [
+comptime PRIVATE: Array[Interval, 3] = [
     Interval(0x00E000, 0x00F8FF),
     Interval(0x0F0000, 0x0FFFFD),
     Interval(0x100000, 0x10FFFD),
 ]
 
-comptime NON_PRINT: InlineArray[Interval, 12] = [
+comptime NON_PRINT: Array[Interval, 12] = [
     Interval(0x0000, 0x001F),
     Interval(0x007F, 0x009F),
     Interval(0x00AD, 0x00AD),

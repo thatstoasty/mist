@@ -1,5 +1,5 @@
 # fmt: off
-comptime ANSI_HEX_CODES: InlineArray[UInt32, 256] = [
+comptime ANSI_HEX_CODES: Array[UInt32, 256] = [
     # The 16 system colours as used by default by xterm.
     0x000000, 0x800000, 0x008000, 0x808000,
     0x000080, 0x800080, 0x008080, 0xC0C0C0,
@@ -53,7 +53,7 @@ comptime ANSI_HEX_CODES: InlineArray[UInt32, 256] = [
 ]
 """RGB values of ANSI colors (0-255)."""
 
-comptime COLOR_STRINGS: InlineArray[UInt8, 256] = [
+comptime COLOR_STRINGS: Array[UInt8, 256] = [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
     10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
     20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
@@ -81,4 +81,4 @@ comptime COLOR_STRINGS: InlineArray[UInt8, 256] = [
     240, 241, 242, 243, 244, 245, 246, 247, 248, 249,
     250, 251, 252, 253, 254, 255
 ]
-"""0-255. Used to avoid calling `str` during comp-time, which is not supported."""
+"""0-255. Used to avoid calling `str` during compile time, which is not supported."""

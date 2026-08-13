@@ -1,6 +1,6 @@
 """Convenience functions for applying common colors and text styles."""
-from mist.style.profile import Profile
-from mist.style.style import Style
+from mist.profile import Profile
+from mist.style import Style
 
 
 comptime RED = 0xE88388
