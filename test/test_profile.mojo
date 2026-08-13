@@ -1,8 +1,8 @@
 from std import os
 
 from std import testing
-from mist.style.color import ANSI256Color, ANSIColor, NoColor, RGBColor
-from mist.style.profile import Profile, get_color_profile
+from mist.color import ANSI256Color, ANSIColor, NoColor, RGBColor
+from mist.profile import Profile, get_color_profile
 from std.testing import TestSuite
 
 import mist

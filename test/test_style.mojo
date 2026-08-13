@@ -1,9 +1,9 @@
 from std import testing
-from mist.style.profile import Profile
+from mist.profile import Profile
 from std.testing import TestSuite
 
 import mist
-from mist.style.style import SGR
+from mist.style import SGR
 
 
 def test_bold() raises:

@@ -1,5 +1,6 @@
 """The `Style` type for composing ANSI text styles and colors."""
-from mist.style.color import AnyColor, NoColor
+from mist.color import AnyColor, NoColor
+from mist.profile import Profile
 
 
 # Text formatting sequences
@@ -189,22 +190,6 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         self.profile = copy.profile
         self.styles = copy.styles.copy()
 
-    def write_repr_to(self, mut writer: Some[Writer]) -> None:
-        """Writes a string representation of the Style to the given writer.
-
-        Args:
-            writer: The writer to write the string representation to.
-        """
-        writer.write(self)
-
-    def write_to(self, mut writer: Some[Writer]) -> None:
-        """Writes the Style to a Writer.
-
-        Args:
-            writer: The Writer to write the Style to.
-        """
-        writer.write("Style(", "styles=", repr(self.styles), ", profile=", self.profile, ")")
-
     def add_style(self, style: String) -> Self:
         """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that.
 
@@ -222,23 +207,6 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         new.styles.append(style)
         return new^
 
-    def add_style[style: String](self) -> Self:
-        """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that.
-
-        Parameters:
-            style: The ANSI style to add to the list of style.
-
-        Returns:
-            A new Style with the style added.
-
-        #### Notes:
-        - The style being added must be a valid ANSI SGR sequence.
-        - You can use the `SGR` enum for some common styles to apply.
-        """
-        var new = self.copy()
-        new.styles.append(style)
-        return new^
-
     @always_inline
     def bold(self) -> Self:
         """Makes the text bold when rendered.
@@ -246,7 +214,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the bold style added.
         """
-        return self.add_style[SGR.BOLD]()
+        return self.add_style(SGR.BOLD)
 
     @always_inline
     def disable_bold(self) -> Self:
@@ -255,7 +223,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the bold style disabled.
         """
-        return self.add_style[SGR.NO_BOLD]()
+        return self.add_style(SGR.NO_BOLD)
 
     @always_inline
     def faint(self) -> Self:
@@ -264,7 +232,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the faint style added.
         """
-        return self.add_style[SGR.FAINT]()
+        return self.add_style(SGR.FAINT)
 
     @always_inline
     def disable_faint(self) -> Self:
@@ -273,7 +241,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the faint style disabled.
         """
-        return self.add_style[SGR.NORMAL_INTENSITY]()
+        return self.add_style(SGR.NORMAL_INTENSITY)
 
     @always_inline
     def italic(self) -> Self:
@@ -282,7 +250,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the italic style added.
         """
-        return self.add_style[SGR.ITALIC]()
+        return self.add_style(SGR.ITALIC)
 
     @always_inline
     def disable_italic(self) -> Self:
@@ -291,7 +259,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the italic style disabled.
         """
-        return self.add_style[SGR.NO_ITALIC]()
+        return self.add_style(SGR.NO_ITALIC)
 
     @always_inline
     def underline(self) -> Self:
@@ -300,7 +268,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the underline style added.
         """
-        return self.add_style[SGR.UNDERLINE]()
+        return self.add_style(SGR.UNDERLINE)
 
     @always_inline
     def disable_underline(self) -> Self:
@@ -309,7 +277,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the underline style disabled.
         """
-        return self.add_style[SGR.NO_UNDERLINE]()
+        return self.add_style(SGR.NO_UNDERLINE)
 
     @always_inline
     def blink(self) -> Self:
@@ -318,7 +286,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the blink style added.
         """
-        return self.add_style[SGR.SLOW_BLINK]()
+        return self.add_style(SGR.SLOW_BLINK)
 
     @always_inline
     def disable_blink(self) -> Self:
@@ -327,7 +295,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the blink style disabled.
         """
-        return self.add_style[SGR.NO_BLINK]()
+        return self.add_style(SGR.NO_BLINK)
 
     @always_inline
     def rapid_blink(self) -> Self:
@@ -336,7 +304,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the rapid blink style added.
         """
-        return self.add_style[SGR.RAPID_BLINK]()
+        return self.add_style(SGR.RAPID_BLINK)
 
     @always_inline
     def reverse(self) -> Self:
@@ -345,7 +313,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the reverse style added.
         """
-        return self.add_style[SGR.REVERSE]()
+        return self.add_style(SGR.REVERSE)
 
     @always_inline
     def disable_reverse(self) -> Self:
@@ -354,7 +322,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the reverse style disabled.
         """
-        return self.add_style[SGR.NO_REVERSE]()
+        return self.add_style(SGR.NO_REVERSE)
 
     @always_inline
     def conceal(self) -> Self:
@@ -363,7 +331,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the conceal style added.
         """
-        return self.add_style[SGR.CONCEAL]()
+        return self.add_style(SGR.CONCEAL)
 
     @always_inline
     def disable_conceal(self) -> Self:
@@ -372,7 +340,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the conceal style disabled.
         """
-        return self.add_style[SGR.NO_CONCEAL]()
+        return self.add_style(SGR.NO_CONCEAL)
 
     @always_inline
     def strikethrough(self) -> Self:
@@ -381,7 +349,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the strikethrough style added.
         """
-        return self.add_style[SGR.STRIKETHROUGH]()
+        return self.add_style(SGR.STRIKETHROUGH)
 
     @always_inline
     def disable_strikethrough(self) -> Self:
@@ -390,7 +358,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the strikethrough style disabled.
         """
-        return self.add_style[SGR.NO_STRIKETHROUGH]()
+        return self.add_style(SGR.NO_STRIKETHROUGH)
 
     @always_inline
     def overline(self) -> Self:
@@ -399,7 +367,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the overline style added.
         """
-        return self.add_style[SGR.OVERLINE]()
+        return self.add_style(SGR.OVERLINE)
 
     def background(self, *, color: AnyColor) -> Self:
         """Set the background color of the text when it's rendered.
@@ -460,7 +428,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to standard black.
         """
-        return self.add_style[SGR.BLACK_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BLACK_FOREGROUND_COLOR)
 
     @always_inline
     def black_background(self) -> Self:
@@ -469,7 +437,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to black.
         """
-        return self.add_style[SGR.BLACK_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BLACK_BACKGROUND_COLOR)
 
     @always_inline
     def dark_red(self) -> Self:
@@ -478,7 +446,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to standard red.
         """
-        return self.add_style[SGR.RED_FOREGROUND_COLOR]()
+        return self.add_style(SGR.RED_FOREGROUND_COLOR)
 
     @always_inline
     def dark_red_background(self) -> Self:
@@ -487,7 +455,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to standard red.
         """
-        return self.add_style[SGR.RED_BACKGROUND_COLOR]()
+        return self.add_style(SGR.RED_BACKGROUND_COLOR)
 
     @always_inline
     def dark_green(self) -> Self:
@@ -496,7 +464,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to standard green.
         """
-        return self.add_style[SGR.GREEN_FOREGROUND_COLOR]()
+        return self.add_style(SGR.GREEN_FOREGROUND_COLOR)
 
     @always_inline
     def dark_green_background(self) -> Self:
@@ -505,7 +473,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to standard green.
         """
-        return self.add_style[SGR.GREEN_BACKGROUND_COLOR]()
+        return self.add_style(SGR.GREEN_BACKGROUND_COLOR)
 
     @always_inline
     def dark_yellow(self) -> Self:
@@ -514,7 +482,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to standard yellow.
         """
-        return self.add_style[SGR.YELLOW_FOREGROUND_COLOR]()
+        return self.add_style(SGR.YELLOW_FOREGROUND_COLOR)
 
     @always_inline
     def dark_yellow_background(self) -> Self:
@@ -523,7 +491,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to standard yellow.
         """
-        return self.add_style[SGR.YELLOW_BACKGROUND_COLOR]()
+        return self.add_style(SGR.YELLOW_BACKGROUND_COLOR)
 
     @always_inline
     def navy(self) -> Self:
@@ -532,7 +500,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to standard blue.
         """
-        return self.add_style[SGR.BLUE_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BLUE_FOREGROUND_COLOR)
 
     @always_inline
     def navy_background(self) -> Self:
@@ -541,7 +509,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to standard blue.
         """
-        return self.add_style[SGR.BLUE_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BLUE_BACKGROUND_COLOR)
 
     @always_inline
     def purple(self) -> Self:
@@ -550,7 +518,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to standard magenta.
         """
-        return self.add_style[SGR.MAGENTA_FOREGROUND_COLOR]()
+        return self.add_style(SGR.MAGENTA_FOREGROUND_COLOR)
 
     @always_inline
     def purple_background(self) -> Self:
@@ -559,7 +527,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to standard magenta.
         """
-        return self.add_style[SGR.MAGENTA_BACKGROUND_COLOR]()
+        return self.add_style(SGR.MAGENTA_BACKGROUND_COLOR)
 
     @always_inline
     def teal(self) -> Self:
@@ -568,7 +536,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to standard cyan.
         """
-        return self.add_style[SGR.CYAN_FOREGROUND_COLOR]()
+        return self.add_style(SGR.CYAN_FOREGROUND_COLOR)
 
     @always_inline
     def teal_background(self) -> Self:
@@ -577,7 +545,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to standard cyan.
         """
-        return self.add_style[SGR.CYAN_BACKGROUND_COLOR]()
+        return self.add_style(SGR.CYAN_BACKGROUND_COLOR)
 
     @always_inline
     def light_gray(self) -> Self:
@@ -586,7 +554,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to white.
         """
-        return self.add_style[SGR.WHITE_FOREGROUND_COLOR]()
+        return self.add_style(SGR.WHITE_FOREGROUND_COLOR)
 
     @always_inline
     def light_gray_background(self) -> Self:
@@ -595,7 +563,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to white.
         """
-        return self.add_style[SGR.WHITE_BACKGROUND_COLOR]()
+        return self.add_style(SGR.WHITE_BACKGROUND_COLOR)
 
     @always_inline
     def dark_gray(self) -> Self:
@@ -604,7 +572,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to dark gray.
         """
-        return self.add_style[SGR.BRIGHT_BLACK_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_BLACK_FOREGROUND_COLOR)
 
     @always_inline
     def dark_gray_background(self) -> Self:
@@ -613,7 +581,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to dark gray.
         """
-        return self.add_style[SGR.BRIGHT_BLACK_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_BLACK_BACKGROUND_COLOR)
 
     @always_inline
     def red(self) -> Self:
@@ -622,7 +590,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to high intensity red.
         """
-        return self.add_style[SGR.BRIGHT_RED_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_RED_FOREGROUND_COLOR)
 
     @always_inline
     def red_background(self) -> Self:
@@ -631,7 +599,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to high intensity red.
         """
-        return self.add_style[SGR.BRIGHT_RED_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_RED_BACKGROUND_COLOR)
 
     @always_inline
     def green(self) -> Self:
@@ -640,7 +608,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to high intensity green.
         """
-        return self.add_style[SGR.BRIGHT_GREEN_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_GREEN_FOREGROUND_COLOR)
 
     @always_inline
     def green_background(self) -> Self:
@@ -649,7 +617,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to high intensity green.
         """
-        return self.add_style[SGR.BRIGHT_GREEN_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_GREEN_BACKGROUND_COLOR)
 
     @always_inline
     def yellow(self) -> Self:
@@ -658,7 +626,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to high intensity yellow.
         """
-        return self.add_style[SGR.BRIGHT_YELLOW_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_YELLOW_FOREGROUND_COLOR)
 
     @always_inline
     def yellow_background(self) -> Self:
@@ -667,7 +635,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to high intensity yellow.
         """
-        return self.add_style[SGR.BRIGHT_YELLOW_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_YELLOW_BACKGROUND_COLOR)
 
     @always_inline
     def blue(self) -> Self:
@@ -676,7 +644,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to high intensity blue.
         """
-        return self.add_style[SGR.BRIGHT_BLUE_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_BLUE_FOREGROUND_COLOR)
 
     @always_inline
     def blue_background(self) -> Self:
@@ -685,7 +653,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to high intensity blue.
         """
-        return self.add_style[SGR.BRIGHT_BLUE_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_BLUE_BACKGROUND_COLOR)
 
     @always_inline
     def magenta(self) -> Self:
@@ -694,7 +662,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to high intensity magenta.
         """
-        return self.add_style[SGR.BRIGHT_MAGENTA_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_MAGENTA_FOREGROUND_COLOR)
 
     @always_inline
     def magenta_background(self) -> Self:
@@ -703,7 +671,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to high intensity magenta.
         """
-        return self.add_style[SGR.BRIGHT_MAGENTA_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_MAGENTA_BACKGROUND_COLOR)
 
     @always_inline
     def cyan(self) -> Self:
@@ -712,7 +680,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to high intensity cyan.
         """
-        return self.add_style[SGR.BRIGHT_CYAN_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_CYAN_FOREGROUND_COLOR)
 
     @always_inline
     def cyan_background(self) -> Self:
@@ -721,7 +689,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to high intensity cyan.
         """
-        return self.add_style[SGR.BRIGHT_CYAN_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_CYAN_BACKGROUND_COLOR)
 
     @always_inline
     def white(self) -> Self:
@@ -730,7 +698,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set to high intensity white.
         """
-        return self.add_style[SGR.BRIGHT_WHITE_FOREGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_WHITE_FOREGROUND_COLOR)
 
     @always_inline
     def white_background(self) -> Self:
@@ -739,7 +707,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set to high intensity white.
         """
-        return self.add_style[SGR.BRIGHT_WHITE_BACKGROUND_COLOR]()
+        return self.add_style(SGR.BRIGHT_WHITE_BACKGROUND_COLOR)
 
     def render[T: Writable, //](self, text: T) -> String:
         """Renders text with the styles applied to it.

@@ -1,5 +1,5 @@
 """A writer that truncates written content at a given printable cell width."""
-import mist.transform.ansi
+from mist.transform import ansi
 from mist.transform.unicode import char_width
 
 

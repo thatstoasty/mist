@@ -85,7 +85,7 @@ struct Condition[east_asian_width: Bool, strict_emoji_neutral: Bool](Copyable, W
         return width
 
 
-def in_table[table: InlineArray[Interval, ...]](codepoint: Codepoint) -> Bool:
+def in_table[table: Array[Interval, ...]](codepoint: Codepoint) -> Bool:
     """Check if the rune is in the table.
 
     Parameters:

@@ -1,12 +1,12 @@
 """A writer that applies both indentation and padding as a margin."""
-import mist.transform.ansi
+from mist.transform import ansi
 from mist.transform.indenter import IndentWriter
 from mist.transform.padder import PaddingWriter
 from mist.transform.unicode import string_width
 
 
 @explicit_destroy("Call finish() to retrieve the final result and destroy the writer.")
-struct MarginWriter(Movable):
+struct MarginWriter(Deinitable where False, Movable):
     """A margin writer that applies a margin to the content.
 
     #### Examples:
