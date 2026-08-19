@@ -49,7 +49,7 @@ struct MarginWriter(Deinitable where False, Movable):
         self.pw = PaddingWriter(pad)
         self.iw = IndentWriter(indentation)
 
-    def write(mut self, text: StringSlice) -> None:
+    def write[origin: ImmOrigin, //](mut self, text: StringSpan[origin]) -> None:
         """Writes the text, `content`, to the writer, with the
         padding and indentation applied.
 
@@ -69,7 +69,7 @@ struct MarginWriter(Deinitable where False, Movable):
         return self.buf^
 
 
-def margin(text: StringSlice, pad: UInt, indent: UInt) -> String:
+def margin[origin: ImmOrigin, //](text: StringSpan[origin], pad: UInt, indent: UInt) -> String:
     """Right pads `text` with a `width` number of spaces, and indents it with `margin` spaces.
 
     Args:
@@ -88,6 +88,9 @@ def margin(text: StringSlice, pad: UInt, indent: UInt) -> String:
         print(margin("Hello, World!", pad=5, indent=2))
     ```
     """
+    if pad == 0 and indent == 0:
+        return String(text)
+
     var writer = MarginWriter(pad, indent)
     writer.write(text)
     return writer^.finish()

@@ -1,8 +1,14 @@
 """Removes common leading indentation from multi-line text."""
+from mist.transform import ansi
+from mist.transform.ansi import NEWLINE_BYTE, SPACE_BYTE, TAB_BYTE
 
 
-def _calculate_minimum_indentation(text: StringSlice) -> UInt:
+def _calculate_minimum_indentation[origin: ImmOrigin, //](text: StringSpan[origin]) -> UInt:
     """Detects the indentation level shared by all lines.
+
+    ANSI escape sequences are transparent to this scan: they neither count as
+    indentation nor end it, so a sequence ahead of a line's leading whitespace
+    (e.g. a color applied to an indented line) does not defeat detection.
 
     Args:
         text: The text to dedent.
@@ -13,12 +19,17 @@ def _calculate_minimum_indentation(text: StringSlice) -> UInt:
     var cur_indent: UInt = 0
     var min_indent: UInt = 0
     var should_append = True
+    var scanner = ansi.SequenceScanner()
 
-    for codepoint in text.codepoint_slices():
-        if codepoint == "\t" or codepoint == " ":
+    for codepoint in text.codepoints():
+        if scanner.step(codepoint):
+            continue
+
+        var rune = codepoint.to_u32()
+        if rune == TAB_BYTE or rune == SPACE_BYTE:
             if should_append:
                 cur_indent += 1
-        elif codepoint == "\n":
+        elif rune == NEWLINE_BYTE:
             cur_indent = 0
             should_append = True
         else:
@@ -30,9 +41,12 @@ def _calculate_minimum_indentation(text: StringSlice) -> UInt:
     return min_indent
 
 
-def _apply_dedent(text: StringSlice, indent: UInt) -> String:
+def _apply_dedent[origin: ImmOrigin, //](text: StringSpan[origin], indent: UInt) -> String:
     """Returns a copy `text` that's been dedented
     by removing the shared indentation level.
+
+    ANSI escape sequences are always copied through in place and never count
+    against the columns being stripped.
 
     Args:
         text: The text to dedent.
@@ -44,16 +58,22 @@ def _apply_dedent(text: StringSlice, indent: UInt) -> String:
     var should_omit = True
     var omitted: UInt = 0
     var buf = String(capacity=Int(Float64(text.byte_length()) * 1.25))
+    var scanner = ansi.SequenceScanner()
 
-    for codepoint in text.codepoint_slices():
-        if codepoint == "\t" or codepoint == " ":
+    for codepoint in text.codepoints():
+        if scanner.step(codepoint):
+            buf.write(codepoint)
+            continue
+
+        var rune = codepoint.to_u32()
+        if rune == TAB_BYTE or rune == SPACE_BYTE:
             if should_omit:
                 if omitted < indent:
                     omitted += 1
                     continue
                 should_omit = False
             buf.write(codepoint)
-        elif codepoint == "\n":
+        elif rune == NEWLINE_BYTE:
             omitted = 0
             should_omit = True
             buf.write(codepoint)
@@ -63,7 +83,7 @@ def _apply_dedent(text: StringSlice, indent: UInt) -> String:
     return buf^
 
 
-def dedent(text: StringSlice) -> String:
+def dedent[origin: ImmOrigin, //](text: StringSpan[origin]) -> String:
     """Automatically detects the maximum indentation shared by all lines and
     trims them accordingly.
 

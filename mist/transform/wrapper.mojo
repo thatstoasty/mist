@@ -1,7 +1,7 @@
 """A writer that wraps written content to a fixed printable cell width."""
 from mist.transform import ansi
-from mist.transform.ansi import NEWLINE_BYTE, SPACE, SPACE_BYTE
-from mist.transform.unicode import char_width
+from mist.transform.ansi import SPACE
+from mist.transform.unicode import grapheme_width
 
 
 comptime DEFAULT_NEWLINE = "\n"
@@ -31,7 +31,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
     var limit: UInt
     """The maximum number of characters per line."""
     var newline: String
-    """The character to use as a newline."""
+    """The string written when this writer inserts a line break."""
     var preserve_space: Bool
     """Whether to preserve space characters."""
     var tab_width: UInt
@@ -40,8 +40,8 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
     """The buffer that stores the wrapped content."""
     var line_len: UInt
     """The current line length."""
-    var ansi: Bool
-    """Whether the current character is part of an ANSI escape sequence."""
+    var scanner: ansi.SequenceScanner
+    """Tracks whether the current character is part of an ANSI escape sequence."""
     var forceful_newline: Bool
     """Whether to force a newline at the end of the line."""
 
@@ -53,18 +53,16 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
         preserve_space: Bool = False,
         tab_width: UInt = DEFAULT_TAB_WIDTH,
         line_len: UInt = 0,
-        ansi: Bool = False,
         forceful_newline: Bool = False,
     ):
         """Initializes a new line wrap writer.
 
         Args:
             limit: The maximum number of characters per line.
-            newline: The character to use as a newline.
+            newline: The string written when this writer inserts a line break.
             preserve_space: Whether to preserve space characters.
             tab_width: The width of a tab character.
             line_len: The current line length.
-            ansi: Whether the current character is part of an ANSI escape sequence.
             forceful_newline: Whether to force a newline at the end of the line.
         """
         self.limit = limit
@@ -73,7 +71,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
         self.tab_width = tab_width
         self.buf = String()
         self.line_len = line_len
-        self.ansi = ansi
+        self.scanner = ansi.SequenceScanner()
         self.forceful_newline = forceful_newline
 
     def write_to(self, mut writer: Some[Writer]):
@@ -89,7 +87,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
         self.buf.write(self.newline)
         self.line_len = 0
 
-    def write(mut self, text: StringSlice) -> None:
+    def write[origin: ImmOrigin, //](mut self, text: StringSpan[origin]) -> None:
         """Writes the text, `content`, to the writer, wrapping lines once the limit is reached.
 
         Args:
@@ -100,7 +98,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
         content = content.replace("\t", tab_space)
 
         comptime if not Self.keep_newlines:
-            content = content.replace("\n", "")
+            content = content.replace("\r\n", "").replace("\n", "")
 
         var width = ansi.printable_rune_width(content)
         if self.limit <= 0 or self.line_len + width <= self.limit:
@@ -108,37 +106,45 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
             self.buf.write(content)
             return
 
-        for codepoint in content.codepoints():
-            if codepoint.to_u32() == ansi.ANSI_MARKER_BYTE:
-                self.ansi = True
-            elif self.ansi:
-                if ansi.is_terminator(codepoint):
-                    self.ansi = False
-            elif codepoint.to_u32() == NEWLINE_BYTE:
-                self.add_newline()
-                self.forceful_newline = False
-                continue
-            else:
-                var width = char_width(codepoint)
+        for grapheme in content.graphemes():
+            var printable = True
+            for codepoint in grapheme.codepoints():
+                if self.scanner.step(codepoint):
+                    printable = False
 
+            if printable:
+                if ansi.is_newline(grapheme):
+                    # Write the break exactly as it appeared in the input, so a
+                    # CRLF survives intact. `newline` governs only the breaks
+                    # that wrapping itself inserts.
+                    self.buf.write(grapheme)
+                    self.line_len = 0
+                    self.forceful_newline = False
+                    continue
+
+                var width = grapheme_width(grapheme)
+
+                # Break before the cluster rather than within it, so a wrapped
+                # line never ends with a partial glyph.
                 if self.line_len + width > self.limit:
                     self.add_newline()
                     self.forceful_newline = True
 
                 if self.line_len == 0:
-                    if self.forceful_newline and not self.preserve_space and codepoint.to_u32() == SPACE_BYTE:
+                    if self.forceful_newline and not self.preserve_space and grapheme == SPACE:
                         continue
                 else:
                     self.forceful_newline = False
 
                 self.line_len += width
-            self.buf.write(codepoint)
+
+            self.buf.write(grapheme)
 
 
 def wrap[
-    keep_newlines: Bool = True
+    origin: ImmOrigin, //, keep_newlines: Bool = True
 ](
-    text: StringSlice,
+    text: StringSpan[origin],
     limit: UInt,
     *,
     newline: String = DEFAULT_NEWLINE,
@@ -153,7 +159,7 @@ def wrap[
     Args:
         text: The string to wrap.
         limit: The maximum line length before wrapping.
-        newline: The character to use as a newline.
+        newline: The string written when wrapping inserts a line break.
         preserve_space: Whether to preserve space characters.
         tab_width: The width of a tab character.
 
@@ -168,6 +174,9 @@ def wrap[
         print(wrap("Hello, World!", 5))
     ```
     """
+    if limit == 0:
+        return String(text)
+
     var writer = WrapWriter[keep_newlines](limit, newline=newline, preserve_space=preserve_space, tab_width=tab_width)
     writer.write(text)
     return String(writer)
