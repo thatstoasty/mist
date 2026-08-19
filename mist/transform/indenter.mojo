@@ -24,8 +24,8 @@ struct IndentWriter(Movable, Writable):
     """The ANSI aware writer that stores the text content."""
     var skip_indent: Bool
     """Whether to skip the indentation for the next line."""
-    var in_ansi: Bool
-    """Whether the current character is part of an ANSI escape sequence."""
+    var scanner: ansi.SequenceScanner
+    """Tracks whether the current character is part of an ANSI escape sequence."""
 
     def __init__(out self, indent: UInt):
         """Initializes a new indent-writer instance.
@@ -36,15 +36,15 @@ struct IndentWriter(Movable, Writable):
         self.indent = indent
         self.ansi_writer = ansi.Writer()
         self.skip_indent = False
-        self.in_ansi = False
+        self.scanner = ansi.SequenceScanner()
 
-    def as_string_slice(self) -> StringSlice[origin_of(self.ansi_writer.forward)]:
+    def as_string_slice(self) -> StringSpan[origin_of(self.ansi_writer.forward)]:
         """Returns the indented result as a string slice by referencing the content of the internal buffer.
 
         Returns:
             The indented string slice.
         """
-        return StringSlice(self.ansi_writer.forward)
+        return StringSpan(self.ansi_writer.forward)
 
     def write_to(self, mut writer: Some[Writer]):
         """Writes the content of the buffer to the specified writer.
@@ -54,7 +54,7 @@ struct IndentWriter(Movable, Writable):
         """
         writer.write(self.ansi_writer.forward)
 
-    def write(mut self, text: StringSlice) -> None:
+    def write[origin: ImmOrigin, //](mut self, text: StringSpan[origin]) -> None:
         """Writes the text, `text`, to the writer,
         indenting each line by `self.indent` spaces.
 
@@ -62,14 +62,7 @@ struct IndentWriter(Movable, Writable):
             text: The content to write.
         """
         for codepoint in text.codepoints():
-            # ANSI escape sequence
-            if codepoint.to_u32() == ansi.ANSI_MARKER_BYTE:
-                self.in_ansi = True
-            elif self.in_ansi:
-                # ANSI sequence terminated
-                if ansi.is_terminator(codepoint):
-                    self.in_ansi = False
-            else:
+            if not self.scanner.step(codepoint):
                 if not self.skip_indent:
                     self.ansi_writer.reset_ansi()
                     self.ansi_writer.write(SPACE * Int(self.indent))
@@ -83,7 +76,7 @@ struct IndentWriter(Movable, Writable):
             self.ansi_writer.write(codepoint)
 
 
-def indent(text: StringSlice, indent: UInt) -> String:
+def indent[origin: ImmOrigin, //](text: StringSpan[origin], indent: UInt) -> String:
     """Indents `text` with a `indent` number of spaces.
 
     Args:
@@ -101,6 +94,9 @@ def indent(text: StringSlice, indent: UInt) -> String:
         print(indent("Hello, World!", 4))
     ```
     """
+    if indent == 0:
+        return String(text)
+
     var writer = IndentWriter(indent)
     writer.write(text)
     return String(writer)

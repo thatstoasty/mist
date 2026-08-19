@@ -742,7 +742,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
 
         return writer.write(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
 
-    def render_many[*Ts: Writable](self, *text: *Ts, sep: StringSlice = " ") -> String:
+    def render_many[*Ts: Writable](self, *text: *Ts, sep: StringSpan = " ") -> String:
         """Renders text with the styles applied to it.
 
         The writable objects are concatendated together with `sep` in between them,
@@ -769,7 +769,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
 
         return String(CSI, ";".join(self.styles), "m", result, RESET_STYLE)
 
-    def render_many[W: Writer, *Ts: Writable](self, *text: *Ts, mut writer: W, sep: StringSlice = " "):
+    def render_many[W: Writer, *Ts: Writable](self, *text: *Ts, mut writer: W, sep: StringSpan = " "):
         """Renders text with the styles applied to it.
 
         Parameters:

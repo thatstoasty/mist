@@ -38,7 +38,7 @@ There's two ways to build `mist` from source: directly from the Git repository o
 Run the following commands in your terminal:
 
 ```bash
-pixi add mist --git "https://github.com/thatstoasty/mist.git" --tag "v0.3.0" && pixi install
+pixi add mist --git "https://github.com/thatstoasty/mist.git" --tag "v0.3.2" && pixi install
 ```
 
 #### Building from source: Local
