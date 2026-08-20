@@ -268,6 +268,72 @@ struct SequenceScanner(Movable):
         return True
 
 
+def _ascii_scanned_width[origin: ImmOrigin, //](text: StringSpan[origin]) -> Optional[UInt]:
+    """Returns the cell width of all-ASCII `text`, skipping escape sequences.
+
+    Styled text always contains `ESC`, so the sequence-free shortcut never fires
+    on it. This covers that case instead: in all-ASCII input every byte is its
+    own grapheme cluster -- a combining mark is non-ASCII by definition, so
+    nothing can join, and `CRLF` measures zero either way because both halves
+    are controls -- which means the scanner can run over raw bytes and the
+    clusters never have to be segmented at all.
+
+    Between sequences the scanner sits in its ground state, where the only byte
+    that matters is `ESC`, so those runs are counted a SIMD register at a time
+    and only the sequences themselves are walked byte by byte.
+
+    Parameters:
+        origin: The origin of the string.
+
+    Args:
+        text: The string to measure.
+
+    Returns:
+        The printable cell width, or `None` if `text` is not all ASCII.
+    """
+    comptime W = _ESCAPE_SIMD_WIDTH
+
+    var bytes = text.as_bytes()
+    var length = len(bytes)
+    var ptr = bytes.unsafe_ptr()
+    var width: UInt = 0
+    var scanner = SequenceScanner()
+    var index = 0
+
+    while index < length:
+        # Outside a sequence, skip ahead a register at a time until a chunk
+        # holds an `ESC`; inside one, fall through to the byte-wise walk.
+        if not scanner.is_active():
+            while index + W <= length:
+                var chunk = ptr.unsafe_offset(index).unsafe_load[width=W]()
+                if chunk.ge(0x80).reduce_or():
+                    return None
+                if chunk.eq(UInt8(ANSI_MARKER_BYTE)).reduce_or():
+                    break
+
+                width += UInt(Int((chunk.ge(0x20) & chunk.le(0x7E)).cast[DType.uint8]().reduce_add()))
+                index += W
+
+            # The skip can land exactly on the end, and the byte-wise step below
+            # would then read past the buffer.
+            if index >= length:
+                break
+
+        var byte = ptr[unsafe_offset=index]
+        if byte >= 0x80:
+            return None
+
+        if not scanner.step(Codepoint(byte)):
+            # Control characters and DEL occupy no cells; everything else in
+            # ASCII occupies exactly one.
+            if byte >= 0x20 and byte <= 0x7E:
+                width += 1
+
+        index += 1
+
+    return width
+
+
 def printable_rune_width[origin: ImmOrigin, //](text: StringSpan[origin]) -> UInt:
     """Returns the cell width of the given string, ignoring escape sequences.
 
@@ -282,6 +348,12 @@ def printable_rune_width[origin: ImmOrigin, //](text: StringSpan[origin]) -> UIn
     var ascii_width = _ascii_cell_width[reject_escape=True](text)
     if ascii_width:
         return ascii_width.value()
+
+    # Styled text is still ASCII, just not sequence-free; it can be scanned
+    # byte-wise rather than segmented.
+    var scanned_width = _ascii_scanned_width(text)
+    if scanned_width:
+        return scanned_width.value()
 
     return _printable_rune_width_scanned(text)
 
@@ -308,6 +380,12 @@ def printable_width_within[origin: ImmOrigin, //](text: StringSpan[origin], limi
         if ascii_width.value() > limit:
             return None
         return ascii_width
+
+    var scanned_width = _ascii_scanned_width(text)
+    if scanned_width:
+        if scanned_width.value() > limit:
+            return None
+        return scanned_width
 
     var length: UInt = 0
     var scanner = SequenceScanner()
