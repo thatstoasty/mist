@@ -1,6 +1,6 @@
 """A writer that wraps written content to a fixed printable cell width."""
 from mist.transform import ansi
-from mist.transform.ansi import SPACE
+from mist.transform.ansi import CARRIAGE_RETURN_BYTE, NEWLINE_BYTE, SPACE, SPACE_BYTE, _is_plain_ascii
 from mist.transform.unicode import grapheme_width
 
 
@@ -100,12 +100,38 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
         comptime if not Self.keep_newlines:
             content = content.replace("\r\n", "").replace("\n", "")
 
-        var width = ansi.printable_rune_width(content)
-        if self.limit <= 0 or self.line_len + width <= self.limit:
-            self.line_len += width
+        if self.limit == 0:
+            self.line_len += ansi.printable_rune_width(content)
             self.buf.write(content)
             return
 
+        # Only the width up to the remaining budget matters here: if the content
+        # overruns the line it goes to the wrapping loop, which measures each
+        # cluster itself, so measuring the whole span first would be discarded
+        # work.
+        if self.line_len <= self.limit:
+            var width = ansi.printable_width_within(content, self.limit - self.line_len)
+            if width:
+                self.line_len += width.value()
+                self.buf.write(content)
+                return
+
+        if not self.scanner.is_active() and _is_plain_ascii(content):
+            return self._write_ascii(content)
+
+        return self._write_general(content)
+
+    def _write_general[origin: ImmOrigin, //](mut self, content: StringSpan[origin]) -> None:
+        """Wraps by segmenting grapheme clusters. Correct for any input.
+
+        Assumes tab expansion and newline stripping have already been applied.
+
+        Parameters:
+            origin: The origin of the string.
+
+        Args:
+            content: The prepared content to wrap.
+        """
         for grapheme in content.graphemes():
             var printable = True
             for codepoint in grapheme.codepoints():
@@ -139,6 +165,78 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
                 self.line_len += width
 
             self.buf.write(grapheme)
+
+    def _write_ascii[origin: ImmOrigin, //](mut self, text: StringSpan[origin]) -> None:
+        """Wraps a span already known to be plain ASCII with no escape sequences.
+
+        Equivalent to the grapheme path, but reads the span a byte at a time and
+        copies each run of content in one go rather than one cluster at a time.
+        In ASCII every byte is its own grapheme cluster except `CRLF`, which is
+        paired explicitly so a break is never split across two iterations.
+
+        Parameters:
+            origin: The origin of the string.
+
+        Args:
+            text: The content to wrap, which must be plain ASCII.
+        """
+        var bytes = text.as_bytes()
+        var length = len(bytes)
+        var ptr = bytes.unsafe_ptr()
+        var index = 0
+        var run_start = 0
+
+        while index < length:
+            var byte = ptr[unsafe_offset=index]
+            var break_length = 0
+
+            if byte == UInt8(NEWLINE_BYTE):
+                break_length = 1
+            elif (
+                byte == UInt8(CARRIAGE_RETURN_BYTE)
+                and index + 1 < length
+                and ptr[unsafe_offset=index + 1] == UInt8(NEWLINE_BYTE)
+            ):
+                break_length = 2
+
+            if break_length != 0:
+                # Write the break exactly as it appeared in the input, so a
+                # CRLF survives intact. `newline` governs only the breaks that
+                # wrapping itself inserts.
+                index += break_length
+                self.buf.write(text[byte=run_start:index])
+                run_start = index
+                self.line_len = 0
+                self.forceful_newline = False
+                continue
+
+            # Control characters and DEL occupy no cells; everything else in
+            # ASCII occupies exactly one.
+            var cell_width: UInt = 1 if byte >= 0x20 and byte <= 0x7E else 0
+
+            # Break before the byte rather than after, so a wrapped line never
+            # exceeds the limit.
+            if self.line_len + cell_width > self.limit:
+                self.buf.write(text[byte=run_start:index])
+                run_start = index
+                self.add_newline()
+                self.forceful_newline = True
+
+            if self.line_len == 0:
+                if self.forceful_newline and not self.preserve_space and byte == UInt8(SPACE_BYTE):
+                    # The space is dropped, so the pending run has to stop short
+                    # of it and resume after it.
+                    self.buf.write(text[byte=run_start:index])
+                    index += 1
+                    run_start = index
+                    continue
+            else:
+                self.forceful_newline = False
+
+            self.line_len += cell_width
+            index += 1
+
+        self.buf.write(text[byte=run_start:length])
 
 
 def wrap[

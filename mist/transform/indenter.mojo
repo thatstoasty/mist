@@ -1,6 +1,6 @@
 """A writer that indents written content by a fixed number of spaces."""
 from mist.transform import ansi
-from mist.transform.ansi import NEWLINE_BYTE, SPACE
+from mist.transform.ansi import NEWLINE_BYTE, SPACE, _is_plain_ascii
 
 
 @fieldwise_init
@@ -24,8 +24,6 @@ struct IndentWriter(Movable, Writable):
     """The ANSI aware writer that stores the text content."""
     var skip_indent: Bool
     """Whether to skip the indentation for the next line."""
-    var scanner: ansi.SequenceScanner
-    """Tracks whether the current character is part of an ANSI escape sequence."""
 
     def __init__(out self, indent: UInt):
         """Initializes a new indent-writer instance.
@@ -36,7 +34,6 @@ struct IndentWriter(Movable, Writable):
         self.indent = indent
         self.ansi_writer = ansi.Writer()
         self.skip_indent = False
-        self.scanner = ansi.SequenceScanner()
 
     def as_string_slice(self) -> StringSpan[origin_of(self.ansi_writer.forward)]:
         """Returns the indented result as a string slice by referencing the content of the internal buffer.
@@ -61,8 +58,26 @@ struct IndentWriter(Movable, Writable):
         Args:
             text: The content to write.
         """
+        if not self.ansi_writer.is_scanning() and _is_plain_ascii(text):
+            return self._write_ascii(text)
+
+        return self._write_general(text)
+
+    def _write_general[origin: ImmOrigin, //](mut self, text: StringSpan[origin]) -> None:
+        """Indents by walking codepoints. Correct for any input.
+
+        Parameters:
+            origin: The origin of the string.
+
+        Args:
+            text: The content to write.
+        """
         for codepoint in text.codepoints():
-            if not self.scanner.step(codepoint):
+            # Classify through the writer's own scanner and hand the answer back
+            # to it, rather than keeping a second scanner in lockstep and
+            # stepping every codepoint twice.
+            var is_sequence = self.ansi_writer.step(codepoint)
+            if not is_sequence:
                 if not self.skip_indent:
                     self.ansi_writer.reset_ansi()
                     self.ansi_writer.write(SPACE * Int(self.indent))
@@ -73,7 +88,47 @@ struct IndentWriter(Movable, Writable):
                 if codepoint.to_u32() == NEWLINE_BYTE:
                     self.skip_indent = False
 
-            self.ansi_writer.write(codepoint)
+            self.ansi_writer.write_stepped(codepoint, is_sequence=is_sequence)
+
+    def _write_ascii[origin: ImmOrigin, //](mut self, text: StringSpan[origin]) -> None:
+        """Indents a span already known to be plain ASCII with no escape sequences.
+
+        Equivalent to the codepoint path, but emits each line's content in one
+        copy instead of one per codepoint, and builds the run of indent spaces
+        once for the whole span rather than once per line.
+
+        Parameters:
+            origin: The origin of the string.
+
+        Args:
+            text: The content to write, which must be plain ASCII.
+        """
+        var bytes = text.as_bytes()
+        var length = len(bytes)
+        var ptr = bytes.unsafe_ptr()
+        var indentation = SPACE * Int(self.indent)
+        var index = 0
+        var run_start = 0
+
+        while index < length:
+            if not self.skip_indent:
+                # The indent precedes the line it belongs to, so the content
+                # buffered since the last break has to be flushed ahead of it.
+                self.ansi_writer.forward.write(text[byte=run_start:index])
+                run_start = index
+
+                self.ansi_writer.reset_ansi()
+                self.ansi_writer.write(indentation)
+                self.skip_indent = True
+                self.ansi_writer.restore_ansi()
+
+            # end of current line
+            if ptr[unsafe_offset=index] == UInt8(NEWLINE_BYTE):
+                self.skip_indent = False
+
+            index += 1
+
+        self.ansi_writer.forward.write(text[byte=run_start:length])
 
 
 def indent[origin: ImmOrigin, //](text: StringSpan[origin], indent: UInt) -> String:

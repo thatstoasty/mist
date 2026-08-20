@@ -2,6 +2,7 @@ from std import testing
 from std.testing import TestSuite
 
 from mist import truncate
+from mist.transform.truncater import TruncateWriter
 
 
 def test_truncate() raises:
@@ -151,6 +152,21 @@ def test_cluster_count_never_splits() raises:
             testing.assert_true(index < len(source), "produced more clusters than the input has")
             testing.assert_equal(String(grapheme), source[index])
             index += 1
+
+
+def test_repeated_writes_share_one_budget() raises:
+    # Regression: the tail width was subtracted from the budget on every call
+    # and the running width restarted each time, so content split across writes
+    # escaped truncation entirely.
+    var split = TruncateWriter(10, tail=".")
+    split.write("abcde")
+    split.write("fghij")
+
+    var whole = TruncateWriter(10, tail=".")
+    whole.write("abcdefghij")
+
+    testing.assert_equal(String(split), String(whole))
+    testing.assert_equal(String(split), "abcdefghi.")
 
 
 def main() raises:

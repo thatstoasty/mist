@@ -1,7 +1,8 @@
 """ANSI escape sequence constants and byte values used by text transforms."""
 from std.io import write
+from std.sys.info import simd_width_of
 
-from mist.transform.unicode import char_width, grapheme_width, string_width
+from mist.transform.unicode import _ascii_cell_width, char_width, grapheme_width, string_width
 
 
 comptime ANSI_ESCAPE = "[0m"
@@ -22,6 +23,8 @@ comptime SPACE_BYTE = UInt32(ord(" "))
 """The byte value of the space character."""
 comptime NEWLINE_BYTE = UInt32(ord("\n"))
 """The byte value of the newline character."""
+comptime CARRIAGE_RETURN_BYTE = UInt32(ord("\r"))
+"""The byte value of the carriage return character."""
 
 comptime CSI_INTRODUCER_BYTE = UInt32(ord("["))
 """The byte that follows the marker to introduce a CSI sequence, e.g. SGR color codes."""
@@ -45,6 +48,85 @@ comptime _SCAN_ESCAPE: UInt8 = 1
 comptime _SCAN_CSI: UInt8 = 2
 comptime _SCAN_STRING: UInt8 = 3
 comptime _SCAN_STRING_ESCAPE: UInt8 = 4
+
+comptime _ESCAPE_SIMD_WIDTH = simd_width_of[DType.uint8]()
+"""The number of bytes the `ESC` search examines per SIMD step."""
+
+
+@always_inline
+def _contains_escape[origin: ImmOrigin, //](text: StringSpan[origin]) -> Bool:
+    """Reports whether `text` contains an `ESC` byte.
+
+    A raw byte search is sound on UTF-8 of any kind, not just ASCII: every byte
+    of a multi-byte codepoint is `>= 0x80`, so `0x1B` can only ever appear as
+    `ESC` itself and never as part of some other character.
+
+    Parameters:
+        origin: The origin of the string.
+
+    Args:
+        text: The string to search.
+
+    Returns:
+        True if an `ESC` byte is present, False otherwise.
+    """
+    comptime W = _ESCAPE_SIMD_WIDTH
+
+    var bytes = text.as_bytes()
+    var length = len(bytes)
+    var ptr = bytes.unsafe_ptr()
+    var i = 0
+
+    while i + W <= length:
+        if ptr.unsafe_offset(i).unsafe_load[width=W]().eq(UInt8(ANSI_MARKER_BYTE)).reduce_or():
+            return True
+        i += W
+
+    while i < length:
+        if ptr[unsafe_offset=i] == UInt8(ANSI_MARKER_BYTE):
+            return True
+        i += 1
+
+    return False
+
+
+@always_inline
+def _is_plain_ascii[origin: ImmOrigin, //](text: StringSpan[origin]) -> Bool:
+    """Reports whether `text` is entirely ASCII and free of escape sequences.
+
+    Transforms that satisfy this can walk the span a byte at a time instead of
+    segmenting grapheme clusters, because in ASCII every byte is its own cluster
+    apart from `CRLF`, and there are no sequences to step a scanner over.
+
+    Parameters:
+        origin: The origin of the string.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        True if every byte is ASCII and none is `ESC`, False otherwise.
+    """
+    comptime W = _ESCAPE_SIMD_WIDTH
+
+    var bytes = text.as_bytes()
+    var length = len(bytes)
+    var ptr = bytes.unsafe_ptr()
+    var i = 0
+
+    while i + W <= length:
+        var chunk = ptr.unsafe_offset(i).unsafe_load[width=W]()
+        if chunk.ge(0x80).reduce_or() or chunk.eq(UInt8(ANSI_MARKER_BYTE)).reduce_or():
+            return False
+        i += W
+
+    while i < length:
+        var byte = ptr[unsafe_offset=i]
+        if byte >= 0x80 or byte == UInt8(ANSI_MARKER_BYTE):
+            return False
+        i += 1
+
+    return True
 
 
 def has_suffix[lhs: ImmOrigin, rhs: ImmOrigin, //](bytes: Span[Byte, lhs], suffix: Span[Byte, rhs]) -> Bool:
@@ -195,6 +277,67 @@ def printable_rune_width[origin: ImmOrigin, //](text: StringSpan[origin]) -> UIn
     Returns:
         The printable cell width of the string.
     """
+    # Text with no `ESC` in it has no sequences to ignore, so plain ASCII can be
+    # measured by counting bytes instead of segmenting graphemes.
+    var ascii_width = _ascii_cell_width[reject_escape=True](text)
+    if ascii_width:
+        return ascii_width.value()
+
+    return _printable_rune_width_scanned(text)
+
+
+def printable_width_within[origin: ImmOrigin, //](text: StringSpan[origin], limit: UInt) -> Optional[UInt]:
+    """Returns the cell width of `text`, or `None` if it exceeds `limit`.
+
+    Callers that only need to know whether content fits should prefer this over
+    `printable_rune_width`: measuring stops as soon as the limit is passed, so a
+    span far larger than the limit is not walked to the end to produce a number
+    that will only be compared and discarded.
+
+    Args:
+        text: String to measure.
+        limit: The greatest width that still counts as fitting.
+
+    Returns:
+        The printable cell width if it is at most `limit`, `None` otherwise.
+    """
+    # The ASCII scan is already a few bytes per cycle, so it runs to completion
+    # rather than carrying a limit check through its inner loop.
+    var ascii_width = _ascii_cell_width[reject_escape=True](text)
+    if ascii_width:
+        if ascii_width.value() > limit:
+            return None
+        return ascii_width
+
+    var length: UInt = 0
+    var scanner = SequenceScanner()
+
+    for grapheme in text.graphemes():
+        var printable = True
+        for codepoint in grapheme.codepoints():
+            if scanner.step(codepoint):
+                printable = False
+
+        if printable:
+            length += grapheme_width(grapheme)
+            if length > limit:
+                return None
+
+    return length
+
+
+def _printable_rune_width_scanned[origin: ImmOrigin, //](text: StringSpan[origin]) -> UInt:
+    """Returns the cell width of `text`, skipping escape sequences.
+
+    This is the general path, correct for any input. `printable_rune_width`
+    shortcuts plain ASCII ahead of it.
+
+    Args:
+        text: String to calculate the width of.
+
+    Returns:
+        The printable cell width of the string.
+    """
     var length: UInt = 0
     var scanner = SequenceScanner()
 
@@ -271,8 +414,44 @@ struct Writer(Movable, Writable):
         Args:
             content: The content to write.
         """
+        # With no sequence in progress and no `ESC` in the span, there is
+        # nothing for the scanner to find: every byte is ordinary content, and
+        # none of the sequence-tracking state can change. The span can then be
+        # appended in a single copy rather than re-encoded a codepoint at a
+        # time.
+        if not self.scanner.is_active() and not _contains_escape(content):
+            self.forward.write(content)
+            return
+
         for codepoint in content.codepoints():
             self.write(codepoint)
+
+    @always_inline
+    def is_scanning(self) -> Bool:
+        """Reports whether the writer is partway through an escape sequence.
+
+        Returns:
+            True if a sequence is in progress and has not yet terminated.
+        """
+        return self.scanner.is_active()
+
+    @always_inline
+    def step(mut self, codepoint: Codepoint) -> Bool:
+        """Advances the sequence scanner and classifies one codepoint.
+
+        Callers that must know whether a codepoint is printable *before*
+        deciding what to emit can classify it here and hand the answer back to
+        `write_stepped`, instead of running a second scanner alongside this one
+        and stepping every codepoint twice.
+
+        Args:
+            codepoint: The next codepoint of the input.
+
+        Returns:
+            True if `codepoint` belongs to an escape sequence, False if it is
+            ordinary content.
+        """
+        return self.scanner.step(codepoint)
 
     def write(mut self, codepoint: Codepoint) -> None:
         """Write codepoint to the ANSI buffer.
@@ -280,7 +459,21 @@ struct Writer(Movable, Writable):
         Args:
             codepoint: The content to write.
         """
-        if not self.scanner.step(codepoint):
+        self.write_stepped(codepoint, is_sequence=self.step(codepoint))
+
+    @always_inline
+    def write_stepped(mut self, codepoint: Codepoint, *, is_sequence: Bool) -> None:
+        """Writes a codepoint that `step` has already classified.
+
+        Must be called in the same order as, and immediately following, the
+        `step` calls that produced `is_sequence`; the sequence bookkeeping reads
+        the scanner state that `step` left behind.
+
+        Args:
+            codepoint: The content to write.
+            is_sequence: Whether `step` reported this codepoint as sequence content.
+        """
+        if not is_sequence:
             self.forward.write(codepoint)
             return
 
@@ -301,6 +494,17 @@ struct Writer(Movable, Writable):
 
         self.forward.write(self.ansi_seq)
         self.ansi_seq = String(capacity=self.ansi_seq.capacity())
+
+    def take(deinit self) -> String:
+        """Consumes the writer and hands back its buffer.
+
+        Lets a caller that is finishing anyway claim the buffer outright rather
+        than copying it into one of its own.
+
+        Returns:
+            The accumulated content.
+        """
+        return self.forward^
 
     def last_sequence(self) -> StringSpan[origin_of(self.last_seq)]:
         """Returns the last ANSI escape sequence.

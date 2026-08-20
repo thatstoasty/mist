@@ -1,6 +1,6 @@
 """Removes common leading indentation from multi-line text."""
 from mist.transform import ansi
-from mist.transform.ansi import NEWLINE_BYTE, SPACE_BYTE, TAB_BYTE
+from mist.transform.ansi import NEWLINE_BYTE, SPACE_BYTE, TAB_BYTE, _is_plain_ascii
 
 
 def _calculate_minimum_indentation[origin: ImmOrigin, //](text: StringSpan[origin]) -> UInt:
@@ -20,6 +20,27 @@ def _calculate_minimum_indentation[origin: ImmOrigin, //](text: StringSpan[origi
     var min_indent: UInt = 0
     var should_append = True
     var scanner = ansi.SequenceScanner()
+
+    if _is_plain_ascii(text):
+        # Plain ASCII has no sequences to step over and no multi-byte
+        # codepoints, so the scan reduces to a walk over the raw bytes.
+        var bytes = text.as_bytes()
+        var ptr = bytes.unsafe_ptr()
+        for index in range(len(bytes)):
+            var byte = ptr[unsafe_offset=index]
+            if byte == UInt8(TAB_BYTE) or byte == UInt8(SPACE_BYTE):
+                if should_append:
+                    cur_indent += 1
+            elif byte == UInt8(NEWLINE_BYTE):
+                cur_indent = 0
+                should_append = True
+            else:
+                if should_append and (min_indent == 0 or cur_indent < min_indent):
+                    min_indent = cur_indent
+                    cur_indent = 0
+                should_append = False
+
+        return min_indent
 
     for codepoint in text.codepoints():
         if scanner.step(codepoint):
@@ -59,6 +80,37 @@ def _apply_dedent[origin: ImmOrigin, //](text: StringSpan[origin], indent: UInt)
     var omitted: UInt = 0
     var buf = String(capacity=Int(Float64(text.byte_length()) * 1.25))
     var scanner = ansi.SequenceScanner()
+
+    if _is_plain_ascii(text):
+        # Plain ASCII is copied in runs between the stripped columns rather than
+        # a codepoint at a time.
+        var bytes = text.as_bytes()
+        var length = len(bytes)
+        var ptr = bytes.unsafe_ptr()
+        var index = 0
+        var run_start = 0
+
+        while index < length:
+            var byte = ptr[unsafe_offset=index]
+            if byte == UInt8(TAB_BYTE) or byte == UInt8(SPACE_BYTE):
+                if should_omit:
+                    if omitted < indent:
+                        omitted += 1
+                        # This column is dropped, so the pending run stops short
+                        # of it and resumes after it.
+                        buf.write(text[byte=run_start:index])
+                        index += 1
+                        run_start = index
+                        continue
+                    should_omit = False
+            elif byte == UInt8(NEWLINE_BYTE):
+                omitted = 0
+                should_omit = True
+
+            index += 1
+
+        buf.write(text[byte=run_start:length])
+        return buf^
 
     for codepoint in text.codepoints():
         if scanner.step(codepoint):
