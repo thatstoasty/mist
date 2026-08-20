@@ -113,6 +113,113 @@ def test_sequence_scanner_two_byte_escape() raises:
     testing.assert_false(scanner.is_active())
 
 
+def test_sequence_codepoints_form_a_cluster_prefix() raises:
+    # Load-bearing invariant for the writers that classify a whole cluster at
+    # once: within a grapheme cluster the scanner can leave a sequence but never
+    # enter one, because `ESC` is a Control character and so can only ever be a
+    # cluster's first codepoint. A cluster's classification is therefore always
+    # a run of sequence codepoints followed by a run of content codepoints, and
+    # recording just the length of that prefix loses nothing.
+    #
+    # Clusters really do straddle the boundary: a CSI final byte carrying a
+    # combining mark (`\x1b[31` + `m` + U+0301) is one cluster whose first
+    # codepoint ends the sequence and whose second is ordinary content.
+    var cases = [
+        String("\x1b[31ḿabc"),
+        String("\x1b[1ḿx\x1b[0ḿy"),
+        String("pre\x1b[31ḿpost"),
+        String("\x1b]8;;http://x\x07ḿlink"),
+        String("\x1b[31ḿ"),
+        String("a\x1bḾb"),
+        String("\x1b[31mred\x1b[0m"),
+        String("plain text"),
+        String("é\x1b[31mà\x1b[0m"),
+        String("\x1b[31m\U0001F44B\U0001F3FB\x1b[0m"),
+        String("\x1b]8;;http://exàmple.com\x07link\x1b]8;;\x07"),
+        String("\x1b[31m\U0001F468\u200D\U0001F469\x1b[0m"),
+    ]
+
+    for i in range(len(cases)):
+        var scanner = SequenceScanner()
+        for grapheme in StringSpan(cases[i]).graphemes():
+            var seen_content = False
+            for codepoint in grapheme.codepoints():
+                var is_sequence = scanner.step(codepoint)
+                if not is_sequence:
+                    seen_content = True
+                else:
+                    testing.assert_false(
+                        seen_content,
+                        String(
+                            "sequence codepoint follows content within one cluster in ",
+                            repr(cases[i]),
+                        ),
+                    )
+
+
+def _assert_bulk_matches_codepoints(text: String) raises:
+    """Asserts the span write agrees with writing the same text codepoint by codepoint.
+
+    Args:
+        text: The content to write along both paths.
+    """
+    var bulk = Writer()
+    bulk.write(text)
+
+    var stepped = Writer()
+    for codepoint in text.codepoints():
+        stepped.write(codepoint)
+
+    testing.assert_equal(bulk.forward, stepped.forward, String("forward differs for ", repr(text)))
+    testing.assert_equal(bulk.last_seq, stepped.last_seq, String("last_seq differs for ", repr(text)))
+    testing.assert_equal(
+        bulk.seq_changed, stepped.seq_changed, String("seq_changed differs for ", repr(text))
+    )
+
+
+def test_writer_bulk_matches_codepoint_writes() raises:
+    # The span write appends in one copy when no sequence is in progress and no
+    # `ESC` is present. That shortcut has to be indistinguishable from feeding
+    # the same bytes through one codepoint at a time.
+    _assert_bulk_matches_codepoints("")
+    _assert_bulk_matches_codepoints("plain ascii content")
+    _assert_bulk_matches_codepoints("multi\nline\r\ncontent\twith\tcontrols")
+    _assert_bulk_matches_codepoints("non-ascii é 世界 \U0001F525 with no escapes")
+    _assert_bulk_matches_codepoints("I really \x1B[38;2;249;38;114mlove\x1B[0m Mojo!")
+    _assert_bulk_matches_codepoints("\x1B[31mred\x1B[0m")
+    _assert_bulk_matches_codepoints("\x1B]8;;http://example.com\x07link\x1B]8;;\x07")
+    _assert_bulk_matches_codepoints("trailing partial sequence \x1B[31")
+    _assert_bulk_matches_codepoints("\x1B")
+
+
+def test_writer_bulk_across_split_writes() raises:
+    # A sequence split across two `write` calls leaves the scanner active, which
+    # must suppress the shortcut on the following call -- otherwise the tail of
+    # the sequence would be appended as if it were ordinary text.
+    comptime CONTENT = "ab\x1B[38;2;249;38;114mcd\x1B[0mef"
+    for i in range(CONTENT.byte_length() + 1):
+        var head = String(CONTENT[byte=0:i])
+        var tail = String(CONTENT[byte=i : CONTENT.byte_length()])
+
+        var split = Writer()
+        split.write(head)
+        split.write(tail)
+
+        var whole = Writer()
+        for codepoint in String(CONTENT).codepoints():
+            whole.write(codepoint)
+
+        testing.assert_equal(
+            split.forward, whole.forward, String("split at ", i, " changed the output")
+        )
+        testing.assert_equal(
+            split.last_seq, whole.last_seq, String("split at ", i, " changed last_seq")
+        )
+        testing.assert_equal(
+            split.seq_changed, whole.seq_changed, String("split at ", i, " changed seq_changed")
+        )
+
+
 def test_writer_round_trip() raises:
     # Writing content with no transformation applied must reproduce the input
     # byte for byte, sequences included.

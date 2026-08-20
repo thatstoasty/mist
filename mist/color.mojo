@@ -1,7 +1,9 @@
 """Color types and conversions for representing terminal colors."""
+from std.math import sqrt
+
 import mist._hue as hue
 from mist._utils import lut
-from mist._ansi_colors import ANSI_HEX_CODES, COLOR_STRINGS
+from mist._ansi_colors import ANSI256_TO_ANSI, ANSI_HEX_CODES, COLOR_STRINGS
 from std.utils import Variant
 
 
@@ -9,6 +11,8 @@ comptime FOREGROUND = "38"
 """ANSI code for foreground colors."""
 comptime BACKGROUND = "48"
 """ANSI code for background colors."""
+comptime RGB_HEX_DIGITS = 6
+"""Digits in a `RRGGBB` hex string, which keeps a color's leading zeros."""
 
 
 trait Color(Equatable, ImplicitlyCopyable, Writable):
@@ -147,7 +151,7 @@ struct ANSIColor(Color, TrivialRegisterPassable):
         Returns:
             The hex string for the ANSIColor.
         """
-        return hex_to_string(lut[ANSI_HEX_CODES](Int(self.value)))
+        return hex_to_string(lut[ANSI_HEX_CODES](Int(self.value)), min_width=RGB_HEX_DIGITS)
 
 
 @fieldwise_init
@@ -209,7 +213,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
         Returns:
             The hex string for the ANSI256Color.
         """
-        return hex_to_string(lut[ANSI_HEX_CODES](Int(self.value)))
+        return hex_to_string(lut[ANSI_HEX_CODES](Int(self.value)), min_width=RGB_HEX_DIGITS)
 
 
 def hex_to_rgb(hex: UInt32) -> Tuple[UInt8, UInt8, UInt8]:
@@ -245,20 +249,16 @@ def rgb_to_hex(r: UInt8, g: UInt8, b: UInt8) -> UInt32:
     return (r.cast[DType.uint32]() << 16) | (g.cast[DType.uint32]() << 8) | b.cast[DType.uint32]()
 
 
-def hex_to_string(value: UInt32) -> String:
+def hex_to_string(value: UInt32, *, min_width: Int = 0) -> String:
     """Convert a UInt32 value to a lowercase hexadecimal string.
 
     Args:
         value: The UInt32 value to convert.
+        min_width: Pad with leading zeros to at least this many digits.
 
     Returns:
         A lowercase hexadecimal string (e.g., "1a2b3c4d").
     """
-    if value == 0:
-        return "0"
-
-    var result = String()
-    var v = value
     comptime HEX_CHARS: Array[StaticString, 16] = [
         "0",
         "1",
@@ -277,13 +277,27 @@ def hex_to_string(value: UInt32) -> String:
         "e",
         "f",
     ]
+    comptime NIBBLES = 8
+    """The number of hexadecimal digits a `UInt32` can occupy."""
 
-    while v > 0:
-        var digit = Int(v & 0xF)
-        result = lut[HEX_CHARS](digit) + result
-        v >>= 4
+    var significant = 1
+    var remaining = value >> 4
+    while remaining > 0:
+        significant += 1
+        remaining >>= 4
 
-    return result
+    var digits = significant if significant > min_width else min_width
+
+    # Emitted most significant digit first. Building the other way round meant
+    # prepending each digit to the result, which reallocated and copied the
+    # whole string once per digit.
+    var result = String(capacity=digits)
+    for index in reversed(range(digits)):
+        # Anything past the value's own width is a padding zero.
+        var nibble = Int((value >> UInt32(index * 4)) & 0xF) if index < NIBBLES else 0
+        result.write(lut[HEX_CHARS](nibble))
+
+    return result^
 
 
 @fieldwise_init
@@ -366,7 +380,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         Returns:
             The hex string for the RGBColor.
         """
-        return hex_to_string(self.value)
+        return hex_to_string(self.value, min_width=RGB_HEX_DIGITS)
 
 
 def ansi256_to_ansi(value: UInt8) -> UInt8:
@@ -378,18 +392,11 @@ def ansi256_to_ansi(value: UInt8) -> UInt8:
     Returns:
         The ANSI color value.
     """
-    comptime MAX_ANSI: UInt8 = 16
-    var r: UInt8 = 0
-    var md = hue.MAX_FLOAT64
-    var h_color = hue.Color(lut[ANSI_HEX_CODES](Int(value)))
-
-    comptime for i in range(MAX_ANSI):
-        var d = h_color.distance_HSLuv(hue.Color(lut[ANSI_HEX_CODES](i)))
-        if d < md:
-            md = d
-            r = i
-
-    return r
+    # A nearest-neighbour search over 16 fixed candidates, for 256 possible
+    # inputs, is a table: see `ANSI256_TO_ANSI` for how it was generated. The
+    # search itself cost 16 HSLuv distances, which dominated every conversion
+    # to this profile.
+    return lut[ANSI256_TO_ANSI](Int(value))
 
 
 def _value_to_color_index(value: Float64) -> Int:
@@ -406,6 +413,23 @@ def _value_to_color_index(value: Float64) -> Int:
     elif value < 115:
         return 1
     return Int((value - 35) / 40)
+
+
+def _hsluv_distance(a: Tuple[Float64, Float64, Float64], b: Tuple[Float64, Float64, Float64]) -> Float64:
+    """Returns the HSLuv-space distance between two already-converted colors.
+
+    Mirrors `hue.Color.distance_HSLuv`, but takes the converted coordinates
+    rather than the colors, so a color compared against several candidates is
+    only converted once instead of once per comparison.
+
+    Args:
+        a: The first color's hue, saturation and luminance.
+        b: The second color's hue, saturation and luminance.
+
+    Returns:
+        The distance between the two colors in HSLuv space.
+    """
+    return sqrt(((a[0] - b[0]) / 100.0) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
 
 
 def hex_to_ansi256(color: hue.Color) -> UInt8:
@@ -435,9 +459,13 @@ def hex_to_ansi256(color: hue.Color) -> UInt8:
     # Calculate the represented colors back from the index
     comptime i2cv: Array[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
 
-    # Return the one which is nearer to the original input rgb value
-    var color_dist = color.distance_HSLuv(hue.Color(R=lut[i2cv](r), G=lut[i2cv](g), B=lut[i2cv](b)))
-    var gray_dist = color.distance_HSLuv(hue.Color(R=gv, G=gv, B=gv))
+    # Return the one which is nearer to the original input rgb value.
+    # `distance_HSLuv` converts both of its operands, so calling it twice put
+    # the input through the HSLuv pipeline twice over; converting it once here
+    # drops four conversions to three.
+    var hsluv = color.HSLuv()
+    var color_dist = _hsluv_distance(hsluv, hue.Color(R=lut[i2cv](r), G=lut[i2cv](g), B=lut[i2cv](b)).HSLuv())
+    var gray_dist = _hsluv_distance(hsluv, hue.Color(R=gv, G=gv, B=gv).HSLuv())
 
     if color_dist <= gray_dist:
         return 16 + UInt8((36 * r) + (6 * g) + b)  # 16 + 0..215

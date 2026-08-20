@@ -2,6 +2,7 @@ from std import testing
 from std.testing import TestSuite
 
 from mist import padding
+from mist.transform.padder import PaddingWriter
 
 
 def test_padding() raises:
@@ -65,6 +66,21 @@ def test_grapheme_cluster_width() raises:
     # Same for a skin tone modifier, which recolors rather than adding a glyph.
     comptime WAVE = "\U0001F44B\U0001F3FB"
     testing.assert_equal(padding(WAVE, 4), WAVE + "  ")
+
+
+def test_as_string_slice_exposes_written_lines() raises:
+    # Regression: the slice pointed at a cache that stayed empty until `finish`,
+    # so it read as "" no matter how much had been written.
+    var writer = PaddingWriter(6)
+    writer.write("hi\n")
+
+    # Read the slice and consume the writer before asserting: an assertion that
+    # raises would otherwise abandon a writer that must be explicitly destroyed.
+    var before_finish = String(writer.as_string_slice())
+    var result = writer^.finish()
+
+    testing.assert_equal(before_finish, "hi    \n")
+    testing.assert_equal(result, "hi    \n")
 
 
 def main() raises:

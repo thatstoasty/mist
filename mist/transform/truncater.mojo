@@ -22,10 +22,14 @@ struct TruncateWriter(Movable, Writable):
     """The maximum printable cell width."""
     var tail: String
     """The tail to append to the truncated content."""
+    var tail_width: UInt
+    """The printable cell width of `tail`, measured once at construction."""
+    var cur_width: UInt
+    """The printable cell width written so far, accumulated across writes."""
+    var truncated: Bool
+    """Whether the tail has been emitted and further content is being dropped."""
     var ansi_writer: ansi.Writer
     """The ANSI aware writer that stores the text content."""
-    var scanner: ansi.SequenceScanner
-    """Tracks whether the current character is part of an ANSI escape sequence."""
 
     def __init__(out self, width: UInt, var tail: String):
         """Initializes a new truncate-writer instance.
@@ -35,8 +39,10 @@ struct TruncateWriter(Movable, Writable):
             tail: The tail to append to the truncated content.
         """
         self.width = width
+        self.tail_width = ansi.printable_rune_width(tail)
         self.tail = tail^
-        self.scanner = ansi.SequenceScanner()
+        self.cur_width = 0
+        self.truncated = False
         self.ansi_writer = ansi.Writer()
 
     def write_to(self, mut writer: Some[Writer]):
@@ -62,36 +68,52 @@ struct TruncateWriter(Movable, Writable):
         Args:
             text: The content to write.
         """
-        var tw = ansi.printable_rune_width(self.tail)
-        if self.width < tw:
-            self.ansi_writer.forward.write(self.tail)
+        # The budget and the running total are held on the writer, not derived
+        # per call: recomputing them here made each successive `write` grant
+        # itself a fresh allowance, so content past the limit survived whenever
+        # it arrived in more than one piece.
+        if self.truncated:
             return
 
-        self.width -= tw
-        var cur_width: UInt = 0
+        if self.width < self.tail_width:
+            self.ansi_writer.forward.write(self.tail)
+            self.truncated = True
+            return
+
+        var budget = self.width - self.tail_width
 
         for grapheme in text.graphemes():
-            # A cluster is either wholly escape sequence or wholly content, but
-            # the scanner is stepped over every codepoint so that non-ASCII
-            # inside a string sequence is skipped rather than measured.
-            var printable = True
+            # Sequence codepoints always form a prefix of a cluster: `ESC` is a
+            # Control character, so it can only ever be a cluster's first
+            # codepoint, which means the scanner can leave a sequence partway
+            # through a cluster but never enter one. The whole cluster's
+            # classification is therefore just the length of that prefix.
+            #
+            # Classifying through the writer's own scanner, rather than a second
+            # one kept in lockstep, means each codepoint is stepped once.
+            var sequence_prefix = 0
             for codepoint in grapheme.codepoints():
-                if self.scanner.step(codepoint):
-                    printable = False
+                if not self.ansi_writer.step(codepoint):
+                    break
+                sequence_prefix += 1
 
+            var printable = sequence_prefix == 0
             if printable:
-                cur_width += grapheme_width(grapheme)
+                self.cur_width += grapheme_width(grapheme)
 
-                if cur_width > self.width:
+                if self.cur_width > budget:
                     self.ansi_writer.forward.write(self.tail)
-                    if self.ansi_writer.last_sequence() != StaticString(""):
-                        self.ansi_writer.reset_ansi()
+                    self.ansi_writer.reset_ansi()
+                    self.truncated = True
                     return
 
             # Clusters are written whole. Writing a prefix would emit a partial
             # cluster -- a dangling ZWJ, or an emoji stripped of its skin tone
             # modifier -- which renders differently than the text it came from.
-            self.ansi_writer.write(grapheme)
+            var index = 0
+            for codepoint in grapheme.codepoints():
+                self.ansi_writer.write_stepped(codepoint, is_sequence=index < sequence_prefix)
+                index += 1
 
 
 def truncate[origin: ImmOrigin, //](text: StringSpan[origin], width: UInt, var tail: String = "") -> String:

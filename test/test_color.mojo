@@ -9,6 +9,7 @@ from mist.color import (
     ansi256_to_ansi,
     hex_to_ansi256,
     hex_to_rgb,
+    hex_to_string,
     rgb_to_hex,
 )
 from std.testing import TestSuite
@@ -151,6 +152,62 @@ def test_rgb_color_to_rgb() raises:
     testing.assert_equal(color[0], 255)
     testing.assert_equal(color[1], 255)
     testing.assert_equal(color[2], 255)
+
+
+def test_ansi256_to_ansi_is_identity_below_16() raises:
+    # The ANSI colors are their own nearest neighbours, so the lookup table that
+    # replaced the nearest-neighbour search has to agree on that range -- a
+    # table shifted by one row would still look plausible everywhere else.
+    for value in range(16):
+        testing.assert_equal(ansi256_to_ansi(UInt8(value)), UInt8(value))
+
+
+def test_ansi256_to_ansi_is_in_range() raises:
+    # Every entry must name one of the 16 ANSI colors.
+    for value in range(256):
+        testing.assert_true(ansi256_to_ansi(UInt8(value)) < 16)
+
+
+def test_ansi256_to_ansi_known_values() raises:
+    # Spot checks past the identity range, so a regenerated table cannot drift
+    # silently: 16 is black, 21 is pure blue, 231 is white, and the gray ramp
+    # runs from black up to white.
+    testing.assert_equal(ansi256_to_ansi(16), 0)
+    testing.assert_equal(ansi256_to_ansi(21), 12)
+    testing.assert_equal(ansi256_to_ansi(196), 9)
+    testing.assert_equal(ansi256_to_ansi(231), 15)
+    testing.assert_equal(ansi256_to_ansi(232), 0)
+    testing.assert_equal(ansi256_to_ansi(255), 15)
+
+
+def test_hex_to_string() raises:
+    # The bare converter emits as few digits as the value needs.
+    testing.assert_equal(hex_to_string(0), "0")
+    testing.assert_equal(hex_to_string(0xFF), "ff")
+    testing.assert_equal(hex_to_string(0x0000FF), "ff")
+    testing.assert_equal(hex_to_string(0xABCDEF), "abcdef")
+    testing.assert_equal(hex_to_string(0x1A2B3C4D), "1a2b3c4d")
+
+    # Padding adds leading zeros without truncating a wider value.
+    testing.assert_equal(hex_to_string(0, min_width=6), "000000")
+    testing.assert_equal(hex_to_string(0x0000FF, min_width=6), "0000ff")
+    testing.assert_equal(hex_to_string(0xABCDEF, min_width=6), "abcdef")
+    testing.assert_equal(hex_to_string(0x1A2B3C4D, min_width=6), "1a2b3c4d")
+
+
+def test_as_hex_string_keeps_leading_zeros() raises:
+    # Regression: a color renders as `RRGGBB`, so dropping leading zeros made
+    # blue read as the two-digit "ff" rather than "0000ff".
+    testing.assert_equal(RGBColor(0x0000FF).as_hex_string(), "0000ff")
+    testing.assert_equal(RGBColor(0x00FF00).as_hex_string(), "00ff00")
+    testing.assert_equal(RGBColor(0x000000).as_hex_string(), "000000")
+    testing.assert_equal(RGBColor(0xE88388).as_hex_string(), "e88388")
+    testing.assert_equal(ANSIColor(0).as_hex_string(), "000000")
+    testing.assert_equal(ANSI256Color(21).as_hex_string(), "0000ff")
+
+    # Every color's hex string is a full six digits.
+    for value in range(256):
+        testing.assert_equal(ANSI256Color(UInt8(value)).as_hex_string().byte_length(), 6)
 
 
 def main() raises:

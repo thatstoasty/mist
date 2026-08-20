@@ -111,6 +111,28 @@ def parse_report(report: String) raises -> BenchResults:
     return results^
 
 
+def to_column(value: Float64, width: Int) -> String:
+    """Renders `value` for a fixed-width column.
+
+    `String(Float64)` has no fixed length: `0.6` renders as three characters
+    while `0.6000000000000001` renders as eighteen. Slicing blindly to the
+    column width asserts whenever a value happens to land on a short
+    representation, so shorter values are returned as they are.
+
+    Args:
+        value: The number to render.
+        width: The maximum number of characters to keep.
+
+    Returns:
+        The rendered value, at most `width` characters long.
+    """
+    var text = String(value)
+    if text.byte_length() <= width:
+        return text^
+
+    return String(text[byte=0:width])
+
+
 def print_relative_performance(
     var old_results: BenchResults,
     var new_results: BenchResults,
@@ -142,10 +164,10 @@ def print_relative_performance(
             var speedup = new_val / old_val
 
             var sign = "+" if diff_pct >= 0 else ""
-            var diff_str = String(sign + String(diff_pct)[byte=0:3] + "%")
-            var speedup_str = String(String(speedup)[byte=0:3] + "x")
-            var old_str = String(String(old_val)[byte=0:6])
-            var new_str = String(String(new_val)[byte=0:6])
+            var diff_str = String(sign, to_column(diff_pct, 3), "%")
+            var speedup_str = String(to_column(speedup, 3), "x")
+            var old_str = to_column(old_val, 6)
+            var new_str = to_column(new_val, 6)
 
             # Pad output manually (inefficient but works without formatting lib)
             var pad_len = 10
@@ -185,12 +207,16 @@ def print_relative_performance(
                 + " |"
             )
         else:
+            var new_str = to_column(new_val, 6)
+            while new_str.byte_length() < 10:
+                new_str = new_str + " "
+
             print(
                 "| "
                 + name_pad
                 + " | N/A        | "
-                + String(new_val)[byte=0:6]
-                + "     | N/A        | N/A         |"
+                + new_str
+                + " | N/A        | N/A         |"
             )
 
     print(

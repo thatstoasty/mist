@@ -25,3 +25,13 @@ def lut[I: Indexer, //, A: StackArray](i: I) -> A.T:
         The value at the given index.
     """
     return global_constant[A]().unsafe_get(i).copy()
+
+
+def as_codepoint[char: ImmStringSpan[...]]() -> Codepoint:
+    comptime assert char.byte_length() > 0 and char.byte_length() < 5, "`char` must be 1-4 bytes."
+    return Codepoint.ord(char)
+
+
+def as_byte[char: ImmStringSpan[...]]() -> Byte:
+    comptime assert char.byte_length() == 1, "`char` must be 1 byte."
+    return char.as_bytes()[0]

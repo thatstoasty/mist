@@ -1,4 +1,6 @@
 """Unicode codepoint and string display-width calculations."""
+from std.sys.info import simd_width_of
+
 from mist._utils import lut
 from mist.transform._table import AMBIGUOUS, COMBINING, DOUBLE_WIDTH, EMOJI, NARROW, NON_PRINT, Interval
 
@@ -11,6 +13,74 @@ comptime REGIONAL_INDICATOR_START = UInt32(0x1F1E6)
 """The first regional indicator symbol; a pair of these forms a flag."""
 comptime REGIONAL_INDICATOR_END = UInt32(0x1F1FF)
 """The last regional indicator symbol; a pair of these forms a flag."""
+
+comptime _ESCAPE_BYTE = UInt8(0x1B)
+"""The byte that introduces an ANSI escape sequence."""
+comptime _ASCII_SIMD_WIDTH = simd_width_of[DType.uint8]()
+"""The number of bytes the ASCII width scan examines per SIMD step."""
+
+
+@always_inline
+def _ascii_cell_width[origin: ImmOrigin, //, *, reject_escape: Bool](text: StringSpan[origin]) -> Optional[UInt]:
+    """Returns the cell width of `text` if it is plain ASCII, `None` otherwise.
+
+    Terminal text is overwhelmingly ASCII, and for ASCII the general
+    grapheme-segmenting scan is far more machinery than the answer needs: every
+    byte is its own codepoint, and the only ASCII grapheme cluster spanning more
+    than one byte is `CRLF`, whose width is zero either way because both halves
+    are control characters. So the width of an all-ASCII span is just the number
+    of bytes in `0x20..=0x7E`, which this counts a SIMD register at a time.
+
+    Any byte `>= 0x80` means the span needs real Unicode handling, so the scan
+    gives up and the caller falls back to the grapheme path. `reject_escape`
+    additionally gives up on `ESC`, for callers that must skip escape sequences
+    rather than measure them.
+
+    Parameters:
+        origin: The origin of the string.
+        reject_escape: Whether an `ESC` byte disqualifies the span.
+
+    Args:
+        text: The string to measure.
+
+    Returns:
+        The printable cell width, or `None` if `text` is not plain ASCII.
+    """
+    comptime W = _ASCII_SIMD_WIDTH
+    comptime assert W <= 255, "SIMD width must fit a UInt8 lane-sum without overflow."
+
+    var bytes = text.as_bytes()
+    var length = len(bytes)
+    var ptr = bytes.unsafe_ptr()
+    var width: UInt = 0
+    var i = 0
+
+    while i + W <= length:
+        var chunk = ptr.unsafe_offset(i).unsafe_load[width=W]()
+        if chunk.ge(0x80).reduce_or():
+            return None
+
+        comptime if reject_escape:
+            if chunk.eq(_ESCAPE_BYTE).reduce_or():
+                return None
+
+        width += UInt(Int((chunk.ge(0x20) & chunk.le(0x7E)).cast[DType.uint8]().reduce_add()))
+        i += W
+
+    while i < length:
+        var byte = ptr[unsafe_offset=i]
+        if byte >= 0x80:
+            return None
+
+        comptime if reject_escape:
+            if byte == _ESCAPE_BYTE:
+                return None
+
+        if byte >= 0x20 and byte <= 0x7E:
+            width += 1
+        i += 1
+
+    return width
 
 
 def in_table[table: Array[Interval, ...]](codepoint: Codepoint) -> Bool:
@@ -165,8 +235,38 @@ def string_width[
 ](content: StringSpan[origin]) -> UInt:
     """Return width as you can see.
 
-    Iterates grapheme clusters rather than codepoints, so a cluster that
-    renders as a single glyph is measured once instead of per codepoint.
+    Plain ASCII is measured by counting bytes; anything else iterates grapheme
+    clusters rather than codepoints, so a cluster that renders as a single glyph
+    is measured once instead of per codepoint.
+
+    Parameters:
+        origin: The origin of the string.
+        east_asian_width: Whether to use the East Asian Width algorithm to calculate the width of runes.
+        strict_emoji_neutral: Whether to treat emoji as double-width characters.
+
+    Args:
+        content: The string to calculate the width of.
+
+    Returns:
+        The printable width of the string.
+    """
+    # The East Asian algorithm classifies ASCII through the width tables rather
+    # than by codepoint range, so the byte-counting shortcut does not model it.
+    comptime if not east_asian_width:
+        var ascii_width = _ascii_cell_width[reject_escape=False](content)
+        if ascii_width:
+            return ascii_width.value()
+
+    return _string_width_graphemes[east_asian_width, strict_emoji_neutral](content)
+
+
+def _string_width_graphemes[
+    origin: ImmOrigin, //, east_asian_width: Bool = False, strict_emoji_neutral: Bool = True
+](content: StringSpan[origin]) -> UInt:
+    """Return the width of `content` by measuring each grapheme cluster.
+
+    This is the general path, correct for any input. `string_width` shortcuts
+    plain ASCII ahead of it.
 
     Parameters:
         origin: The origin of the string.

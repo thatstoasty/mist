@@ -2,6 +2,7 @@ from std import testing
 from std.testing import TestSuite
 
 from mist import margin
+from mist.transform.marginer import MarginWriter
 
 
 def test_margin() raises:
@@ -54,6 +55,20 @@ def test_unicode() raises:
         margin("Hello🔥\nWorld\n  TEST!🔥", 5, 2),
         "  Hello🔥\n  World\n    TEST!🔥",
     )
+
+
+def test_repeated_writes_do_not_reprocess_earlier_content() raises:
+    # Regression: the writer handed the padder its whole indent buffer on every
+    # call, so each write re-padded everything before it. Writing in pieces must
+    # match writing the same content at once.
+    var split = MarginWriter(4, 2)
+    split.write("ab\n")
+    split.write("cd\n")
+
+    var whole = MarginWriter(4, 2)
+    whole.write("ab\ncd\n")
+
+    testing.assert_equal(split^.finish(), whole^.finish())
 
 
 def main() raises:

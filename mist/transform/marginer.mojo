@@ -20,12 +20,12 @@ struct MarginWriter(Deinitable where False, Movable):
     ```
     """
 
-    var buf: String
-    """The buffer that stores the margin applied content."""
     var pw: PaddingWriter
     """The padding `Writer`."""
     var iw: IndentWriter
     """The indent `Writer`."""
+    var forwarded: Int
+    """How many bytes of the indent buffer have already been handed to the padder."""
 
     def __init__(out self, var pw: PaddingWriter, var iw: IndentWriter):
         """Initializes the `Writer`.
@@ -34,9 +34,9 @@ struct MarginWriter(Deinitable where False, Movable):
             pw: The padding `Writer` instance.
             iw: The indent `Writer` instance.
         """
-        self.buf = String()
         self.pw = pw^
         self.iw = iw^
+        self.forwarded = 0
 
     def __init__(out self, pad: UInt, indentation: UInt):
         """Initializes a new `Writer`.
@@ -45,9 +45,9 @@ struct MarginWriter(Deinitable where False, Movable):
             pad: Width of the padding of the padding `Writer` instance.
             indentation: Width of the indentation of the indent `IndentWriter` instance.
         """
-        self.buf = String()
         self.pw = PaddingWriter(pad)
         self.iw = IndentWriter(indentation)
+        self.forwarded = 0
 
     def write[origin: ImmOrigin, //](mut self, text: StringSpan[origin]) -> None:
         """Writes the text, `content`, to the writer, with the
@@ -57,7 +57,14 @@ struct MarginWriter(Deinitable where False, Movable):
             text: The String to write.
         """
         self.iw.write(text)
-        self.pw.write(self.iw.as_string_slice())
+
+        # The indent buffer accumulates across calls, so only the bytes this
+        # call appended may go to the padder. Handing it the whole buffer each
+        # time re-padded everything written so far, duplicating earlier lines
+        # and making repeated writes quadratic.
+        var indented = self.iw.as_string_slice()
+        self.pw.write(indented[byte = self.forwarded : indented.byte_length()])
+        self.forwarded = indented.byte_length()
 
     def finish(deinit self) -> String:
         """Will finish the margin operation. Always call it before trying to retrieve the final result.
@@ -65,8 +72,7 @@ struct MarginWriter(Deinitable where False, Movable):
         Returns:
             The final margin applied string.
         """
-        self.buf.write(self.pw^.finish())
-        return self.buf^
+        return self.pw^.finish()
 
 
 def margin[origin: ImmOrigin, //](text: StringSpan[origin], pad: UInt, indent: UInt) -> String:
