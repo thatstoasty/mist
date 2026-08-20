@@ -1,6 +1,6 @@
 """Removes common leading indentation from multi-line text."""
 from mist.transform import ansi
-from mist.transform.ansi import NEWLINE_BYTE, SPACE_BYTE, TAB_BYTE, _is_plain_ascii
+from mist.transform.ansi import LF_CODEPOINT, SPACE_CODEPOINT, TAB_CODEPOINT, _is_plain_ascii
 
 
 def _calculate_minimum_indentation[origin: ImmOrigin, //](text: StringSpan[origin]) -> UInt:
@@ -24,14 +24,11 @@ def _calculate_minimum_indentation[origin: ImmOrigin, //](text: StringSpan[origi
     if _is_plain_ascii(text):
         # Plain ASCII has no sequences to step over and no multi-byte
         # codepoints, so the scan reduces to a walk over the raw bytes.
-        var bytes = text.as_bytes()
-        var ptr = bytes.unsafe_ptr()
-        for index in range(len(bytes)):
-            var byte = ptr[unsafe_offset=index]
-            if byte == UInt8(TAB_BYTE) or byte == UInt8(SPACE_BYTE):
+        for byte in text.as_bytes():
+            if byte == UInt8(TAB_CODEPOINT) or byte == UInt8(SPACE_CODEPOINT):
                 if should_append:
                     cur_indent += 1
-            elif byte == UInt8(NEWLINE_BYTE):
+            elif byte == UInt8(LF_CODEPOINT):
                 cur_indent = 0
                 should_append = True
             else:
@@ -46,11 +43,10 @@ def _calculate_minimum_indentation[origin: ImmOrigin, //](text: StringSpan[origi
         if scanner.step(codepoint):
             continue
 
-        var rune = codepoint.to_u32()
-        if rune == TAB_BYTE or rune == SPACE_BYTE:
+        if codepoint == TAB_CODEPOINT or codepoint == SPACE_CODEPOINT:
             if should_append:
                 cur_indent += 1
-        elif rune == NEWLINE_BYTE:
+        elif codepoint == LF_CODEPOINT:
             cur_indent = 0
             should_append = True
         else:
@@ -85,31 +81,29 @@ def _apply_dedent[origin: ImmOrigin, //](text: StringSpan[origin], indent: UInt)
         # Plain ASCII is copied in runs between the stripped columns rather than
         # a codepoint at a time.
         var bytes = text.as_bytes()
-        var length = len(bytes)
-        var ptr = bytes.unsafe_ptr()
-        var index = 0
+        var i = 0
         var run_start = 0
 
-        while index < length:
-            var byte = ptr[unsafe_offset=index]
-            if byte == UInt8(TAB_BYTE) or byte == UInt8(SPACE_BYTE):
+        while i < len(bytes):
+            ref byte = bytes[i]
+            if byte == UInt8(TAB_CODEPOINT) or byte == UInt8(SPACE_CODEPOINT):
                 if should_omit:
                     if omitted < indent:
                         omitted += 1
                         # This column is dropped, so the pending run stops short
                         # of it and resumes after it.
-                        buf.write(text[byte=run_start:index])
-                        index += 1
-                        run_start = index
+                        buf.write(text[byte=run_start:i])
+                        i += 1
+                        run_start = i
                         continue
                     should_omit = False
-            elif byte == UInt8(NEWLINE_BYTE):
+            elif byte == UInt8(LF_CODEPOINT):
                 omitted = 0
                 should_omit = True
 
-            index += 1
+            i += 1
 
-        buf.write(text[byte=run_start:length])
+        buf.write(text[byte=run_start:i])
         return buf^
 
     for codepoint in text.codepoints():
@@ -117,15 +111,14 @@ def _apply_dedent[origin: ImmOrigin, //](text: StringSpan[origin], indent: UInt)
             buf.write(codepoint)
             continue
 
-        var rune = codepoint.to_u32()
-        if rune == TAB_BYTE or rune == SPACE_BYTE:
+        if codepoint == TAB_CODEPOINT or codepoint == SPACE_CODEPOINT:
             if should_omit:
                 if omitted < indent:
                     omitted += 1
                     continue
                 should_omit = False
             buf.write(codepoint)
-        elif rune == NEWLINE_BYTE:
+        elif codepoint == LF_CODEPOINT:
             omitted = 0
             should_omit = True
             buf.write(codepoint)

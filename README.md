@@ -19,7 +19,6 @@ This project was heavily inspired by:
 
 * [Termenv](https://github.com/muesli/termenv/tree/master)
 * [Reflow](https://github.com/muesli/reflow/tree/master)
-* [Crossterm](https://github.com/crossterm-rs/crossterm)
 
 ## Adding the `mist` package to your project
 
@@ -38,7 +37,7 @@ There's two ways to build `mist` from source: directly from the Git repository o
 Run the following commands in your terminal:
 
 ```bash
-pixi add mist --git "https://github.com/thatstoasty/mist.git" --tag "v0.3.2" && pixi install
+pixi add mist --git "https://github.com/thatstoasty/mist.git" --tag "v0.3.3" && pixi install
 ```
 
 #### Building from source: Local

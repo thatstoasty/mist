@@ -1,6 +1,6 @@
 """A writer that wraps written content to a fixed printable cell width."""
 from mist.transform import ansi
-from mist.transform.ansi import CARRIAGE_RETURN_BYTE, NEWLINE_BYTE, SPACE, SPACE_BYTE, _is_plain_ascii
+from mist.transform.ansi import CARRIAGE_RETURN_CODEPOINT, LF_CODEPOINT, SPACE, SPACE_CODEPOINT, _is_plain_ascii
 from mist.transform.unicode import grapheme_width
 
 
@@ -190,12 +190,12 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
             var byte = ptr[unsafe_offset=index]
             var break_length = 0
 
-            if byte == UInt8(NEWLINE_BYTE):
+            if byte == UInt8(LF_CODEPOINT):
                 break_length = 1
             elif (
-                byte == UInt8(CARRIAGE_RETURN_BYTE)
+                byte == UInt8(CARRIAGE_RETURN_CODEPOINT)
                 and index + 1 < length
-                and ptr[unsafe_offset=index + 1] == UInt8(NEWLINE_BYTE)
+                and ptr[unsafe_offset=index + 1] == UInt8(LF_CODEPOINT)
             ):
                 break_length = 2
 
@@ -223,7 +223,7 @@ struct WrapWriter[keep_newlines: Bool = True](Movable, Writable):
                 self.forceful_newline = True
 
             if self.line_len == 0:
-                if self.forceful_newline and not self.preserve_space and byte == UInt8(SPACE_BYTE):
+                if self.forceful_newline and not self.preserve_space and byte == UInt8(SPACE_CODEPOINT):
                     # The space is dropped, so the pending run has to stop short
                     # of it and resume after it.
                     self.buf.write(text[byte=run_start:index])

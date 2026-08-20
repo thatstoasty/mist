@@ -1,6 +1,6 @@
 """A writer that wraps written content on word boundaries."""
 from mist.transform import ansi
-from mist.transform.ansi import CARRIAGE_RETURN_BYTE, NEWLINE_BYTE, SPACE, SPACE_BYTE, _is_plain_ascii
+from mist.transform.ansi import CARRIAGE_RETURN_CODEPOINT, LF_CODEPOINT, SPACE, SPACE_CODEPOINT, _is_plain_ascii
 from mist.transform.unicode import grapheme_width
 
 
@@ -226,12 +226,12 @@ struct WordWrapWriter[keep_newlines: Bool = True](Deinitable where False, Movabl
             var byte = ptr[unsafe_offset=index]
             var break_length = 0
 
-            if byte == UInt8(NEWLINE_BYTE):
+            if byte == UInt8(LF_CODEPOINT):
                 break_length = 1
             elif (
-                byte == UInt8(CARRIAGE_RETURN_BYTE)
+                byte == UInt8(CARRIAGE_RETURN_CODEPOINT)
                 and index + 1 < length
-                and ptr[unsafe_offset=index + 1] == UInt8(NEWLINE_BYTE)
+                and ptr[unsafe_offset=index + 1] == UInt8(LF_CODEPOINT)
             ):
                 break_length = 2
 
@@ -258,7 +258,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Deinitable where False, Movabl
                 continue
 
             # end of current word
-            if byte == UInt8(SPACE_BYTE):
+            if byte == UInt8(SPACE_CODEPOINT):
                 self.add_word()
                 self.space.write(SPACE)
                 self.space_width += 1
@@ -282,12 +282,12 @@ struct WordWrapWriter[keep_newlines: Bool = True](Deinitable where False, Movabl
             var run_start = index
             while index < length:
                 var run_byte = ptr[unsafe_offset=index]
-                if run_byte == UInt8(NEWLINE_BYTE) or run_byte == UInt8(SPACE_BYTE) or run_byte == breakpoint_byte:
+                if run_byte == UInt8(LF_CODEPOINT) or run_byte == UInt8(SPACE_CODEPOINT) or run_byte == breakpoint_byte:
                     break
                 if (
-                    run_byte == UInt8(CARRIAGE_RETURN_BYTE)
+                    run_byte == UInt8(CARRIAGE_RETURN_CODEPOINT)
                     and index + 1 < length
-                    and ptr[unsafe_offset=index + 1] == UInt8(NEWLINE_BYTE)
+                    and ptr[unsafe_offset=index + 1] == UInt8(LF_CODEPOINT)
                 ):
                     break
 

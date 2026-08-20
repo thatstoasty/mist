@@ -3,51 +3,48 @@ from std.io import write
 from std.sys.info import simd_width_of
 
 from mist.transform.unicode import _ascii_cell_width, char_width, grapheme_width, string_width
-
+from mist.style import CSI
+from mist._utils import as_codepoint, as_byte
 
 comptime ANSI_ESCAPE = "[0m"
 """The ANSI escape sequence for resetting formatting."""
 comptime ANSI_MARKER = "\x1b"
 """The ANSI escape sequence marker."""
-comptime ANSI_MARKER_BYTE = UInt32(ord(ANSI_MARKER))
+comptime ANSI_MARKER_CODEPOINT = as_codepoint[ANSI_MARKER]()
 """The byte value of the ANSI escape sequence marker."""
-comptime SGR_COMMAND = UInt32(ord("m"))
+comptime ANSI_MARKER_BYTE = as_byte[ANSI_MARKER]()
+"""The byte value of the ANSI escape sequence marker."""
+comptime SGR_COMMAND_CODEPOINT = as_codepoint["m"]()
 """The byte value of the SGR command."""
 comptime SPACE = " "
 """A single space character."""
-comptime NEWLINE = "\n"
+comptime LF = "\n"
 """A newline character."""
-comptime TAB_BYTE = UInt32(ord("\t"))
+comptime TAB_CODEPOINT = as_codepoint["\t"]()
 """The byte value of the tab character."""
-comptime SPACE_BYTE = UInt32(ord(" "))
+comptime SPACE_CODEPOINT = as_codepoint[" "]()
 """The byte value of the space character."""
-comptime NEWLINE_BYTE = UInt32(ord("\n"))
+comptime LF_CODEPOINT = as_codepoint["\n"]()
 """The byte value of the newline character."""
-comptime CARRIAGE_RETURN_BYTE = UInt32(ord("\r"))
+comptime CARRIAGE_RETURN_CODEPOINT = as_codepoint["\r"]()
 """The byte value of the carriage return character."""
 
-comptime CSI_INTRODUCER_BYTE = UInt32(ord("["))
+comptime CSI_INTRODUCER_CODEPOINT = as_codepoint["["]()
 """The byte that follows the marker to introduce a CSI sequence, e.g. SGR color codes."""
-comptime OSC_INTRODUCER_BYTE = UInt32(ord("]"))
+comptime OSC_INTRODUCER_CODEPOINT = as_codepoint["]"]()
 """The byte that follows the marker to introduce an OSC sequence, e.g. OSC 8 hyperlinks."""
-comptime DCS_INTRODUCER_BYTE = UInt32(ord("P"))
+comptime DCS_INTRODUCER_CODEPOINT = as_codepoint["P"]()
 """The byte that follows the marker to introduce a device control string."""
-comptime SOS_INTRODUCER_BYTE = UInt32(ord("X"))
+comptime SOS_INTRODUCER_CODEPOINT = as_codepoint["X"]()
 """The byte that follows the marker to introduce a start-of-string sequence."""
-comptime PM_INTRODUCER_BYTE = UInt32(ord("^"))
+comptime PM_INTRODUCER_CODEPOINT = as_codepoint["^"]()
 """The byte that follows the marker to introduce a privacy message string."""
-comptime APC_INTRODUCER_BYTE = UInt32(ord("_"))
+comptime APC_INTRODUCER_CODEPOINT = as_codepoint["_"]()
 """The byte that follows the marker to introduce an application program command string."""
-comptime BEL_BYTE = UInt32(ord("\x07"))
+comptime BEL_CODEPOINT = as_codepoint["\x07"]()
 """The byte value of the bell character, a common terminator for OSC strings."""
-comptime ST_ESCAPE_BYTE = UInt32(ord("\\"))
+comptime ST_ESCAPE_CODEPOINT = as_codepoint["\\"]()
 """The byte that follows the marker to form the string terminator (`ESC \\`)."""
-
-comptime _SCAN_GROUND: UInt8 = 0
-comptime _SCAN_ESCAPE: UInt8 = 1
-comptime _SCAN_CSI: UInt8 = 2
-comptime _SCAN_STRING: UInt8 = 3
-comptime _SCAN_STRING_ESCAPE: UInt8 = 4
 
 comptime _ESCAPE_SIMD_WIDTH = simd_width_of[DType.uint8]()
 """The number of bytes the `ESC` search examines per SIMD step."""
@@ -78,12 +75,12 @@ def _contains_escape[origin: ImmOrigin, //](text: StringSpan[origin]) -> Bool:
     var i = 0
 
     while i + W <= length:
-        if ptr.unsafe_offset(i).unsafe_load[width=W]().eq(UInt8(ANSI_MARKER_BYTE)).reduce_or():
+        if ptr.unsafe_offset(i).unsafe_load[width=W]().eq(ANSI_MARKER_BYTE).reduce_or():
             return True
         i += W
 
     while i < length:
-        if ptr[unsafe_offset=i] == UInt8(ANSI_MARKER_BYTE):
+        if ptr[unsafe_offset=i] == ANSI_MARKER_BYTE:
             return True
         i += 1
 
@@ -107,22 +104,20 @@ def _is_plain_ascii[origin: ImmOrigin, //](text: StringSpan[origin]) -> Bool:
     Returns:
         True if every byte is ASCII and none is `ESC`, False otherwise.
     """
-    comptime W = _ESCAPE_SIMD_WIDTH
-
     var bytes = text.as_bytes()
     var length = len(bytes)
     var ptr = bytes.unsafe_ptr()
     var i = 0
 
-    while i + W <= length:
-        var chunk = ptr.unsafe_offset(i).unsafe_load[width=W]()
-        if chunk.ge(0x80).reduce_or() or chunk.eq(UInt8(ANSI_MARKER_BYTE)).reduce_or():
+    while i + _ESCAPE_SIMD_WIDTH <= length:
+        var chunk = ptr.unsafe_offset(i).unsafe_load[width=_ESCAPE_SIMD_WIDTH]()
+        if chunk.ge(0x80).reduce_or() or chunk.eq(ANSI_MARKER_BYTE).reduce_or():
             return False
-        i += W
+        i += _ESCAPE_SIMD_WIDTH
 
     while i < length:
         var byte = ptr[unsafe_offset=i]
-        if byte >= 0x80 or byte == UInt8(ANSI_MARKER_BYTE):
+        if byte >= 0x80 or byte == ANSI_MARKER_BYTE:
             return False
         i += 1
 
@@ -157,7 +152,7 @@ def is_newline[origin: ImmOrigin, //](grapheme: StringSpan[origin]) -> Bool:
     Returns:
         True if the cluster is a line break, False otherwise.
     """
-    return grapheme == NEWLINE or grapheme == "\r\n"
+    return grapheme == LF or grapheme == "\r\n"
 
 
 def is_terminator(c: Codepoint) -> Bool:
@@ -174,7 +169,7 @@ def is_terminator(c: Codepoint) -> Bool:
 
 
 @fieldwise_init
-struct SequenceScanner(Movable):
+struct SequenceScanner(Equatable, ImplicitlyCopyable, Writable):
     """Recognizes ANSI/VT escape sequences one codepoint at a time.
 
     A single "next letter ends it" rule cannot describe every escape sequence
@@ -198,11 +193,21 @@ struct SequenceScanner(Movable):
     """
 
     var state: UInt8
-    """The scanner's position within a sequence, or `_SCAN_GROUND` when idle."""
+    """The scanner's position within a sequence, or `Self.GROUND` when idle."""
+    comptime GROUND = Self(0)
+    """Outside any sequence, where the next `ESC` starts one."""
+    comptime ESCAPE = Self(1)
+    """Just past an `ESC`, where the next codepoint selects the sequence's shape."""
+    comptime CSI = Self(2)
+    """Inside a CSI sequence, e.g. an SGR color code, which a final byte ends."""
+    comptime STRING = Self(3)
+    """Inside an OSC/DCS/PM/APC/SOS string, which `BEL` or the string terminator ends."""
+    comptime STRING_ESCAPE = Self(4)
+    """Just past an `ESC` inside a string, where a `\\` terminates it and anything else is content."""
 
     def __init__(out self):
         """Initializes a new scanner, outside of any sequence."""
-        self.state = _SCAN_GROUND
+        self.state = Self.GROUND.state
 
     def is_active(self) -> Bool:
         """Reports whether the scanner is currently inside a sequence.
@@ -210,7 +215,7 @@ struct SequenceScanner(Movable):
         Returns:
             True if the last `step` call landed inside a sequence.
         """
-        return self.state != _SCAN_GROUND
+        return self != Self.GROUND
 
     def step(mut self, c: Codepoint) -> Bool:
         """Advances the scanner by one codepoint.
@@ -222,49 +227,47 @@ struct SequenceScanner(Movable):
             True if `c` belongs to an escape sequence and so occupies no
             printable cells, False if it's ordinary content.
         """
-        var rune = c.to_u32()
-
-        if self.state == _SCAN_GROUND:
-            if rune == ANSI_MARKER_BYTE:
-                self.state = _SCAN_ESCAPE
+        if self == Self.GROUND:
+            if c == ANSI_MARKER_CODEPOINT:
+                self.state = Self.ESCAPE.state
                 return True
             return False
 
-        if self.state == _SCAN_ESCAPE:
-            if rune == CSI_INTRODUCER_BYTE:
-                self.state = _SCAN_CSI
+        if self == Self.ESCAPE:
+            if c == CSI_INTRODUCER_CODEPOINT:
+                self.state = Self.CSI.state
             elif (
-                rune == OSC_INTRODUCER_BYTE
-                or rune == DCS_INTRODUCER_BYTE
-                or rune == SOS_INTRODUCER_BYTE
-                or rune == PM_INTRODUCER_BYTE
-                or rune == APC_INTRODUCER_BYTE
+                c == OSC_INTRODUCER_CODEPOINT
+                or c == DCS_INTRODUCER_CODEPOINT
+                or c == SOS_INTRODUCER_CODEPOINT
+                or c == PM_INTRODUCER_CODEPOINT
+                or c == APC_INTRODUCER_CODEPOINT
             ):
-                self.state = _SCAN_STRING
+                self.state = Self.STRING.state
             else:
                 # A bare two-byte escape (e.g. `ESC M`) ends here.
-                self.state = _SCAN_GROUND
+                self.state = Self.GROUND.state
             return True
 
-        if self.state == _SCAN_CSI:
+        if self == Self.CSI:
             if is_terminator(c):
-                self.state = _SCAN_GROUND
+                self.state = Self.GROUND.state
             return True
 
-        if self.state == _SCAN_STRING:
-            if rune == BEL_BYTE:
-                self.state = _SCAN_GROUND
-            elif rune == ANSI_MARKER_BYTE:
-                self.state = _SCAN_STRING_ESCAPE
+        if self == Self.STRING:
+            if c == BEL_CODEPOINT:
+                self.state = Self.GROUND.state
+            elif c == ANSI_MARKER_CODEPOINT:
+                self.state = Self.STRING_ESCAPE.state
             return True
 
-        # _SCAN_STRING_ESCAPE: only `ESC \` (the string terminator) closes the
+        # Self.STRING_ESCAPE: only `ESC \` (the string terminator) closes the
         # sequence here; anything else is string content, so fall back to
         # scanning the string body.
-        if rune == ST_ESCAPE_BYTE:
-            self.state = _SCAN_GROUND
+        if c == ST_ESCAPE_CODEPOINT:
+            self.state = Self.GROUND.state
         else:
-            self.state = _SCAN_STRING
+            self.state = Self.STRING.state
         return True
 
 
@@ -291,8 +294,6 @@ def _ascii_scanned_width[origin: ImmOrigin, //](text: StringSpan[origin]) -> Opt
     Returns:
         The printable cell width, or `None` if `text` is not all ASCII.
     """
-    comptime W = _ESCAPE_SIMD_WIDTH
-
     var bytes = text.as_bytes()
     var length = len(bytes)
     var ptr = bytes.unsafe_ptr()
@@ -304,15 +305,15 @@ def _ascii_scanned_width[origin: ImmOrigin, //](text: StringSpan[origin]) -> Opt
         # Outside a sequence, skip ahead a register at a time until a chunk
         # holds an `ESC`; inside one, fall through to the byte-wise walk.
         if not scanner.is_active():
-            while index + W <= length:
-                var chunk = ptr.unsafe_offset(index).unsafe_load[width=W]()
+            while index + _ESCAPE_SIMD_WIDTH <= length:
+                var chunk = ptr.unsafe_offset(index).unsafe_load[width=_ESCAPE_SIMD_WIDTH]()
                 if chunk.ge(0x80).reduce_or():
                     return None
-                if chunk.eq(UInt8(ANSI_MARKER_BYTE)).reduce_or():
+                if chunk.eq(ANSI_MARKER_BYTE).reduce_or():
                     break
 
                 width += UInt(Int((chunk.ge(0x20) & chunk.le(0x7E)).cast[DType.uint8]().reduce_add()))
-                index += W
+                index += _ESCAPE_SIMD_WIDTH
 
             # The skip can land exactly on the end, and the byte-wise step below
             # would then read past the buffer.
@@ -565,7 +566,7 @@ struct Writer(Movable, Writable):
             # SGR reset sequence: whatever style was active no longer is.
             self.last_seq = String(capacity=self.last_seq.capacity())
             self.seq_changed = False
-        elif self.ansi_seq.startswith(ANSI_MARKER + "[") and codepoint.to_u32() == SGR_COMMAND:
+        elif self.ansi_seq.startswith(CSI) and codepoint == SGR_COMMAND_CODEPOINT:
             # A non-reset SGR sequence: record it so it can be restored later.
             self.last_seq.write(self.ansi_seq)
             self.seq_changed = True

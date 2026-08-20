@@ -1,6 +1,6 @@
 """A writer that pads written content to a given printable cell width."""
 from mist.transform import ansi
-from mist.transform.ansi import CARRIAGE_RETURN_BYTE, NEWLINE_BYTE, SPACE, _is_plain_ascii
+from mist.transform.ansi import CARRIAGE_RETURN_CODEPOINT, LF_CODEPOINT, SPACE, _is_plain_ascii
 from mist.transform.unicode import grapheme_width
 
 
@@ -123,12 +123,12 @@ struct PaddingWriter(Deinitable where False, Movable):
             var byte = ptr[unsafe_offset=index]
             var break_length = 0
 
-            if byte == UInt8(NEWLINE_BYTE):
+            if byte == UInt8(LF_CODEPOINT):
                 break_length = 1
             elif (
-                byte == UInt8(CARRIAGE_RETURN_BYTE)
+                byte == UInt8(CARRIAGE_RETURN_CODEPOINT)
                 and index + 1 < length
-                and ptr[unsafe_offset=index + 1] == UInt8(NEWLINE_BYTE)
+                and ptr[unsafe_offset=index + 1] == UInt8(LF_CODEPOINT)
             ):
                 break_length = 2
 

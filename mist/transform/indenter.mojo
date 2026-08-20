@@ -1,6 +1,6 @@
 """A writer that indents written content by a fixed number of spaces."""
 from mist.transform import ansi
-from mist.transform.ansi import NEWLINE_BYTE, SPACE, _is_plain_ascii
+from mist.transform.ansi import LF_CODEPOINT, SPACE, _is_plain_ascii
 
 
 @fieldwise_init
@@ -85,7 +85,7 @@ struct IndentWriter(Movable, Writable):
                     self.ansi_writer.restore_ansi()
 
                 # end of current line
-                if codepoint.to_u32() == NEWLINE_BYTE:
+                if codepoint == LF_CODEPOINT:
                     self.skip_indent = False
 
             self.ansi_writer.write_stepped(codepoint, is_sequence=is_sequence)
@@ -123,7 +123,7 @@ struct IndentWriter(Movable, Writable):
                 self.ansi_writer.restore_ansi()
 
             # end of current line
-            if ptr[unsafe_offset=index] == UInt8(NEWLINE_BYTE):
+            if ptr[unsafe_offset=index] == UInt8(LF_CODEPOINT):
                 self.skip_indent = False
 
             index += 1
