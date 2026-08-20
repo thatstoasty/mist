@@ -82,3 +82,36 @@ comptime COLOR_STRINGS: Array[UInt8, 256] = [
     250, 251, 252, 253, 254, 255
 ]
 """0-255. Used to avoid calling `str` during compile time, which is not supported."""
+
+
+# fmt: off
+comptime ANSI256_TO_ANSI: Array[UInt8, 256] = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    0, 4, 4, 4, 12, 12, 2, 6, 12, 12, 12, 12, 2, 2, 6, 6,
+    12, 12, 2, 2, 2, 6, 6, 12, 10, 10, 10, 14, 14, 14, 10, 10,
+    10, 10, 14, 14, 1, 5, 12, 12, 12, 12, 3, 8, 12, 12, 12, 12,
+    2, 2, 6, 12, 12, 12, 2, 2, 2, 6, 6, 12, 10, 10, 10, 10,
+    14, 14, 10, 10, 10, 10, 14, 14, 1, 5, 5, 5, 12, 12, 3, 8,
+    13, 12, 12, 12, 3, 3, 8, 12, 12, 12, 3, 10, 10, 6, 12, 12,
+    10, 10, 10, 10, 14, 14, 10, 10, 10, 10, 10, 14, 1, 5, 5, 5,
+    5, 12, 9, 8, 13, 13, 13, 13, 3, 9, 8, 13, 13, 13, 3, 3,
+    3, 7, 12, 12, 11, 10, 10, 10, 14, 14, 10, 10, 10, 10, 10, 14,
+    9, 13, 13, 13, 13, 13, 9, 8, 13, 13, 13, 13, 9, 9, 8, 13,
+    13, 13, 3, 3, 7, 7, 13, 13, 11, 11, 11, 11, 7, 13, 11, 11,
+    11, 10, 10, 14, 9, 9, 13, 13, 13, 13, 9, 9, 9, 13, 13, 13,
+    9, 9, 7, 13, 13, 13, 11, 9, 9, 7, 13, 13, 11, 11, 11, 7,
+    15, 13, 11, 11, 11, 11, 11, 15, 0, 0, 0, 0, 0, 0, 8, 8,
+    8, 8, 8, 8, 8, 8, 8, 8, 7, 7, 7, 7, 7, 7, 15, 15,
+]
+# fmt: on
+"""The nearest ANSI (0-15) color for each ANSI256 (0-255) color.
+
+Generated from the HSLuv nearest-neighbour search this replaces. That search
+reads only `ANSI_HEX_CODES`, which is fixed, so each of the 256 answers is
+fixed too, but computing one cost 16 HSLuv distances -- and every distance
+converts both of its operands through `linear_rgb`, `xyz`, `Luv` and `LuvLCh`.
+
+To regenerate: for each `value` in 0..255, take the `index` in 0..15 that
+minimises `Color(ANSI_HEX_CODES[value]).distance_HSLuv(Color(ANSI_HEX_CODES[index]))`,
+resolving ties toward the lower index as a linear scan does.
+"""

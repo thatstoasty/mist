@@ -159,8 +159,13 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
     ```
     """
 
-    var styles: List[String]
-    """The list of ANSI styles to apply to the text."""
+    var styles: String
+    """The ANSI styles to apply to the text, already joined with `;` separators.
+
+    Held joined rather than as a list because every style added copied the whole
+    list, and every render re-joined it. The rendered form is the only form
+    either operation ever wanted.
+    """
     var profile: Profile
     """The color profile to use for color conversion."""
 
@@ -171,6 +176,16 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             profile: The color profile to use for color conversion.
             styles: The list of ANSI styles to apply to the text.
         """
+        self.styles = ";".join(styles)
+        self.profile = profile
+
+    def __init__(out self, profile: Profile, var styles: String):
+        """Constructs a Style from styles already joined with `;` separators.
+
+        Args:
+            profile: The color profile to use for color conversion.
+            styles: The ANSI styles to apply, joined with `;`.
+        """
         self.styles = styles^
         self.profile = profile
 
@@ -178,7 +193,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         """Constructs a Style. This constructor is not compile time friendly, because
         the default constructor for a Profile checks the terminal color profile.
         """
-        self.styles = List[String]()
+        self.styles = String()
         self.profile = Profile()
 
     def __init__(out self, *, copy: Self):
@@ -190,8 +205,8 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         self.profile = copy.profile
         self.styles = copy.styles.copy()
 
-    def add_style(self, style: String) -> Self:
-        """Creates a deepcopy of Self, adds a style to it's list of styles, and returns that.
+    def add_style(self, style: ImmStringSpan[...]) -> Self:
+        """Creates a copy of Self with `style` appended to its styles, and returns that.
 
         Args:
             style: The ANSI style to add to the list of style.
@@ -203,9 +218,13 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         - The style being added must be a valid ANSI SGR sequence.
         - You can use the `SGR` enum for some common styles to apply.
         """
-        var new = self.copy()
-        new.styles.append(style)
-        return new^
+        var styles = String(capacity=self.styles.byte_length() + style.byte_length() + 1)
+        styles.write(self.styles)
+        if styles:
+            styles.write(";")
+        styles.write(style)
+
+        return Self(self.profile, styles^)
 
     @always_inline
     def bold(self) -> Self:
@@ -721,10 +740,10 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             The text with the styles applied.
         """
-        if self.profile == Profile.ASCII or len(self.styles) == 0:
+        if self.profile == Profile.ASCII or not self.styles:
             return String(text)
 
-        return String(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
+        return String(CSI, self.styles, "m", text, RESET_STYLE)
 
     def render[T: Writable, W: Writer, //](self, text: T, mut writer: W):
         """Renders text with the styles applied to it.
@@ -737,10 +756,10 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             text: The text to render with the styles applied.
             writer: The `Writer` to write the rendered text to.
         """
-        if self.profile == Profile.ASCII or len(self.styles) == 0:
+        if self.profile == Profile.ASCII or not self.styles:
             return writer.write(text)
 
-        return writer.write(CSI, ";".join(self.styles), "m", text, RESET_STYLE)
+        return writer.write(CSI, self.styles, "m", text, RESET_STYLE)
 
     def render_many[*Ts: Writable](self, *text: *Ts, sep: StringSpan = " ") -> String:
         """Renders text with the styles applied to it.
@@ -764,10 +783,10 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             if sep and i != len(text) - 1:
                 result.write(sep)
 
-        if self.profile == Profile.ASCII or len(self.styles) == 0:
+        if self.profile == Profile.ASCII or not self.styles:
             return result^
 
-        return String(CSI, ";".join(self.styles), "m", result, RESET_STYLE)
+        return String(CSI, self.styles, "m", result, RESET_STYLE)
 
     def render_many[W: Writer, *Ts: Writable](self, *text: *Ts, mut writer: W, sep: StringSpan = " "):
         """Renders text with the styles applied to it.
@@ -781,14 +800,14 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             writer: The `Writer` to write the rendered text to.
             sep: The separator to use between the text objects. Defaults to a single space.
         """
-        if self.profile == Profile.ASCII or len(self.styles) == 0:
+        if self.profile == Profile.ASCII or not self.styles:
             comptime for i in range(text.__len__()):
                 writer.write(text[i])
                 if sep and i != len(text) - 1:
                     writer.write(sep)
             return
 
-        writer.write(CSI, ";".join(self.styles), "m")
+        writer.write(CSI, self.styles, "m")
         comptime for i in range(text.__len__()):
             writer.write(text[i])
             if sep and i != len(text) - 1:
