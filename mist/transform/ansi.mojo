@@ -472,8 +472,8 @@ struct Writer(Movable, Writable):
         """
         self.forward = forward^
         self.scanner = SequenceScanner()
-        self.ansi_seq = String(capacity=128)
-        self.last_seq = String(capacity=128)
+        self.ansi_seq = String(capacity_bytes=128)
+        self.last_seq = String(capacity_bytes=128)
         self.seq_changed = False
 
     def write_to[W: write.Writer, //](self, mut writer: W):
@@ -564,7 +564,7 @@ struct Writer(Movable, Writable):
 
         if self.ansi_seq.startswith(ANSI_MARKER + ANSI_ESCAPE):
             # SGR reset sequence: whatever style was active no longer is.
-            self.last_seq = String(capacity=self.last_seq.capacity())
+            self.last_seq = String(capacity_bytes=self.last_seq.capacity_bytes())
             self.seq_changed = False
         elif self.ansi_seq.startswith(CSI) and codepoint == SGR_COMMAND_CODEPOINT:
             # A non-reset SGR sequence: record it so it can be restored later.
@@ -572,7 +572,7 @@ struct Writer(Movable, Writable):
             self.seq_changed = True
 
         self.forward.write(self.ansi_seq)
-        self.ansi_seq = String(capacity=self.ansi_seq.capacity())
+        self.ansi_seq = String(capacity_bytes=self.ansi_seq.capacity_bytes())
 
     def take(deinit self) -> String:
         """Consumes the writer and hands back its buffer.

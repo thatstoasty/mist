@@ -85,7 +85,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Deinitable where False, Movabl
 
     def clear_space(mut self):
         """Empty the space buffer and reset its tracked width."""
-        self.space = String(capacity=self.space.capacity())
+        self.space = String(capacity_bytes=self.space.capacity_bytes())
         self.space_width = 0
 
     def add_word(mut self):
@@ -94,7 +94,7 @@ struct WordWrapWriter[keep_newlines: Bool = True](Deinitable where False, Movabl
             self.add_space()
             self.line_len += self.word_width
             self.buf.write(self.word)
-            self.word = String(capacity=self.word.capacity())
+            self.word = String(capacity_bytes=self.word.capacity_bytes())
             self.word_width = 0
 
     def add_newline(mut self):
