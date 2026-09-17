@@ -197,7 +197,7 @@ struct ANSI256Color(Color, TrivialRegisterPassable):
         Returns:
             The ANSI Sequence for the color and the text.
         """
-        var output = String(capacity=8)
+        var output = String(capacity_bytes=8)
 
         comptime if is_background:
             output.write(BACKGROUND)
@@ -291,7 +291,7 @@ def hex_to_string(value: UInt32, *, min_width: Int = 0) -> String:
     # Emitted most significant digit first. Building the other way round meant
     # prepending each digit to the result, which reallocated and copied the
     # whole string once per digit.
-    var result = String(capacity=digits)
+    var result = String(capacity_bytes=digits)
     for index in reversed(range(digits)):
         # Anything past the value's own width is a padding zero.
         var nibble = Int((value >> UInt32(index * 4)) & 0xF) if index < NIBBLES else 0
@@ -361,7 +361,7 @@ struct RGBColor(Color, TrivialRegisterPassable):
         Returns:
             The ANSI Sequence for the color and the text.
         """
-        var output = String(capacity=8)
+        var output = String(capacity_bytes=8)
 
         comptime if is_background:
             output.write(BACKGROUND)

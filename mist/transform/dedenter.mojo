@@ -74,7 +74,7 @@ def _apply_dedent[origin: ImmOrigin, //](text: StringSpan[origin], indent: UInt)
     """
     var should_omit = True
     var omitted: UInt = 0
-    var buf = String(capacity=Int(Float64(text.byte_length()) * 1.25))
+    var buf = String(capacity_bytes=Int(Float64(text.byte_length()) * 1.25))
     var scanner = ansi.SequenceScanner()
 
     if _is_plain_ascii(text):

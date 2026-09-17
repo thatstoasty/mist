@@ -171,6 +171,7 @@ output
 .vscode/
 
 # Mojo
-*.mojopkg
+*.mojoc
 *.dSYM
 kgen.*
+.DS_STORE

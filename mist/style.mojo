@@ -218,7 +218,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         - The style being added must be a valid ANSI SGR sequence.
         - You can use the `SGR` enum for some common styles to apply.
         """
-        var styles = String(capacity=self.styles.byte_length() + style.byte_length() + 1)
+        var styles = String(capacity_bytes=self.styles.byte_length() + style.byte_length() + 1)
         styles.write(self.styles)
         if styles:
             styles.write(";")
@@ -777,7 +777,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             The text with the styles applied.
         """
-        var result = String(capacity=128)
+        var result = String(capacity_bytes=128)
         comptime for i in range(text.__len__()):
             result.write(text[i])
             if sep and i != len(text) - 1:
