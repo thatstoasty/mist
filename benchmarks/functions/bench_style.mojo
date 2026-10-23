@@ -84,7 +84,7 @@ def bench_render_true_color(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     def do() raises:
-        _ = mist.Style(Profile.TRUE_COLOR).foreground(0xC9A0DC).render(s)
+        _ = mist.Style(Profile.TrueColor).foreground(0xC9A0DC).render(s)
 
     b.iter[do]()
 
@@ -94,8 +94,8 @@ def bench_render_true_color_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     def do() raises:
-        var color = Profile.TRUE_COLOR.color(0xC9A0DC)
-        _ = mist.Style(Profile.TRUE_COLOR).foreground(color=color).render(s)
+        var color = Profile.TrueColor.color(0xC9A0DC)
+        _ = mist.Style(Profile.TrueColor).foreground(color=color).render(s)
 
     b.iter[do]()
 
@@ -191,7 +191,7 @@ def bench_render_many_true_color(mut b: Bencher, s: String) raises:
     @always_inline
     @parameter
     def do() raises:
-        _ = mist.Style(Profile.TRUE_COLOR).foreground(0xC9A0DC).render_many("Hello", "World", "!")
+        _ = mist.Style(Profile.TrueColor).foreground(0xC9A0DC).render_many("Hello", "World", "!")
 
     b.iter[do]()
 
@@ -201,7 +201,7 @@ def bench_render_many_true_color_profile_color(mut b: Bencher, s: String) raises
     @always_inline
     @parameter
     def do() raises:
-        var color = Profile.TRUE_COLOR.color(0xC9A0DC)
-        _ = mist.Style(Profile.TRUE_COLOR).foreground(color=color).render_many("Hello", "World", "!")
+        var color = Profile.TrueColor.color(0xC9A0DC)
+        _ = mist.Style(Profile.TrueColor).foreground(color=color).render_many("Hello", "World", "!")
 
     b.iter[do]()

@@ -1,5 +1,5 @@
 """ANSI escape sequence constants and byte values used by text transforms."""
-from std.io import write
+from std import format
 from std.sys.info import simd_width_of
 
 from mist.transform.unicode import _ascii_cell_width, char_width, grapheme_width, string_width
@@ -476,7 +476,7 @@ struct Writer(Movable, Writable):
         self.last_seq = String(capacity_bytes=128)
         self.seq_changed = False
 
-    def write_to[W: write.Writer, //](self, mut writer: W):
+    def write_to[W: format.Writer, //](self, mut writer: W):
         """Writes the content to the given writer.
 
         Parameters:

@@ -1,5 +1,5 @@
 """Terminal styling and utilities for Mojo."""
-from mist.color import ANSI256Color, ANSIColor, AnyColor, Color, NoColor, RGBColor
+from mist.color import Color
 from mist.profile import Profile
 from mist.renderers import (
     blue,

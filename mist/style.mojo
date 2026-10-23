@@ -1,5 +1,5 @@
 """The `Style` type for composing ANSI text styles and colors."""
-from mist.color import AnyColor, NoColor
+from mist.color import Color
 from mist.profile import Profile
 
 
@@ -388,7 +388,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         """
         return self.add_style(SGR.OVERLINE)
 
-    def background(self, *, color: AnyColor) -> Self:
+    def background(self, *, color: Color) -> Self:
         """Set the background color of the text when it's rendered.
 
         Args:
@@ -397,10 +397,11 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the background color set.
         """
-        if color.isa[NoColor]():
-            return self.copy()
-
-        return self.add_style(color.sequence[True]())
+        match color:
+            case .ASCII:
+                return self.copy()
+            case _:
+                return self.add_style(color.sequence[is_background=True]())
 
     @always_inline
     def background(self, color: UInt32) -> Self:
@@ -414,7 +415,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         """
         return self.background(color=self.profile.color(color))
 
-    def foreground(self, *, color: AnyColor) -> Self:
+    def foreground(self, *, color: Color) -> Self:
         """Set the foreground color of the text.
 
         Args:
@@ -423,10 +424,11 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             A new Style with the foreground color set.
         """
-        if color.isa[NoColor]():
-            return self.copy()
-
-        return self.add_style(color.sequence[False]())
+        match color:
+            case .ASCII:
+                return self.copy()
+            case _:
+                return self.add_style(color.sequence[is_background=False]())
 
     @always_inline
     def foreground(self, color: UInt32) -> Self:
@@ -740,10 +742,14 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
         Returns:
             The text with the styles applied.
         """
-        if self.profile == Profile.ASCII or not self.styles:
+        if not self.styles:
             return String(text)
 
-        return String(CSI, self.styles, "m", text, RESET_STYLE)
+        match self.profile:
+            case .ASCII:
+                return String(text)
+            case _:
+                return String(CSI, self.styles, "m", text, RESET_STYLE)
 
     def render[T: Writable, W: Writer, //](self, text: T, mut writer: W):
         """Renders text with the styles applied to it.
@@ -756,10 +762,13 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             text: The text to render with the styles applied.
             writer: The `Writer` to write the rendered text to.
         """
-        if self.profile == Profile.ASCII or not self.styles:
-            return writer.write(text)
-
-        return writer.write(CSI, self.styles, "m", text, RESET_STYLE)
+        match self.profile:
+            case .ASCII:
+                return writer.write(text)
+            case _:
+                if not self.styles:
+                    return writer.write(text)
+                return writer.write(CSI, self.styles, "m", text, RESET_STYLE)
 
     def render_many[*Ts: Writable](self, *text: *Ts, sep: StringSpan = " ") -> String:
         """Renders text with the styles applied to it.
@@ -783,10 +792,14 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             if sep and i != len(text) - 1:
                 result.write(sep)
 
-        if self.profile == Profile.ASCII or not self.styles:
+        if not self.styles:
             return result^
 
-        return String(CSI, self.styles, "m", result, RESET_STYLE)
+        match self.profile:
+            case .ASCII:
+                return result^
+            case _:
+                return String(CSI, self.styles, "m", result, RESET_STYLE)
 
     def render_many[W: Writer, *Ts: Writable](self, *text: *Ts, mut writer: W, sep: StringSpan = " "):
         """Renders text with the styles applied to it.
@@ -800,16 +813,25 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             writer: The `Writer` to write the rendered text to.
             sep: The separator to use between the text objects. Defaults to a single space.
         """
-        if self.profile == Profile.ASCII or not self.styles:
+
+        def write_text[*Ts: Writable](mut writer: W, *text: *Ts, sep: StringSpan):
             comptime for i in range(text.__len__()):
                 writer.write(text[i])
                 if sep and i != len(text) - 1:
                     writer.write(sep)
+
+        if not self.styles:
+            write_text(writer, *text, sep=sep)
             return
 
-        writer.write(CSI, self.styles, "m")
-        comptime for i in range(text.__len__()):
-            writer.write(text[i])
-            if sep and i != len(text) - 1:
-                writer.write(sep)
-        writer.write(RESET_STYLE)
+        match self.profile:
+            case .ASCII:
+                write_text(writer, *text, sep=sep)
+                return
+            case _:
+                writer.write(CSI, self.styles, "m")
+                comptime for i in range(text.__len__()):
+                    writer.write(text[i])
+                    if sep and i != len(text) - 1:
+                        writer.write(sep)
+                writer.write(RESET_STYLE)

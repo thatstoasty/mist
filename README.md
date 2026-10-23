@@ -92,7 +92,7 @@ def main() raises:
     print(style.render("Hello World!"))
 
     # RGBColor Support (Hex Codes)
-    style = mist.Style(Profile.TRUE_COLOR).foreground(0xc9a0dc)
+    style = mist.Style(Profile.TrueColor).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
 ```
 
@@ -145,7 +145,7 @@ def main() raises:
 import mist
 from mist import Profile
 
-comptime style = mist.Style(Profile.TRUE_COLOR)
+comptime style = mist.Style(Profile.TrueColor)
 
 def main():
     print(style.render("Hello, world!"))

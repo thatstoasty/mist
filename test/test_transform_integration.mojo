@@ -15,7 +15,7 @@ def _styled() -> String:
     Returns:
         Bold red "Hello, World!" in the true color profile.
     """
-    return mist.Style(Profile.TRUE_COLOR).bold().foreground(0xE88388).render("Hello, World!")
+    return mist.Style(Profile.TrueColor).bold().foreground(0xE88388).render("Hello, World!")
 
 
 def test_style_output_width() raises:

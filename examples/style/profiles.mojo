@@ -27,10 +27,10 @@ def render_profiles():
     print(mist.Style(Profile.ANSI256).foreground(color=Profile.ANSI256.color(0xC9A0DC)).render(a))
 
     # RGBColor Support (Hex Codes)
-    print(mist.Style(Profile.TRUE_COLOR).foreground(color=Profile.TRUE_COLOR.color(0xC9A0DC)).render(a))
+    print(mist.Style(Profile.TrueColor).foreground(color=Profile.TrueColor.color(0xC9A0DC)).render(a))
 
     # It also supports using the Profile of the Style to instead of passing Profile().color().
-    print(mist.Style(Profile.TRUE_COLOR).foreground(0xC9A0DC).render(a))
+    print(mist.Style(Profile.TrueColor).foreground(0xC9A0DC).render(a))
 
 
 def renderers():
