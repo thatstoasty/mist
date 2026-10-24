@@ -443,10 +443,10 @@ def hex_to_ansi256(color: Color) -> UInt8:
 __enum Color(ImplicitlyCopyable, Writable):
     """`Color` is may be a `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`."""
 
-    case ASCII
-    case ANSI(UInt8)
-    case ANSI256(UInt8)
-    case RGB(UInt32)
+    case ascii
+    case ansi(UInt8)
+    case ansi256(UInt8)
+    case rgb(UInt32)
 
     def write_to[T: Writer, //](self, mut writer: T):
         """Writes the ANSI Sequence for the color to a writer.
@@ -467,13 +467,13 @@ __enum Color(ImplicitlyCopyable, Writable):
         """
         # Internal type is a variant, so these branches exhaustively match all types.
         match self:
-            case .ASCII:
+            case .ascii:
                 return ""
-            case .ANSI(value):
+            case .ansi(value):
                 return _ansi_sequence[is_background](value)
-            case .ANSI256(value):
+            case .ansi256(value):
                 return _ansi256_sequence[is_background](value)
-            case .RGB(value):
+            case .rgb(value):
                 return _rgb_sequence[is_background](value)
 
     ############
@@ -496,13 +496,13 @@ __enum Color(ImplicitlyCopyable, Writable):
             The hex string for the color, or an empty string if the color cannot be represented as a hex string.
         """
         match self:
-            case .ASCII:
+            case .ascii:
                 return ""
-            case .ANSI(value):
+            case .ansi(value):
                 return hex_to_string(lut[ANSI_HEX_CODES](Int(value)), min_width=RGB_HEX_DIGITS)
-            case .ANSI256(value):
+            case .ansi256(value):
                 return hex_to_string(lut[ANSI_HEX_CODES](Int(value)), min_width=RGB_HEX_DIGITS)
-            case .RGB(value):
+            case .rgb(value):
                 return hex_to_string(value, min_width=RGB_HEX_DIGITS)
 
     ############
@@ -516,13 +516,13 @@ __enum Color(ImplicitlyCopyable, Writable):
             The RGB tuple for the color.
         """
         match self:
-            case .ASCII:
+            case .ascii:
                 return (0, 0, 0)
-            case .ANSI(value):
+            case .ansi(value):
                 return hex_to_rgb(lut[ANSI_HEX_CODES](Int(value)))
-            case .ANSI256(value):
+            case .ansi256(value):
                 return _ansi256_to_rgb(value)
-            case .RGB(value):
+            case .rgb(value):
                 return hex_to_rgb(value)
 
     def to_rgb(self) -> RGB[linear=False]:
@@ -532,13 +532,13 @@ __enum Color(ImplicitlyCopyable, Writable):
             The RGB tuple for the color.
         """
         match self:
-            case .ASCII:
+            case .ascii:
                 return RGB(0.0, 0.0, 0.0)
-            case .ANSI(value):
+            case .ansi(value):
                 return RGB(hex_to_rgb(lut[ANSI_HEX_CODES](Int(value))))
-            case .ANSI256(value):
+            case .ansi256(value):
                 return RGB(_ansi256_to_rgb(value))
-            case .RGB(value):
+            case .rgb(value):
                 return RGB(hex_to_rgb(value))
 
     def to_linear_rgb[fast: Bool = False](self) -> RGB[linear=True]:
@@ -564,7 +564,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             A `Color` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
-        return Color.RGB(rgb_to_hex(r, g, b))
+        return Color.rgb(rgb_to_hex(r, g, b))
 
     @staticmethod
     def from_rgb(r: Float64, g: Float64, b: Float64) -> Self:
@@ -579,9 +579,9 @@ __enum Color(ImplicitlyCopyable, Writable):
             b: The blue value from 0.0 to 1.0.
 
         Returns:
-            A `Color.RGB` holding the color.
+            A `Color.rgb` holding the color.
         """
-        return Color.RGB(rgb_to_hex(_to_channel(r), _to_channel(g), _to_channel(b)))
+        return Color.rgb(rgb_to_hex(_to_channel(r), _to_channel(g), _to_channel(b)))
 
     @staticmethod
     def from_rgb[linear: Bool, //, fast: Bool = False](rgb: RGB[linear]) -> Self:
@@ -595,7 +595,7 @@ __enum Color(ImplicitlyCopyable, Writable):
             rgb: The RGB color to convert.
 
         Returns:
-            A `Color.RGB` holding the color.
+            A `Color.rgb` holding the color.
         """
         var r = rgb.R
         var g = rgb.G
@@ -877,7 +877,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         """
         return Self.from_Luv(value.to_Luv(), white_ref=white_ref)
 
-    def blend_Luv_LCh(self, other: Self, t: Float64) -> Self:
+    def blend_LuvLCh(self, other: Self, t: Float64) -> Self:
         """Blends two colors in the cylindrical CIELUV color space.
         t == 0 results in c1, t == 1 results in c2.
 
@@ -1332,7 +1332,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         """
         return Self.from_xyz(value.to_xyz(white_ref))
 
-    def distance_lab[fast: Bool = False](self, other: Self) -> Float64:
+    def distance_Lab[fast: Bool = False](self, other: Self) -> Float64:
         """`distance_Lab` is a good measure of visual similarity between two colors!
         A result of 0 would mean identical colors, while a result of 1 or higher
         means the colors differ a lot.
@@ -1362,7 +1362,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             The distance between the two colors in Lab space.
         """
-        return self.distance_lab[fast](other)
+        return self.distance_Lab[fast](other)
 
     def distance_cie94[fast: Bool = False](self, other: Self) -> Float64:
         """Uses the CIE94 formula to calculate color distance. More accurate than

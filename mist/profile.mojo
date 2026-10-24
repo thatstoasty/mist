@@ -42,7 +42,7 @@ def get_color_profile() -> Profile:
         The color profile the terminal supports.
     """
     if getenv("GOOGLE_CLOUD_SHELL", "false") == "true":
-        return Profile.TrueColor
+        return Profile.true_color
 
     var term = getenv("TERM").lower()
     var color_term = getenv("COLORTERM").lower()
@@ -54,12 +54,12 @@ def get_color_profile() -> Profile:
         if term.startswith("screen"):
             # tmux supports TRUE_COLOR, screen only ANSI256
             if getenv("TERM_PROGRAM") != "tmux":
-                return Profile.ANSI256
-        return Profile.TrueColor
+                return Profile.ansi256
+        return Profile.true_color
     elif color_term == "yes":
         pass
     elif color_term == "true":
-        return Profile.ANSI256
+        return Profile.ansi256
 
     # TERM is used by most terminals to indicate color support.
     var TRUE_COLOR_TERMINALS = [
@@ -72,28 +72,28 @@ def get_color_profile() -> Profile:
     ]
     var ANSI_TERMINALS = ["linux", "xterm"]
     if term in TRUE_COLOR_TERMINALS:
-        return Profile.TrueColor
+        return Profile.true_color
     elif term in ANSI_TERMINALS:
-        return Profile.ANSI
+        return Profile.ansi
 
     if "256color" in term:
-        return Profile.ANSI256
+        return Profile.ansi256
     elif "color" in term or "ansi" in term:
-        return Profile.ANSI
+        return Profile.ansi
 
-    return Profile.ASCII
+    return Profile.ascii
 
 
 __enum Profile(Defaultable, ImplicitlyCopyable, Writable):
     """The color profile for the terminal."""
 
-    case TrueColor
+    case true_color
     """The terminal supports true color (24-bit color)."""
-    case ANSI256
+    case ansi256
     """The terminal supports 256 colors (8-bit color)."""
-    case ANSI
+    case ansi
     """The terminal supports basic ANSI colors (16 colors)."""
-    case ASCII
+    case ascii
     """The terminal supports no colors (ASCII only)."""
 
     def __init__(out self):
@@ -105,16 +105,16 @@ __enum Profile(Defaultable, ImplicitlyCopyable, Writable):
         """
         comptime profile = get_defined_string["MIST_PROFILE", ""]()
         comptime if profile == "TRUE_COLOR":
-            self = Self.TrueColor
+            self = Self.true_color
             return
         elif profile == "ANSI256":
-            self = Self.ANSI256
+            self = Self.ansi256
             return
         elif profile == "ANSI":
-            self = Self.ANSI
+            self = Self.ansi
             return
         elif profile == "ASCII":
-            self = Self.ASCII
+            self = Self.ascii
             return
         elif profile != "":
             # A profile was passed, but was invalid. If none passed, move on to `get_color_profile`
@@ -129,13 +129,13 @@ __enum Profile(Defaultable, ImplicitlyCopyable, Writable):
             writer: The writer to write the string representation to.
         """
         match self:
-            case .TrueColor:
+            case .true_color:
                 writer.write("TRUE_COLOR")
-            case .ANSI256:
+            case .ansi256:
                 writer.write("ANSI256")
-            case .ANSI:
+            case .ansi:
                 writer.write("ANSI")
-            case .ASCII:
+            case .ascii:
                 writer.write("ASCII")
 
     def convert_ansi256(self, color: UInt8) -> Color:
@@ -148,12 +148,12 @@ __enum Profile(Defaultable, ImplicitlyCopyable, Writable):
             An `Color` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
         match self:
-            case .ASCII:
-                return Color.ASCII
-            case .ANSI:
-                return Color.ANSI(ansi256_to_ansi(color))
+            case .ascii:
+                return Color.ascii
+            case .ansi:
+                return Color.ansi(ansi256_to_ansi(color))
             case _:
-                return Color.ANSI256(color)
+                return Color.ansi256(color)
 
     def convert_rgb(self, color: Color) -> Color:
         """Degrades an RGB color based on the terminal profile.
@@ -165,15 +165,15 @@ __enum Profile(Defaultable, ImplicitlyCopyable, Writable):
             An `Color` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
         match self:
-            case .ASCII:
-                return Color.ASCII
-            case .ANSI:
+            case .ascii:
+                return Color.ascii
+            case .ansi:
                 var ansi256 = hex_to_ansi256(color)
-                return Color.ANSI(ansi256_to_ansi(ansi256))
-            case .ANSI256:
+                return Color.ansi(ansi256_to_ansi(ansi256))
+            case .ansi256:
                 var ansi256 = hex_to_ansi256(color)
-                return Color.ANSI256(ansi256)
-            case .TrueColor:
+                return Color.ansi256(ansi256)
+            case .true_color:
                 return color
 
     def convert(self, color: Color) -> Color:
@@ -186,19 +186,19 @@ __enum Profile(Defaultable, ImplicitlyCopyable, Writable):
             An `Color` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
         match self:
-            case Self.ASCII:
-                return Color.ASCII
+            case Self.ascii:
+                return Color.ascii
             case _:
                 pass
 
         match color:
-            case .ASCII:
+            case .ascii:
                 return color
-            case .ANSI:
+            case .ansi:
                 return color
-            case .ANSI256(value):
+            case .ansi256(value):
                 return self.convert_ansi256(value)
-            case .RGB:
+            case .rgb:
                 return self.convert_rgb(color)
 
     def color(self, value: UInt32) -> Color:
@@ -213,14 +213,14 @@ __enum Profile(Defaultable, ImplicitlyCopyable, Writable):
             A `Color` which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
         """
         match self:
-            case Self.ASCII:
-                return Color.ASCII
+            case Self.ascii:
+                return Color.ascii
             case _:
                 pass
 
         if value < 16:
-            return Color.ANSI(value.cast[DType.uint8]())
+            return Color.ansi(value.cast[DType.uint8]())
         elif value < 256:
             return self.convert_ansi256(value.cast[DType.uint8]())
 
-        return self.convert_rgb(Color.RGB(value))
+        return self.convert_rgb(Color.rgb(value))

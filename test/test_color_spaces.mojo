@@ -14,7 +14,7 @@ def _assert_close(got: Float64, expected: Float64, tolerance: Float64 = 1e-3) ra
 
 def test_to_hsluv_is_perceptual() raises:
     # Plain HSL and HSLuv disagree on #3366cc; `to_HSLuv` must return HSLuv.
-    var color = Color.RGB(0x3366CC)
+    var color = Color.rgb(0x3366CC)
     var hsluv = color.to_HSLuv()
     _assert_close(hsluv.H, 257.681)
     _assert_close(hsluv.S, 0.8458)
@@ -28,12 +28,12 @@ def test_to_hsluv_is_perceptual() raises:
 
 def test_hsluv_reference_values() raises:
     # Pure sRGB primaries, from the hsluv.org reference implementation.
-    var red = Color.RGB(0xFF0000).to_HSLuv()
+    var red = Color.rgb(0xFF0000).to_HSLuv()
     _assert_close(red.H, 12.177, 1e-2)
     _assert_close(red.S, 1.0)
     _assert_close(red.L, 0.5324)
 
-    var blue = Color.RGB(0x0000FF).to_HSLuv()
+    var blue = Color.rgb(0x0000FF).to_HSLuv()
     _assert_close(blue.H, 265.874, 1e-2)
     _assert_close(blue.S, 1.0)
     _assert_close(blue.L, 0.3230)
@@ -43,7 +43,7 @@ def test_round_trips_are_exact() raises:
     # Includes colors whose hue go-colorful's workaround zeroed (#302010: u ~= v,
     # #e0c060: a ~= 0) and a near-black whose chroma is tiny but whose hue is not.
     for value in [0x000000, 0x000001, 0x808080, 0x3366CC, 0xFF0000, 0x00FF00, 0x0000FF, 0xFFFFFF, 0xC9A0DC, 0x302010, 0xE0C060]:
-        var color = Color.RGB(UInt32(value))
+        var color = Color.rgb(UInt32(value))
         var hex = color.to_hex()
         var x = color.to_xyz()
         testing.assert_equal(Color.from_xyz(x).to_hex(), hex)
@@ -79,8 +79,8 @@ def test_round_trips_are_exact() raises:
 
 def test_polar_hue() raises:
     # Saturated colors keep their hue; grays report 0 despite rounding chroma.
-    _assert_close(Color.RGB(0xE0C060).to_hcl().h, 89.996, 1e-2)
-    _assert_close(Color.RGB(0x302010).to_LuvLCh().h, 45.014, 1e-2)
+    _assert_close(Color.rgb(0xE0C060).to_hcl().h, 89.996, 1e-2)
+    _assert_close(Color.rgb(0x302010).to_LuvLCh().h, 45.014, 1e-2)
     for value in range(256):
         var gray = Color.from_rgb(UInt8(value), UInt8(value), UInt8(value))
         testing.assert_equal(gray.to_hcl().h, 0.0)
@@ -102,25 +102,25 @@ def test_from_rgb_rounds_and_clamps() raises:
 
 
 def test_blend_endpoints() raises:
-    var red = Color.RGB(0xFF0000)
-    var teal = Color.RGB(0x006666)
+    var red = Color.rgb(0xFF0000)
+    var teal = Color.rgb(0x006666)
     for t in [0.0, 1.0]:
         var expected = red.to_hex() if t == 0.0 else teal.to_hex()
         testing.assert_equal(red.blend_linear_rgb(teal, t).to_hex(), expected)
         testing.assert_equal(red.blend_Luv(teal, t).to_hex(), expected)
         testing.assert_equal(red.blend_lab(teal, t).to_hex(), expected)
         testing.assert_equal(red.blend_hcl(teal, t).to_hex(), expected)
-        testing.assert_equal(red.blend_Luv_LCh(teal, t).to_hex(), expected)
+        testing.assert_equal(red.blend_LuvLCh(teal, t).to_hex(), expected)
 
 
 def test_polar_blends_stay_in_gamut_and_move_hue() raises:
     # Red to blue in a polar space leaves the sRGB gamut midway; the result must
     # still be a valid 24-bit color, and its hue must lie between the two.
-    var red = Color.RGB(0xFF0000)
-    var blue = Color.RGB(0x0000FF)
+    var red = Color.rgb(0xFF0000)
+    var blue = Color.rgb(0x0000FF)
     for t in [0.25, 0.5, 0.75]:
         var hcl = red.blend_hcl(blue, t)
-        var lch = red.blend_Luv_LCh(blue, t)
+        var lch = red.blend_LuvLCh(blue, t)
         testing.assert_true(hcl.to_hex() <= 0xFFFFFF)
         testing.assert_true(lch.to_hex() <= 0xFFFFFF)
         # Neither stays red: the hue moves toward blue through magenta.
@@ -130,8 +130,8 @@ def test_polar_blends_stay_in_gamut_and_move_hue() raises:
 
 def test_hsluv_distance_wraps_hue() raises:
     # Hues 2.5 and 359 degrees are 3.5 degrees apart, not 356.5.
-    var pink = Color.RGB(0xDD0055)
-    testing.assert_true(pink.distance_HSLuv(Color.RGB(0xD7005F)) < 0.1)
+    var pink = Color.rgb(0xDD0055)
+    testing.assert_true(pink.distance_HSLuv(Color.rgb(0xD7005F)) < 0.1)
 
 
 def _check_ciede2000(l1: Float64, a1: Float64, b1: Float64, l2: Float64, a2: Float64, b2: Float64, expected: Float64) raises:
@@ -161,21 +161,21 @@ def test_ciede2000_reference_pairs() raises:
 
 def test_hex_to_ansi256() raises:
     # Grays reach the gray ramp rather than the nearest cube gray.
-    testing.assert_equal(hex_to_ansi256(Color.RGB(0xC0C0C0)), 250)
-    testing.assert_equal(hex_to_ansi256(Color.RGB(0x333333)), 236)
-    testing.assert_equal(hex_to_ansi256(Color.RGB(0x444444)), 238)
+    testing.assert_equal(hex_to_ansi256(Color.rgb(0xC0C0C0)), 250)
+    testing.assert_equal(hex_to_ansi256(Color.rgb(0x333333)), 236)
+    testing.assert_equal(hex_to_ansi256(Color.rgb(0x444444)), 238)
     # Exact cube colors map to themselves.
-    testing.assert_equal(hex_to_ansi256(Color.RGB(0xFF0000)), 196)
-    testing.assert_equal(hex_to_ansi256(Color.RGB(0x5F87AF)), 67)
+    testing.assert_equal(hex_to_ansi256(Color.rgb(0xFF0000)), 196)
+    testing.assert_equal(hex_to_ansi256(Color.rgb(0x5F87AF)), 67)
     # Saturated reds whose hue straddles 0 degrees stay red.
-    testing.assert_equal(hex_to_ansi256(Color.RGB(0xDD0055)), 161)
+    testing.assert_equal(hex_to_ansi256(Color.rgb(0xDD0055)), 161)
     # Quantizing each channel alone gives #875f00, an olive; the box search finds red.
-    testing.assert_equal(hex_to_ansi256(Color.RGB(0x993322)), 124)
+    testing.assert_equal(hex_to_ansi256(Color.rgb(0x993322)), 124)
 
 
 def test_ansi256_lab_table_matches_conversion() raises:
     for index in range(256):
-        var lab = Color.RGB(lut[ANSI_HEX_CODES](index)).to_Lab()
+        var lab = Color.rgb(lut[ANSI_HEX_CODES](index)).to_Lab()
         testing.assert_equal(lut[ANSI256_LAB](index * 3), lab.L)
         testing.assert_equal(lut[ANSI256_LAB](index * 3 + 1), lab.a)
         testing.assert_equal(lut[ANSI256_LAB](index * 3 + 2), lab.b)
@@ -186,7 +186,7 @@ def test_hex_to_ansi256_is_near_optimal() raises:
     # search may miss by a little on rare colors but not on average.
     var palette = List[Lab]()
     for index in range(256):
-        palette.append(Color.RGB(lut[ANSI_HEX_CODES](index)).to_Lab())
+        palette.append(Color.rgb(lut[ANSI_HEX_CODES](index)).to_Lab())
 
     var total_gap = 0.0
     var count = 0
@@ -219,9 +219,9 @@ def test_ansi256_to_ansi_table() raises:
 
 def test_pale_tints_degrade_to_white() raises:
     # HSLuv rates these as fully saturated; by CIEDE2000 they are nearest white.
-    comptime profile = Profile.ANSI
+    comptime profile = Profile.ansi
     for value in [0xFFDDDD, 0xEECCDD, 0xFFDDCC]:
-        testing.assert_equal(profile.convert(Color.RGB(UInt32(value))).to_hex_str(), Color.ANSI(15).to_hex_str())
+        testing.assert_equal(profile.convert(Color.rgb(UInt32(value))).to_hex_str(), Color.ansi(15).to_hex_str())
 
 
 def main() raises:

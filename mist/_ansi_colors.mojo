@@ -116,7 +116,7 @@ highly saturated, so tints such as #ffd7d7 degraded to vivid red rather than
 white; CIEDE2000 tracks perceived difference instead.
 
 To regenerate: for each `value` in 0..255, take the `index` in 0..15 that
-minimises `Color.RGB(ANSI_HEX_CODES[value]).distance_ciede2000(Color.RGB(ANSI_HEX_CODES[index]))`,
+minimises `Color.rgb(ANSI_HEX_CODES[value]).distance_ciede2000(Color.rgb(ANSI_HEX_CODES[index]))`,
 resolving ties toward the lower index as a linear scan does.
 """
 
@@ -388,5 +388,5 @@ input against up to 11 palette colors, and converting each candidate at runtime
 would cost more than the CIEDE2000 comparisons themselves.
 
 To regenerate: for each `value` in 0..255, write the `L`, `a` and `b` of
-`Color.RGB(ANSI_HEX_CODES[value]).to_Lab()` at full precision.
+`Color.rgb(ANSI_HEX_CODES[value]).to_Lab()` at full precision.
 """

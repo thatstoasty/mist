@@ -23,7 +23,7 @@ from mist import Profile
 
 def bench_render_ascii(mut b: Bencher, s: String) raises:
     # The style, and the color conversion it does, is built once: this measures rendering.
-    var style = mist.Style(Profile.ASCII).foreground(0xC9A0DC)
+    var style = mist.Style(Profile.ascii).foreground(0xC9A0DC)
 
     @always_inline
     def do() raises {imm style, imm s}:
@@ -35,15 +35,15 @@ def bench_render_ascii(mut b: Bencher, s: String) raises:
 def bench_render_ascii_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     def do() raises {imm s}:
-        var color = Profile.ASCII.color(0xC9A0DC)
-        _ = mist.Style(Profile.ASCII).foreground(color=color).render(s)
+        var color = Profile.ascii.color(0xC9A0DC)
+        _ = mist.Style(Profile.ascii).foreground(color=color).render(s)
 
     b.iter(do)
 
 
 def bench_render_ansi(mut b: Bencher, s: String) raises:
     # The style, and the color conversion it does, is built once: this measures rendering.
-    var style = mist.Style(Profile.ANSI).foreground(0xC9A0DC)
+    var style = mist.Style(Profile.ansi).foreground(0xC9A0DC)
 
     @always_inline
     def do() raises {imm style, imm s}:
@@ -55,15 +55,15 @@ def bench_render_ansi(mut b: Bencher, s: String) raises:
 def bench_render_ansi_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     def do() raises {imm s}:
-        var color = Profile.ANSI.color(0xC9A0DC)
-        _ = mist.Style(Profile.ANSI).foreground(color=color).render(s)
+        var color = Profile.ansi.color(0xC9A0DC)
+        _ = mist.Style(Profile.ansi).foreground(color=color).render(s)
 
     b.iter(do)
 
 
 def bench_render_ansi256(mut b: Bencher, s: String) raises:
     # The style, and the color conversion it does, is built once: this measures rendering.
-    var style = mist.Style(Profile.ANSI256).foreground(0xC9A0DC)
+    var style = mist.Style(Profile.ansi256).foreground(0xC9A0DC)
 
     @always_inline
     def do() raises {imm style, imm s}:
@@ -75,15 +75,15 @@ def bench_render_ansi256(mut b: Bencher, s: String) raises:
 def bench_render_ansi256_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     def do() raises {imm s}:
-        var color = Profile.ANSI256.color(0xC9A0DC)
-        _ = mist.Style(Profile.ANSI256).foreground(color=color).render(s)
+        var color = Profile.ansi256.color(0xC9A0DC)
+        _ = mist.Style(Profile.ansi256).foreground(color=color).render(s)
 
     b.iter(do)
 
 
 def bench_render_true_color(mut b: Bencher, s: String) raises:
     # The style, and the color conversion it does, is built once: this measures rendering.
-    var style = mist.Style(Profile.TrueColor).foreground(0xC9A0DC)
+    var style = mist.Style(Profile.true_color).foreground(0xC9A0DC)
 
     @always_inline
     def do() raises {imm style, imm s}:
@@ -95,8 +95,8 @@ def bench_render_true_color(mut b: Bencher, s: String) raises:
 def bench_render_true_color_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     def do() raises {imm s}:
-        var color = Profile.TrueColor.color(0xC9A0DC)
-        _ = mist.Style(Profile.TrueColor).foreground(color=color).render(s)
+        var color = Profile.true_color.color(0xC9A0DC)
+        _ = mist.Style(Profile.true_color).foreground(color=color).render(s)
 
     b.iter(do)
 
@@ -122,7 +122,7 @@ def bench_render_with_background_color(mut b: Bencher, s: String) raises:
 
 def bench_render_many_ascii(mut b: Bencher, s: String) raises:
     # The style, and the color conversion it does, is built once: this measures rendering.
-    var style = mist.Style(Profile.ASCII).foreground(0xC9A0DC)
+    var style = mist.Style(Profile.ascii).foreground(0xC9A0DC)
 
     @always_inline
     def do() raises {imm style}:
@@ -134,15 +134,15 @@ def bench_render_many_ascii(mut b: Bencher, s: String) raises:
 def bench_render_many_ascii_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     def do() raises:
-        var color = Profile.ASCII.color(0xC9A0DC)
-        _ = mist.Style(Profile.ASCII).foreground(color=color).render_many("Hello", "World", "!")
+        var color = Profile.ascii.color(0xC9A0DC)
+        _ = mist.Style(Profile.ascii).foreground(color=color).render_many("Hello", "World", "!")
 
     b.iter(do)
 
 
 def bench_render_many_ansi(mut b: Bencher, s: String) raises:
     # The style, and the color conversion it does, is built once: this measures rendering.
-    var style = mist.Style(Profile.ANSI).foreground(0xC9A0DC)
+    var style = mist.Style(Profile.ansi).foreground(0xC9A0DC)
 
     @always_inline
     def do() raises {imm style}:
@@ -154,15 +154,15 @@ def bench_render_many_ansi(mut b: Bencher, s: String) raises:
 def bench_render_many_ansi_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     def do() raises:
-        var color = Profile.ANSI.color(0xC9A0DC)
-        _ = mist.Style(Profile.ANSI).foreground(color=color).render_many("Hello", "World", "!")
+        var color = Profile.ansi.color(0xC9A0DC)
+        _ = mist.Style(Profile.ansi).foreground(color=color).render_many("Hello", "World", "!")
 
     b.iter(do)
 
 
 def bench_render_many_ansi256(mut b: Bencher, s: String) raises:
     # The style, and the color conversion it does, is built once: this measures rendering.
-    var style = mist.Style(Profile.ANSI256).foreground(0xC9A0DC)
+    var style = mist.Style(Profile.ansi256).foreground(0xC9A0DC)
 
     @always_inline
     def do() raises {imm style}:
@@ -174,15 +174,15 @@ def bench_render_many_ansi256(mut b: Bencher, s: String) raises:
 def bench_render_many_ansi256_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     def do() raises:
-        var color = Profile.ANSI256.color(0xC9A0DC)
-        _ = mist.Style(Profile.ANSI256).foreground(color=color).render_many("Hello", "World", "!")
+        var color = Profile.ansi256.color(0xC9A0DC)
+        _ = mist.Style(Profile.ansi256).foreground(color=color).render_many("Hello", "World", "!")
 
     b.iter(do)
 
 
 def bench_render_many_true_color(mut b: Bencher, s: String) raises:
     # The style, and the color conversion it does, is built once: this measures rendering.
-    var style = mist.Style(Profile.TrueColor).foreground(0xC9A0DC)
+    var style = mist.Style(Profile.true_color).foreground(0xC9A0DC)
 
     @always_inline
     def do() raises {imm style}:
@@ -194,7 +194,7 @@ def bench_render_many_true_color(mut b: Bencher, s: String) raises:
 def bench_render_many_true_color_profile_color(mut b: Bencher, s: String) raises:
     @always_inline
     def do() raises:
-        var color = Profile.TrueColor.color(0xC9A0DC)
-        _ = mist.Style(Profile.TrueColor).foreground(color=color).render_many("Hello", "World", "!")
+        var color = Profile.true_color.color(0xC9A0DC)
+        _ = mist.Style(Profile.true_color).foreground(color=color).render_many("Hello", "World", "!")
 
     b.iter(do)

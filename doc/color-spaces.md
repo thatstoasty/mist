@@ -111,13 +111,13 @@ and `to_HPLuv` multiply by 100 on the way in and divide on the way out.
 | `distance_rgb` | sRGB | Fast, but a poor match for perception |
 | `distance_linear_rgb` | linear RGB | Physical, not perceptual. Useful for dithering |
 | `distance_riemersma` | sRGB, weighted | [compuphase "redmean"](https://www.compuphase.com/cmetric.htm). Cheap, and close to CIELUV in quality |
-| `distance_lab` / `distance_cie76` | Lab | Euclidean ΔE\*ab. On mist's scale, 0.01 is about one just-noticeable difference |
+| `distance_Lab` / `distance_cie76` | Lab | Euclidean ΔE\*ab. On mist's scale, 0.01 is about one just-noticeable difference |
 | `distance_cie94` | Lab | CIE94 with graphic-arts weights (k1=0.045, k2=0.015) |
 | `distance_ciede2000` / `…klch` | Lab | CIEDE2000, the most accurate and the most expensive. Profile degradation uses it. Checked against Sharma et al.'s reference pairs in `test/test_color_spaces.mojo` |
 | `distance_Luv` | Luv | Euclidean ΔE\*uv |
 | `distance_HSLuv` | HSLuv | Euclidean distance with the hue difference (wrapped to [0°, 180°]) divided by 100. termenv degrades with this; mist doesn't (see below) |
 | `blend_linear_rgb`, `blend_Luv`, `blend_lab` | the named space | Linear interpolation of the components |
-| `blend_hcl`, `blend_Luv_LCh` | polar spaces | L and C are interpolated linearly. Hue goes the short way round the circle via `interp_angle(a0, a1, t)`, which returns `a0` at t=0 and `a1` at t=1. `blend_hcl` borrows the other color's hue when one side is nearly gray (c ≤ 0.00015) |
+| `blend_hcl`, `blend_LuvLCh` | polar spaces | L and C are interpolated linearly. Hue goes the short way round the circle via `interp_angle(a0, a1, t)`, which returns `a0` at t=0 and `a1` at t=1. `blend_hcl` borrows the other color's hue when one side is nearly gray (c ≤ 0.00015) |
 
 Blends in the polar spaces often pass outside the sRGB gamut, for example red→blue in HCL. `from_rgb` clamps the result.
 

@@ -81,19 +81,19 @@ def main() raises:
     # The color profile will also degrade colors automatically depending on the color's supported by the terminal.
     # For now the profile setting is manually set, but eventually it will be automatically set based on the terminal.
     # Black and White only
-    style = mist.Style(Profile.ASCII).foreground(0xc9a0dc)
+    style = mist.Style(Profile.ascii).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
 
     # ANSI Color Support (0-15)
-    style = mist.Style(Profile.ANSI).foreground(0xc9a0dc)
+    style = mist.Style(Profile.ansi).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
 
     # ANSI256 Color Support (16-255)
-    style = mist.Style(Profile.ANSI256).foreground(0xc9a0dc)
+    style = mist.Style(Profile.ansi256).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
 
     # RGBColor Support (Hex Codes)
-    style = mist.Style(Profile.TrueColor).foreground(0xc9a0dc)
+    style = mist.Style(Profile.true_color).foreground(0xc9a0dc)
     print(style.render("Hello World!"))
 ```
 
@@ -148,7 +148,7 @@ def main() raises:
 import mist
 from mist import Profile
 
-comptime style = mist.Style(Profile.TrueColor)
+comptime style = mist.Style(Profile.true_color)
 
 def main():
     print(style.render("Hello, world!"))

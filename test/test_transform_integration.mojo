@@ -15,7 +15,7 @@ def _styled() -> String:
     Returns:
         Bold red "Hello, World!" in the true color profile.
     """
-    return mist.Style(Profile.TrueColor).bold().foreground(0xE88388).render("Hello, World!")
+    return mist.Style(Profile.true_color).bold().foreground(0xE88388).render("Hello, World!")
 
 
 def test_style_output_width() raises:
@@ -39,7 +39,7 @@ def test_style_output_through_transforms() raises:
 def test_ascii_profile_has_no_sequences() raises:
     # Under the ASCII profile the style degrades to plain text, so the
     # transforms have nothing to skip and behave like the unstyled case.
-    var plain = mist.Style(Profile.ASCII).bold().foreground(0xE88388).render("Hello, World!")
+    var plain = mist.Style(Profile.ascii).bold().foreground(0xE88388).render("Hello, World!")
     testing.assert_equal(plain, "Hello, World!")
     testing.assert_equal(truncate(plain, 5), "Hello")
     testing.assert_equal(padding(plain, 15), "Hello, World!  ")

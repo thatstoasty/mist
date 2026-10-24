@@ -12,12 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Requires Mojo 1.2.0.
 - The color types are now one enum. `ANSIColor`, `ANSI256Color`, `RGBColor`,
   `NoColor`, `AnyColor` and the old `Color` trait are replaced by `Color`, with the
-  cases `Color.ASCII`, `Color.ANSI(UInt8)`, `Color.ANSI256(UInt8)` and
-  `Color.RGB(UInt32)`. `Style.foreground(color=...)`, `Style.background(color=...)`,
+  cases `Color.ascii`, `Color.ansi(UInt8)`, `Color.ansi256(UInt8)` and
+  `Color.rgb(UInt32)`. `Style.foreground(color=...)`, `Style.background(color=...)`,
   `Profile.color()` and `Profile.convert()` take or return `Color`.
   `Profile.convert_ansi256()` takes the `UInt8` index, and `Profile.convert_rgb()`
   takes a `Color`.
-- `Profile` is now an enum. `Profile.TRUE_COLOR` is renamed `Profile.TrueColor`.
+- `Profile` is now an enum. `Profile.TRUE_COLOR` is renamed `Profile.true_color`.
   The `Profile(UInt8)` constructor and the `==` / `<` comparisons are gone; use
   `match` instead.
 - `mist.color` is now a package (`mist.color.color`, `mist.color.math`,
@@ -73,7 +73,7 @@ These fixes are in the color math ported from go-colorful and termenv:
   so grays such as `#c0c0c0` degraded to cube colors instead of the gray ramp.
 - `distance_HSLuv` didn't wrap hue around 360°, so hues of 2° and 359° scored as
   357° apart.
-- `blend_Luv_LCh` interpolated hue from the second color to the first.
+- `blend_LuvLCh` interpolated hue from the second color to the first.
 - Converting to 8-bit truncated instead of rounding, so `#808080` → Lab → back gave
   `#7f7f7f`.
 - The hcl and LuvLCh hue was zeroed for saturated colors whose a ≈ b or a ≈ 0

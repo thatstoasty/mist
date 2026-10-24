@@ -398,7 +398,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             A new Style with the background color set.
         """
         match color:
-            case .ASCII:
+            case .ascii:
                 return self.copy()
             case _:
                 return self.add_style(color.sequence[is_background=True]())
@@ -425,7 +425,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             A new Style with the foreground color set.
         """
         match color:
-            case .ASCII:
+            case .ascii:
                 return self.copy()
             case _:
                 return self.add_style(color.sequence[is_background=False]())
@@ -746,7 +746,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             return String(text)
 
         match self.profile:
-            case .ASCII:
+            case .ascii:
                 return String(text)
             case _:
                 return String(CSI, self.styles, "m", text, RESET_STYLE)
@@ -763,7 +763,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             writer: The `Writer` to write the rendered text to.
         """
         match self.profile:
-            case .ASCII:
+            case .ascii:
                 return writer.write(text)
             case _:
                 if not self.styles:
@@ -796,7 +796,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             return result^
 
         match self.profile:
-            case .ASCII:
+            case .ascii:
                 return result^
             case _:
                 return String(CSI, self.styles, "m", result, RESET_STYLE)
@@ -825,7 +825,7 @@ struct Style(Defaultable, ImplicitlyCopyable, Writable):
             return
 
         match self.profile:
-            case .ASCII:
+            case .ascii:
                 write_text(writer, *text, sep=sep)
                 return
             case _:

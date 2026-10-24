@@ -28,7 +28,7 @@ All commands run through pixi.
 - **Known lint limitation (Mojo 1.2.0):** `__enum` cases without a payload
   (`case ASCII`) can't carry a docstring. The `"""..."""` under them is accepted
   but ignored, so `lint_docs` always reports these cases (`Profile.*`,
-  `Color.ASCII`). Cases with a payload (`case RGB(UInt32)`) aren't checked.
+  `Color.ascii`). Cases with a payload (`case RGB(UInt32)`) aren't checked.
 - `match` on an `__enum` must cover every case. Use `case _:` for the rest.
 - `debug_assert(cond, msg)` fails when `cond` is **false**. Write the condition
   that should hold.

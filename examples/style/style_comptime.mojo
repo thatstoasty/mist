@@ -2,7 +2,7 @@ import mist
 from mist import Profile
 
 
-comptime true_color_style = mist.Style(Profile.TrueColor)
+comptime true_color_style = mist.Style(Profile.true_color)
 
 comptime bold = true_color_style.bold()
 comptime faint = true_color_style.faint()
