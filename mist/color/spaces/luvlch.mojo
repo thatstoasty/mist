@@ -12,7 +12,7 @@ struct LuvLCh(Equatable, ImplicitlyCopyable, Writable):
     var L: Float64
     """Luminance, perceived brightness. In the range [0.0, 1.0]."""
     var C: Float64
-    """Chroma, color intensity/saturation. In the range [0.0, 1.8]."""
+    """Chroma, color intensity/saturation. 0.0 or greater; up to about 1.79 for sRGB colors."""
     var h: Float64
     """Hue, angular direction of the color in degrees. In the range [0.0, 360.0]."""
 
@@ -21,13 +21,15 @@ struct LuvLCh(Equatable, ImplicitlyCopyable, Writable):
 
         Args:
             L: Luminance, perceived brightness. In the range [0.0, 1.0].
-            C: Chroma, color intensity/saturation. In the range [0.0, 1.8].
+            C: Chroma, color intensity/saturation. 0.0 or greater; up to about 1.79 for sRGB colors.
             h: Hue, angular direction of the color in degrees. In the range [0.0, 360.0].
         """
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(L, 0.0, 1.0) and in_range(C, 0.0, 1.8) and in_range(h, 0.0, 360.0),
+            in_range(L, 0.0, 1.0) and C >= 0.0 and in_range(h, 0.0, 360.0),
             (
-                t"The LuvLCh components must be in the range [0.0, 1.0] for L, [0.0, 1.8] for C, and [0.0, 360.0] for"
+                t"The LuvLCh components must be in the range [0.0, 1.0] for L, [0.0, inf) for C, and [0.0, 360.0] for"
                 t" h. Received ({L}, {C}, {h})."
             ),
         )
@@ -44,10 +46,12 @@ struct LuvLCh(Equatable, ImplicitlyCopyable, Writable):
         var L = LCh[0]
         var C = LCh[1]
         var h = LCh[2]
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(L, 0.0, 1.0) and in_range(C, 0.0, 1.8) and in_range(h, 0.0, 360.0),
+            in_range(L, 0.0, 1.0) and C >= 0.0 and in_range(h, 0.0, 360.0),
             (
-                t"The LuvLCh components must be in the range [0.0, 1.0] for L, [0.0, 1.8] for C, and [0.0, 360.0] for"
+                t"The LuvLCh components must be in the range [0.0, 1.0] for L, [0.0, inf) for C, and [0.0, 360.0] for"
                 t" h. Received ({L}, {C}, {h})."
             ),
         )

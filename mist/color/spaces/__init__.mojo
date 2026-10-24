@@ -1,6 +1,7 @@
 """Color space types and the conversions between them."""
 from mist.color.spaces.hcl import hcl
 from mist.color.spaces.hpluv import HPLuv
+from mist.color.spaces.hsl import HSL
 from mist.color.spaces.hsluv import HSLuv
 from mist.color.spaces.hsv import HSV
 from mist.color.spaces.lab import Lab

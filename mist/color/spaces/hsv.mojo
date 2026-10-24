@@ -45,25 +45,3 @@ struct HSV(Equatable, ImplicitlyCopyable, Writable):
         self.H = H
         self.S = S
         self.V = V
-
-    def __init__(out self, H: UInt8, S: UInt8, V: UInt8):
-        """Initializes the HSV color from 8-bit components, each scaled from [0, 255] to [0.0, 1.0].
-
-        Args:
-            H: Hue component of the color, from 0 to 255.
-            S: Saturation component of the color, from 0 to 255.
-            V: Value component of the color, from 0 to 255.
-        """
-        self.H = Float64(H) / 255.0
-        self.S = Float64(S) / 255.0
-        self.V = Float64(V) / 255.0
-
-    def __init__(out self, HSV: Tuple[UInt8, UInt8, UInt8]):
-        """Initializes the HSV color from a tuple of 8-bit components, each scaled from [0, 255] to [0.0, 1.0].
-
-        Args:
-            HSV: The (H, S, V) components as 8-bit values.
-        """
-        self.H = Float64(HSV[0]) / 255.0
-        self.S = Float64(HSV[1]) / 255.0
-        self.V = Float64(HSV[2]) / 255.0

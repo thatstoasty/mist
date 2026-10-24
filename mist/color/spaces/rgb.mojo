@@ -10,11 +10,11 @@ struct RGB[linear: Bool = False](Equatable, ImplicitlyCopyable, Writable):
         linear: Whether the components are linear rather than gamma-encoded sRGB."""
 
     var R: Float64
-    """Red component of the color, in the range [0.0, 1.0]."""
+    """Red component of the color, in the range [0.0, 1.0] (linear values may fall outside it)."""
     var G: Float64
-    """Green component of the color, in the range [0.0, 1.0]."""
+    """Green component of the color, in the range [0.0, 1.0] (linear values may fall outside it)."""
     var B: Float64
-    """Blue component of the color, in the range [0.0, 1.0]."""
+    """Blue component of the color, in the range [0.0, 1.0] (linear values may fall outside it)."""
 
     def __init__(out self, r: Float64, g: Float64, b: Float64):
         """Initializes the RGB color from its components.
@@ -24,10 +24,13 @@ struct RGB[linear: Bool = False](Equatable, ImplicitlyCopyable, Writable):
             g: Green component of the color, in the range [0.0, 1.0].
             b: Blue component of the color, in the range [0.0, 1.0].
         """
-        debug_assert(
-            in_range(r, 0.0, 1.0) and in_range(g, 0.0, 1.0) and in_range(b, 0.0, 1.0),
-            t"The RGB components must be in the range [0.0, 1.0]. Received ({r}, {g}, {b}).",
-        )
+        # Linear RGB is the intermediate on the way back from XYZ, where colors outside the
+        # sRGB gamut are expected; `Color.from_rgb` clamps them when quantizing.
+        comptime if not Self.linear:
+            debug_assert(
+                in_range(r, 0.0, 1.0) and in_range(g, 0.0, 1.0) and in_range(b, 0.0, 1.0),
+                t"The RGB components must be in the range [0.0, 1.0]. Received ({r}, {g}, {b}).",
+            )
         self.R = r
         self.G = g
         self.B = b
@@ -41,10 +44,13 @@ struct RGB[linear: Bool = False](Equatable, ImplicitlyCopyable, Writable):
         var r = rgb[0]
         var g = rgb[1]
         var b = rgb[2]
-        debug_assert(
-            in_range(r, 0.0, 1.0) and in_range(g, 0.0, 1.0) and in_range(b, 0.0, 1.0),
-            t"The RGB components must be in the range [0.0, 1.0]. Received ({r}, {g}, {b}).",
-        )
+        # Linear RGB is the intermediate on the way back from XYZ, where colors outside the
+        # sRGB gamut are expected; `Color.from_rgb` clamps them when quantizing.
+        comptime if not Self.linear:
+            debug_assert(
+                in_range(r, 0.0, 1.0) and in_range(g, 0.0, 1.0) and in_range(b, 0.0, 1.0),
+                t"The RGB components must be in the range [0.0, 1.0]. Received ({r}, {g}, {b}).",
+            )
 
         self.R = r
         self.G = g

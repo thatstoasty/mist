@@ -19,6 +19,7 @@ This project was heavily inspired by:
 
 * [Termenv](https://github.com/muesli/termenv/tree/master)
 * [Reflow](https://github.com/muesli/reflow/tree/master)
+* [go-colorful](https://github.com/lucasb-eyer/go-colorful) (color space math)
 
 ## Adding the `mist` package to your project
 
@@ -97,6 +98,8 @@ def main() raises:
 ```
 
 ![Profiles](https://github.com/thatstoasty/mist/blob/main/doc/tapes/profiles.gif)
+
+For the color spaces behind color conversion, distance and blending (sRGB, XYZ, CIE L\*a\*b\*, L\*u\*v\*, HCL, HSLuv, HPLuv, HSV), see [doc/color-spaces.md](doc/color-spaces.md).
 
 ### Setting the color profile as a build parameter
 

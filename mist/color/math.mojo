@@ -112,7 +112,7 @@ def get_bounds(l: Float64) -> Array[Array[Float64, 2], 6]:
         [0, 0],
     ]
 
-    var sub_1 = (l + 16.0**3.0) / 1560896.0
+    var sub_1 = (l + 16.0) ** 3.0 / 1560896.0
     var sub_2 = sub_1 if sub_1 > EPSILON else l / KAPPA
 
     comptime for i in range(len(XYZ_TO_RGB_MATRIX)):

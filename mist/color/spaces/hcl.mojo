@@ -11,7 +11,7 @@ struct hcl(Equatable, ImplicitlyCopyable, Writable):
     var h: Float64
     """Hue. In the range [0.0, 360.0]."""
     var c: Float64
-    """Chroma. In the range [0.0, 1.4]."""
+    """Chroma. 0.0 or greater; up to about 1.34 for sRGB colors."""
     var l: Float64
     """Luminance. In the range [0.0, 1.0]."""
 
@@ -20,13 +20,15 @@ struct hcl(Equatable, ImplicitlyCopyable, Writable):
 
         Args:
             h: Hue. In the range [0.0, 360.0].
-            c: Chroma. In the range [0.0, 1.4].
+            c: Chroma. 0.0 or greater; up to about 1.34 for sRGB colors.
             l: Luminance. In the range [0.0, 1.0].
         """
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(h, 0.0, 360.0) and in_range(c, 0.0, 1.4) and in_range(l, 0.0, 1.0),
+            in_range(h, 0.0, 360.0) and c >= 0.0 and in_range(l, 0.0, 1.0),
             (
-                t"The hcl components must be in the range [0.0, 360.0] for h, [0.0, 1.4] for c, and [0.0, 1.0] for l."
+                t"The hcl components must be in the range [0.0, 360.0] for h, [0.0, inf) for c, and [0.0, 1.0] for l."
                 t" Received ({h}, {c}, {l})."
             ),
         )
@@ -43,10 +45,12 @@ struct hcl(Equatable, ImplicitlyCopyable, Writable):
         var h = hcl[0]
         var c = hcl[1]
         var l = hcl[2]
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(h, 0.0, 360.0) and in_range(c, 0.0, 1.4) and in_range(l, 0.0, 1.0),
+            in_range(h, 0.0, 360.0) and c >= 0.0 and in_range(l, 0.0, 1.0),
             (
-                t"The hcl components must be in the range [0.0, 360.0] for h, [0.0, 1.4] for c, and [0.0, 1.0] for l."
+                t"The hcl components must be in the range [0.0, 360.0] for h, [0.0, inf) for c, and [0.0, 1.0] for l."
                 t" Received ({h}, {c}, {l})."
             ),
         )

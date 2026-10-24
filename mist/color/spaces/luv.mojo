@@ -11,24 +11,23 @@ struct Luv(Equatable, ImplicitlyCopyable, Writable):
     var L: Float64
     """Luminance. In the range [0.0, 1.0]."""
     var u: Float64
-    """Chromaticity - Green/Red axis equivalent. Approximately -134 to 220, which this library scales to roughly [-0.9, 1.8]."""
+    """Green-red chromaticity axis: CIE u* divided by 100. Within about [-0.84, 1.75] for sRGB colors."""
     var v: Float64
-    """Chromaticity - Blue/Yellow axis equivalent. Approximately -140 to 122, which this library scales to roughly [-1.4, 1.1]."""
+    """Blue-yellow chromaticity axis: CIE v* divided by 100. Within about [-1.35, 1.08] for sRGB colors."""
 
     def __init__(out self, L: Float64, u: Float64, v: Float64):
         """Initializes the L*u*v* color from its components.
 
         Args:
             L: Luminance. In the range [0.0, 1.0].
-            u: Chromaticity - Green/Red axis equivalent. Approximately -134 to 220, which this library scales to roughly [-0.9, 1.8].
-            v: Chromaticity - Blue/Yellow axis equivalent. Approximately -140 to 122, which this library scales to roughly [-1.4, 1.1].
+            u: Green-red chromaticity axis: CIE u* divided by 100. Within about [-0.84, 1.75] for sRGB colors.
+            v: Blue-yellow chromaticity axis: CIE v* divided by 100. Within about [-1.35, 1.08] for sRGB colors.
         """
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(L, 0.0, 1.0) and in_range(u, -0.9, 1.8) and in_range(v, -1.4, 1.1),
-            (
-                t"The Luv components must be in the range [0.0, 1.0] for L and [-0.9, 1.8] for u and [-1.4, 1.1] for v."
-                t" Received ({L}, {u}, {v})."
-            ),
+            in_range(L, 0.0, 1.0),
+            t"The Luv lightness L must be in the range [0.0, 1.0]. Received ({L}, {u}, {v}).",
         )
         self.L = L
         self.u = u
@@ -43,12 +42,11 @@ struct Luv(Equatable, ImplicitlyCopyable, Writable):
         var L = Luv[0]
         var u = Luv[1]
         var v = Luv[2]
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(L, 0.0, 1.0) and in_range(u, -0.9, 1.8) and in_range(v, -1.4, 1.1),
-            (
-                t"The Luv components must be in the range [0.0, 1.0] for L and [-0.9, 1.8] for u and [-1.4, 1.1] for v."
-                t" Received ({L}, {u}, {v})."
-            ),
+            in_range(L, 0.0, 1.0),
+            t"The Luv lightness L must be in the range [0.0, 1.0]. Received ({L}, {u}, {v}).",
         )
 
         self.L = L
@@ -91,14 +89,15 @@ struct Luv(Equatable, ImplicitlyCopyable, Writable):
         Returns:
             The Luminance, Chroma, and Hue values.
         """
-        # Oops, floating point workaround necessary if u ~= v and both are very small (i.e. almost zero).
-        var h: Float64
-        if abs(self.v - self.u) > 1e-4 and abs(self.u) > 1e-4:
-            h = (57.29577951308232087721 * math.atan2(self.v, self.u) + 360.0) % 360.0  # Rad2Deg
-        else:
-            h = 0.0
-
         var l = self.L
         var c = math.sqrt(sq(self.u) + sq(self.v))
+        # Hue is undefined for grays, so it's 0 when chroma is negligible. The test is
+        # relative to lightness: chroma shrinks toward black (#000001 has C = 8e-4 but a
+        # clear hue), and sRGB grays carry rounding chroma of at most 3.7e-4 * L. go-colorful
+        # tests `|v - u|` and `|u|` instead, which also zeroes the hue of saturated colors
+        # whose u ~= v or u ~= 0.
+        var h = 0.0
+        if c > 1e-3 * l:
+            h = (57.29577951308232087721 * math.atan2(self.v, self.u) + 360.0) % 360.0  # Rad2Deg
 
         return LuvLCh(l, c, h)

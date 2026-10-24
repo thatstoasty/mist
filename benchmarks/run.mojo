@@ -296,12 +296,14 @@ def get_gbs_measure(input: String) raises -> ThroughputMeasure:
     return ThroughputMeasure(BenchMetric.bytes, input.byte_length())
 
 
-def run[func: def (mut Bencher, String) raises capturing, name: String](mut m: Bench, data: String) raises:
-    m.bench_with_input[String, func](BenchId(name), data, [get_gbs_measure(data)])
+def run[
+    FuncType: def(mut Bencher, String) raises -> None, //
+](mut m: Bench, func: FuncType, name: String, data: String) raises:
+    m.bench_with_input(func, BenchId(name), data, [get_gbs_measure(data)])
 
 
-def run[func: def (mut Bencher) raises capturing, name: String](mut m: Bench) raises:
-    m.bench_function[func](BenchId(name))
+def run[FuncType: def(mut Bencher) raises -> None, //](mut m: Bench, func: FuncType, name: String) raises:
+    m.bench_function(func, BenchId(name))
 
 
 def main() raises:
@@ -312,25 +314,25 @@ def main() raises:
     var bench_config = Bench(config^)
 
     comptime text = "Hello World!"
-    run[bench_render_ascii, "bench_render_ascii"](bench_config, text)
-    run[bench_render_ascii_profile_color, "bench_render_ascii_profile_color"](bench_config, text)
-    run[bench_render_ansi, "bench_render_ansi"](bench_config, text)
-    run[bench_render_ansi_profile_color, "bench_render_ansi_profile_color"](bench_config, text)
-    run[bench_render_ansi256, "bench_render_ansi256"](bench_config, text)
-    run[bench_render_ansi256_profile_color, "bench_render_ansi256_profile_color"](bench_config, text)
-    run[bench_render_true_color, "bench_render_true_color"](bench_config, text)
-    run[bench_render_true_color_profile_color, "bench_render_true_color_profile_color"](bench_config, text)
-    run[bench_render_as_color, "bench_render_as_color"](bench_config, text)
-    run[bench_render_with_background_color, "bench_render_with_background_color"](bench_config, text)
+    run(bench_config, bench_render_ascii, "bench_render_ascii", text)
+    run(bench_config, bench_render_ascii_profile_color, "bench_render_ascii_profile_color", text)
+    run(bench_config, bench_render_ansi, "bench_render_ansi", text)
+    run(bench_config, bench_render_ansi_profile_color, "bench_render_ansi_profile_color", text)
+    run(bench_config, bench_render_ansi256, "bench_render_ansi256", text)
+    run(bench_config, bench_render_ansi256_profile_color, "bench_render_ansi256_profile_color", text)
+    run(bench_config, bench_render_true_color, "bench_render_true_color", text)
+    run(bench_config, bench_render_true_color_profile_color, "bench_render_true_color_profile_color", text)
+    run(bench_config, bench_render_as_color, "bench_render_as_color", text)
+    run(bench_config, bench_render_with_background_color, "bench_render_with_background_color", text)
 
-    run[bench_render_many_ascii, "bench_render_many_ascii"](bench_config, text)
-    run[bench_render_many_ascii_profile_color, "bench_render_many_ascii_profile_color"](bench_config, text)
-    run[bench_render_many_ansi, "bench_render_many_ansi"](bench_config, text)
-    run[bench_render_many_ansi_profile_color, "bench_render_many_ansi_profile_color"](bench_config, text)
-    run[bench_render_many_ansi256, "bench_render_many_ansi256"](bench_config, text)
-    run[bench_render_many_ansi256_profile_color, "bench_render_many_ansi256_profile_color"](bench_config, text)
-    run[bench_render_many_true_color, "bench_render_many_true_color"](bench_config, text)
-    run[bench_render_many_true_color_profile_color, "bench_render_many_true_color_profile_color"](bench_config, text)
+    run(bench_config, bench_render_many_ascii, "bench_render_many_ascii", text)
+    run(bench_config, bench_render_many_ascii_profile_color, "bench_render_many_ascii_profile_color", text)
+    run(bench_config, bench_render_many_ansi, "bench_render_many_ansi", text)
+    run(bench_config, bench_render_many_ansi_profile_color, "bench_render_many_ansi_profile_color", text)
+    run(bench_config, bench_render_many_ansi256, "bench_render_many_ansi256", text)
+    run(bench_config, bench_render_many_ansi256_profile_color, "bench_render_many_ansi256_profile_color", text)
+    run(bench_config, bench_render_many_true_color, "bench_render_many_true_color", text)
+    run(bench_config, bench_render_many_true_color_profile_color, "bench_render_many_true_color_profile_color", text)
 
     # print("Running bench_render_big_file")
     # report = benchmark.run[bench_render_big_file](max_iters=10)
@@ -341,13 +343,13 @@ def main() raises:
     with open(path, "r") as file:
         data = file.read()
 
-    run[bench_indent, "Indent"](bench_config, data)
-    run[bench_dedent, "Dedent"](bench_config, data)
-    run[bench_margin, "Margin"](bench_config, data)
-    run[bench_word_wrap, "WordWrap"](bench_config, data)
-    run[bench_wrap, "Wrap"](bench_config, data)
-    run[bench_truncate, "Truncate"](bench_config, data)
-    run[bench_padding, "Padding"](bench_config, data)
+    run(bench_config, bench_indent, "Indent", data)
+    run(bench_config, bench_dedent, "Dedent", data)
+    run(bench_config, bench_margin, "Margin", data)
+    run(bench_config, bench_word_wrap, "WordWrap", data)
+    run(bench_config, bench_wrap, "Wrap", data)
+    run(bench_config, bench_truncate, "Truncate", data)
+    run(bench_config, bench_padding, "Padding", data)
 
     run_benchmarks(bench_config)
 

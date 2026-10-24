@@ -11,23 +11,25 @@ struct xyz(Equatable, ImplicitlyCopyable, Writable):
     """A color in the CIE XYZ color space."""
 
     var x: Float64
-    """Chromaticity of the color, in the range [0.0, 1.1]."""
+    """X tristimulus value. Up to about 0.95 for sRGB colors."""
     var y: Float64
-    """Chromaticity of the color, in the range [0.0, 1.1]."""
+    """Y tristimulus value, the relative luminance, in the range [0.0, 1.0]."""
     var z: Float64
-    """Redundant Chromaticity of the color, in the range [0.0, 1.1]."""
+    """Z tristimulus value. Up to about 1.09 for sRGB colors."""
 
     def __init__(out self, x: Float64, y: Float64, z: Float64):
         """Initializes the XYZ color from its components.
 
         Args:
-            x: Chromaticity of the color, in the range [0.0, 1.1].
-            y: Chromaticity of the color, in the range [0.0, 1.1].
-            z: Redundant Chromaticity of the color, in the range [0.0, 1.1].
+            x: X tristimulus value. Up to about 0.95 for sRGB colors.
+            y: Y tristimulus value, the relative luminance, in the range [0.0, 1.0].
+            z: Z tristimulus value. Up to about 1.09 for sRGB colors.
         """
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(x, 0.0, 1.1) and in_range(y, 0.0, 1.1) and in_range(z, 0.0, 1.1),
-            t"The xyz components must be in the range [0.0, 1.1]. Received ({x}, {y}, {z}).",
+            in_range(y, 0.0, 1.0),
+            t"The xyz luminance y must be in the range [0.0, 1.0]. Received ({x}, {y}, {z}).",
         )
         self.x = x
         self.y = y
@@ -42,36 +44,16 @@ struct xyz(Equatable, ImplicitlyCopyable, Writable):
         var x = xyz[0]
         var y = xyz[1]
         var z = xyz[2]
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(x, 0.0, 1.1) and in_range(y, 0.0, 1.1) and in_range(z, 0.0, 1.1),
-            t"The xyz components must be in the range [0.0, 1.1]. Received ({x}, {y}, {z}).",
+            in_range(y, 0.0, 1.0),
+            t"The xyz luminance y must be in the range [0.0, 1.0]. Received ({x}, {y}, {z}).",
         )
 
         self.x = x
         self.y = y
         self.z = z
-
-    def __init__(out self, x: UInt8, y: UInt8, z: UInt8):
-        """Initializes the XYZ color from 8-bit components, each scaled from [0, 255] to [0.0, 1.0].
-
-        Args:
-            x: Chromaticity of the color, from 0 to 255.
-            y: Chromaticity of the color, from 0 to 255.
-            z: Redundant Chromaticity of the color, from 0 to 255.
-        """
-        self.x = Float64(x) / 255.0
-        self.y = Float64(y) / 255.0
-        self.z = Float64(z) / 255.0
-
-    def __init__(out self, xyz: Tuple[UInt8, UInt8, UInt8]):
-        """Initializes the XYZ color from a tuple of 8-bit components, each scaled from [0, 255] to [0.0, 1.0].
-
-        Args:
-            xyz: The (x, y, z) components as 8-bit values.
-        """
-        self.x = Float64(xyz[0]) / 255.0
-        self.y = Float64(xyz[1]) / 255.0
-        self.z = Float64(xyz[2]) / 255.0
 
     def to_xyY(self, white_ref: Array[Float64, 3] = D65) -> xyY:
         """Converts the given XYZ color to CIE xyY space, taking into account

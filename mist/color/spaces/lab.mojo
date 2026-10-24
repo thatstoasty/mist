@@ -11,24 +11,23 @@ struct Lab(Equatable, ImplicitlyCopyable, Writable):
     var L: Float64
     """Luminance, perceived brightness. In the range [0.0, 1.0]."""
     var a: Float64
-    """Green-red axis. In the range [-1.1, 1.1]."""
+    """Green-red axis. Within about [-0.87, 0.99] for sRGB colors."""
     var b: Float64
-    """Blue-yellow axis. In the range [-1.1, 1.1]."""
+    """Blue-yellow axis. Within about [-1.08, 0.95] for sRGB colors."""
 
     def __init__(out self, L: Float64, a: Float64, b: Float64):
         """Initializes the L*a*b* color from its components.
 
         Args:
             L: Luminance, perceived brightness. In the range [0.0, 1.0].
-            a: Green-red axis. In the range [-1.1, 1.1].
-            b: Blue-yellow axis. In the range [-1.1, 1.1].
+            a: Green-red axis. Within about [-0.87, 0.99] for sRGB colors.
+            b: Blue-yellow axis. Within about [-1.08, 0.95] for sRGB colors.
         """
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(L, 0.0, 1.0) and in_range(a, -1.1, 1.1) and in_range(b, -1.1, 1.1),
-            (
-                t"The Lab components must be in the range [0.0, 1.0] for L and [-1.1, 1.1] for a and b. Received ({L},"
-                t" {a}, {b})."
-            ),
+            in_range(L, 0.0, 1.0),
+            t"The Lab lightness L must be in the range [0.0, 1.0]. Received ({L}, {a}, {b}).",
         )
         self.L = L
         self.a = a
@@ -43,12 +42,11 @@ struct Lab(Equatable, ImplicitlyCopyable, Writable):
         var L = Lab[0]
         var a = Lab[1]
         var b = Lab[2]
+        # Only invariants that hold for every color are checked. Converting back from the
+        # perceptual spaces passes through out-of-gamut coordinates, which `Color.from_rgb` clamps.
         debug_assert(
-            in_range(L, 0.0, 1.0) and in_range(a, -1.1, 1.1) and in_range(b, -1.1, 1.1),
-            (
-                t"The Lab components must be in the range [0.0, 1.0] for L and [-1.1, 1.1] for a and b. Received ({L},"
-                t" {a}, {b})."
-            ),
+            in_range(L, 0.0, 1.0),
+            t"The Lab lightness L must be in the range [0.0, 1.0]. Received ({L}, {a}, {b}).",
         )
 
         self.L = L
@@ -76,10 +74,15 @@ struct Lab(Equatable, ImplicitlyCopyable, Writable):
         Returns:
             The Hue, Chroma, and Luminance values.
         """
+        var c = math.sqrt(sq(self.a) + sq(self.b))
+        # Hue is undefined for grays, so it's 0 when chroma is negligible. The test is
+        # relative to lightness: chroma shrinks toward black (#000001 has C = 8e-4 but a
+        # clear hue), and sRGB grays carry rounding chroma of at most 3.7e-4 * L. go-colorful
+        # tests `|b - a|` and `|a|` instead, which also zeroes the hue of saturated colors
+        # whose a ~= b or a ~= 0.
         var h = 0.0
-        if abs(self.b - self.a) > 1e-4 and abs(self.a) > 1e-4:
+        if c > 1e-3 * self.L:
             h = (57.29577951308232087721 * math.atan2(self.b, self.a) + 360.0) % 360.0  # Rad2Deg
 
-        var c = math.sqrt(sq(self.a) + sq(self.b))
         var l = self.L
         return hcl(h, c, l)

@@ -1,5 +1,6 @@
 """HSLuv color space, a perceptually uniform alternative to HSL."""
-from mist.color.math import in_range
+from mist.color.math import clamp01, in_range, max_chroma_for_lh
+from mist.color.spaces.luvlch import LuvLCh
 
 
 struct HSLuv(Equatable, ImplicitlyCopyable, Writable):
@@ -52,24 +53,17 @@ struct HSLuv(Equatable, ImplicitlyCopyable, Writable):
         self.S = s
         self.L = l
 
-    def __init__(out self, h: UInt8, s: UInt8, l: UInt8):
-        """Initializes the HSLuv color from 8-bit components, each scaled from [0, 255] to [0.0, 1.0].
+    def to_LuvLCh(self) -> LuvLCh:
+        """Converts the HSLuv color to CIE LCh(uv), the inverse of `LuvLCh.to_HSLuv`.
 
-        Args:
-            h: Hue component of the color, from 0 to 255.
-            s: Saturation component of the color, from 0 to 255.
-            l: Luminance component of the color, from 0 to 255.
+        `S` is the chroma as a fraction of the largest in-gamut chroma for this lightness and hue.
+
+        Returns:
+            The Luminance, Chroma, and Hue values.
         """
-        self.H = Float64(h) / 255.0
-        self.S = Float64(s) / 255.0
-        self.L = Float64(l) / 255.0
-
-    def __init__(out self, hsl: Tuple[UInt8, UInt8, UInt8]):
-        """Initializes the HSLuv color from a tuple of 8-bit components, each scaled from [0, 255] to [0.0, 1.0].
-
-        Args:
-            hsl: The (H, S, L) components as 8-bit values.
-        """
-        self.H = Float64(hsl[0]) / 255.0
-        self.S = Float64(hsl[1]) / 255.0
-        self.L = Float64(hsl[2]) / 255.0
+        # The gamut bounds are computed with L and C in [0, 100], as in the HSLuv reference.
+        var l = self.L * 100.0
+        var c = 0.0
+        if l < 99.9999999 and l > 0.00000001:
+            c = max_chroma_for_lh(l, self.H) * self.S
+        return LuvLCh(clamp01(l / 100.0), c / 100.0, self.H)

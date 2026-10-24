@@ -3,12 +3,13 @@ from std import math
 from std.math import sqrt
 from std.utils.numerics import max_finite
 
-from mist.color.spaces import RGB, HSV, HSLuv, HPLuv, xyz, Luv, LuvLCh, Lab, xyY, hcl
+from mist.color.spaces import RGB, HSL, HSV, HSLuv, HPLuv, xyz, Luv, LuvLCh, Lab, xyY, hcl
 from mist.color.math import (
     WhiteReference,
     delinearize,
     delinearize_fast,
     interp_angle,
+    lab_finv,
     linearize,
     linearize_fast,
     hSLuvD65,
@@ -18,7 +19,7 @@ from mist.color.math import (
     D65,
 )
 from mist._utils import lut
-from mist._ansi_colors import ANSI256_TO_ANSI, ANSI_HEX_CODES, COLOR_STRINGS
+from mist._ansi_colors import ANSI256_LAB, ANSI256_TO_ANSI, ANSI_HEX_CODES, COLOR_STRINGS
 
 
 comptime FOREGROUND = "38"
@@ -27,6 +28,19 @@ comptime BACKGROUND = "48"
 """ANSI code for background colors."""
 comptime RGB_HEX_DIGITS = 6
 """Digits in a `RRGGBB` hex string, which keeps a color's leading zeros."""
+
+
+@always_inline
+def _to_channel(v: Float64) -> UInt8:
+    """Quantizes a [0.0, 1.0] component to 0..255, clamping out-of-range values and rounding to nearest.
+
+    Args:
+        v: The component to quantize.
+
+    Returns:
+        The 8-bit channel value.
+    """
+    return UInt8(clamp01(v) * 255.0 + 0.5)
 
 
 def _ansi_to_rgb(value: UInt8) -> Tuple[UInt8, UInt8, UInt8]:
@@ -209,28 +223,30 @@ def ansi256_to_ansi(value: UInt8) -> UInt8:
     return lut[ANSI256_TO_ANSI](Int(value))
 
 
-def _value_to_color_index(value: UInt8) -> Int:
-    """Converts a value to a color index.
+@always_inline
+def _hue_delta(a: Float64, b: Float64) -> Float64:
+    """Returns the angle between two hues in degrees, going the short way round the circle.
+
+    go-colorful and termenv subtract hues directly, which scores 2 and 359 degrees as
+    357 degrees apart and sends reds that straddle 0 to the gray ramp.
 
     Args:
-        value: The value to convert to a color index.
+        a: The first hue, in [0.0, 360.0].
+        b: The second hue, in [0.0, 360.0].
 
     Returns:
-        The color index.
+        The hue difference, in [0.0, 180.0].
     """
-    if value < 48:
-        return 0
-    elif value < 115:
-        return 1
-    return Int((value - 35) / 40)
+    var delta = abs(a - b) % 360.0
+    return 360.0 - delta if delta > 180.0 else delta
 
 
 def _hsluv_distance(a: HSLuv, b: HSLuv) -> Float64:
     """Returns the HSLuv-space distance between two already-converted colors.
 
-    Mirrors `hue.Color.distance_HSLuv`, but takes the converted coordinates
-    rather than the colors, so a color compared against several candidates is
-        only converted once instead of once per comparison.
+    Backs `Color.distance_HSLuv`, and takes the converted coordinates rather than
+    the colors so a color compared against several candidates is only converted
+    once instead of once per comparison.
 
     Args:
         a: The first color's hue, saturation and luminance.
@@ -239,62 +255,189 @@ def _hsluv_distance(a: HSLuv, b: HSLuv) -> Float64:
     Returns:
         The distance between the two colors in HSLuv space.
     """
-    return sqrt(((a.H - b.H) / 100.0) ** 2 + (a.S - b.S) ** 2 + (a.L - b.L) ** 2)
+    return sqrt((_hue_delta(a.H, b.H) / 100.0) ** 2 + (a.S - b.S) ** 2 + (a.L - b.L) ** 2)
 
 
-def _calculate_nearest_gray_index(r: Int, g: Int, b: Int) -> Tuple[UInt8, UInt8]:
-    """Calculates the nearest gray index for a given value.
+def _ciede2000(lab: Lab, lab2: Lab, kl: Float64 = 1.0, kc: Float64 = 1.0, kh: Float64 = 1.0) -> Float64:
+    """Returns the CIEDE2000 color difference between two already-converted colors, on mist's [0, 1] Lab scale.
+
+    Backs `Color.distance_ciede2000klch`, and takes the converted coordinates rather
+    than the colors so a color compared against several candidates is only
+    converted once.
 
     Args:
-        r: The red component of the color.
-        g: The green component of the color.
-        b: The blue component of the color.
+        lab: The first color in L*a*b*.
+        lab2: The second color in L*a*b*.
+        kl: The weighting factor for lightness.
+        kc: The weighting factor for chroma.
+        kh: The weighting factor for hue.
 
     Returns:
-        The nearest gray index.
+        The CIEDE2000 difference, scaled by 0.01 to match the library's Lab range.
     """
-    var gray_index: UInt8
-    var average = (r + g + b) / 3
-    if average > 238:
-        gray_index = 23
-    else:
-        gray_index = UInt8(Int((average - 3) / 10))  # 0..23
-    return gray_index, (8 + 10 * gray_index)  # same value for r/g/b, 0..255
+    # As with CIE94, we scale up the ranges of L,a,b beforehand and scale
+    # them down again afterwards.
+    var l1 = lab.L * 100.0
+    var a1 = lab.a * 100.0
+    var b1 = lab.b * 100.0
+    var l2 = lab2.L * 100.0
+    var a2 = lab2.a * 100.0
+    var b2 = lab2.b * 100.0
+
+    var cab1 = math.sqrt(sq(a1) + sq(b1))
+    var cab2 = math.sqrt(sq(a2) + sq(b2))
+    var cab_mean = (cab1 + cab2) / 2
+    var p: Float64 = 25.0
+
+    var g = 0.5 * (1 - math.sqrt((cab_mean**7) / ((cab_mean**7) + (p**7))))
+    var ap1 = (1 + g) * a1
+    var ap2 = (1 + g) * a2
+    var cp1 = math.sqrt(sq(ap1) + sq(b1))
+    var cp2 = math.sqrt(sq(ap2) + sq(b2))
+
+    var hp1 = 0.0
+    if b1 != ap1 or ap1 != 0:
+        hp1 = math.atan2(b1, ap1)
+        if hp1 < 0:
+            hp1 += math.pi * 2
+        hp1 *= 180 / math.pi
+    var hp2 = 0.0
+    if b2 != ap2 or ap2 != 0:
+        hp2 = math.atan2(b2, ap2)
+        if hp2 < 0:
+            hp2 += math.pi * 2
+        hp2 *= 180 / math.pi
+
+    var delta_Lp = l2 - l1
+    var delta_Cp = cp2 - cp1
+    var dhp = 0.0
+    var cpProduct = cp1 * cp2
+    if cpProduct != 0:
+        dhp = hp2 - hp1
+        if dhp > 180:
+            dhp -= 360
+        elif dhp < -180:
+            dhp += 360
+    var delta_Hp = 2 * math.sqrt(cpProduct) * math.sin(dhp / 2 * math.pi / 180)
+
+    var lp_mean = (l1 + l2) / 2
+    var cp_mean = (cp1 + cp2) / 2
+    var hp_mean = hp1 + hp2
+    if cpProduct != 0:
+        hp_mean /= 2
+        if abs(hp1 - hp2) > 180:
+            if hp1 + hp2 < 360:
+                hp_mean += 180
+            else:
+                hp_mean -= 180
+
+    var t = (
+        1
+        - 0.17 * math.cos((hp_mean - 30) * math.pi / 180)
+        + 0.24 * math.cos(2 * hp_mean * math.pi / 180)
+        + 0.32 * math.cos((3 * hp_mean + 6) * math.pi / 180)
+        - 0.2 * math.cos((4 * hp_mean - 63) * math.pi / 180)
+    )
+    var delta_theta = 30 * math.exp(-sq((hp_mean - 275) / 25))
+    var rc = 2 * math.sqrt((cp_mean**7) / ((cp_mean**7) + (p**7)))
+    var sl = 1 + (0.015 * sq(lp_mean - 50)) / math.sqrt(20 + sq(lp_mean - 50))
+    var sc = 1 + 0.045 * cp_mean
+    var sh = 1 + 0.015 * cp_mean * t
+    var rt = -math.sin(2 * delta_theta * math.pi / 180) * rc
+
+    return (
+        math.sqrt(
+            sq(delta_Lp / (kl * sl))
+            + sq(delta_Cp / (kc * sc))
+            + sq(delta_Hp / (kh * sh))
+            + rt * (delta_Cp / (kc * sc)) * (delta_Hp / (kh * sh))
+        )
+        * 0.01
+    )
+
+
+comptime _CUBE_LEVELS: Array[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
+"""The channel value of each of the six levels of the ANSI256 6x6x6 color cube (indices 16..231)."""
+
+
+@always_inline
+def _lower_cube_level(value: UInt8) -> Int:
+    """Returns the index of the highest cube level at or below a channel value.
+
+    Args:
+        value: The channel value, 0..255.
+
+    Returns:
+        The cube level index, 0..5.
+    """
+    var level = 0
+    while level < 5 and lut[_CUBE_LEVELS](level + 1) <= value:
+        level += 1
+    return level
+
+
+@always_inline
+def _ansi256_lab(index: Int) -> Lab:
+    """Returns the precomputed L*a*b* coordinates of an ANSI256 color.
+
+    Args:
+        index: The ANSI256 color, 0..255.
+
+    Returns:
+        The color in L*a*b* space.
+    """
+    return Lab(lut[ANSI256_LAB](index * 3), lut[ANSI256_LAB](index * 3 + 1), lut[ANSI256_LAB](index * 3 + 2))
 
 
 def hex_to_ansi256(color: Color) -> UInt8:
-    """Converts a hex code to a ANSI256 color.
+    """Converts a color to the nearest ANSI256 color by CIEDE2000.
+
+    The candidates are the eight cube colors whose levels bracket the color's
+    channels, and the three gray ramp entries nearest its lightness.
 
     Args:
-        color: Hex code color from hue.Color.
+        color: The color to convert.
 
     Returns:
-        The ANSI256 color.
+        The ANSI256 color, 16..255.
     """
-    # Calculate the nearest 0-based color index at 16..231
-    # Originally had * 255 in each of these
+    # termenv quantizes each channel to its nearest cube level and compares that one
+    # cube color against one gray, by HSLuv distance. Rounding the channels separately
+    # can land on a color of the wrong hue -- #993322 quantized to #875f00, an olive,
+    # and lost to a gray -- so the box around the color is searched instead, and
+    # CIEDE2000 replaces HSLuv distance, which rates pale colors as highly saturated.
     var R, G, B = color.to_rgb_tuple()
-    var r = _value_to_color_index(R)  # 0..5 each
-    var g = _value_to_color_index(G)
-    var b = _value_to_color_index(B)
+    var r = _lower_cube_level(R)
+    var g = _lower_cube_level(G)
+    var b = _lower_cube_level(B)
 
-    # Calculate the nearest 0-based gray index at 232..255
-    var gray_index, gv = _calculate_nearest_gray_index(r, g, b)  # same value for r/g/b, 0..255
+    # Candidates are compared in Lab; the palette's coordinates are precomputed, so
+    # only the input is converted.
+    var lab = color.to_Lab()
+    var best = 16 + 36 * r + 6 * g + b
+    var best_distance = _ciede2000(lab, _ansi256_lab(best))
+    for ri in range(r, min(r + 1, 5) + 1):
+        for gi in range(g, min(g + 1, 5) + 1):
+            for bi in range(b, min(b + 1, 5) + 1):
+                var index = 16 + 36 * ri + 6 * gi + bi
+                var distance = _ciede2000(lab, _ansi256_lab(index))
+                if distance < best_distance:
+                    best = index
+                    best_distance = distance
 
-    # Calculate the represented colors back from the index
-    comptime i2cv: Array[UInt8, 6] = [0, 0x5F, 0x87, 0xAF, 0xD7, 0xFF]
+    # The gray candidates are centred on the ramp entry with the input's lightness,
+    # not its channel average: saturated colors look lighter or darker than their
+    # average suggests (a dark green is lighter than it), and the nearest gray tracks L*.
+    # Ties go to the cube color, as they did in termenv.
+    var gray_value = delinearize(lab_finv((lab.L + 0.16) / 1.16)) * 255.0
+    var center = Int(clamp01((gray_value - 8.0) / 230.0) * 23.0 + 0.5)
+    for gray in range(max(center - 1, 0), min(center + 1, 23) + 1):
+        var distance = _ciede2000(lab, _ansi256_lab(232 + gray))
+        if distance < best_distance:
+            best = 232 + gray
+            best_distance = distance
 
-    # Return the one which is nearer to the original input rgb value.
-    # `distance_HSLuv` converts both of its operands, so calling it twice put
-    # the input through the HSLuv pipeline twice over; converting it once here
-    # drops four conversions to three.
-    var hsluv = color.to_HSLuv()
-    var color_dist = _hsluv_distance(hsluv, Color.from_rgb(r=lut[i2cv](r), g=lut[i2cv](g), b=lut[i2cv](b)).to_HSLuv())
-    var gray_dist = _hsluv_distance(hsluv, Color.from_rgb(r=gv, g=gv, b=gv).to_HSLuv())
-
-    if color_dist <= gray_dist:
-        return 16 + UInt8((36 * r) + (6 * g) + b)  # 16 + 0..215
-    return 232 + gray_index
+    return UInt8(best)
 
 
 __enum Color(ImplicitlyCopyable, Writable):
@@ -427,15 +570,18 @@ __enum Color(ImplicitlyCopyable, Writable):
     def from_rgb(r: Float64, g: Float64, b: Float64) -> Self:
         """Creates a `Color` from red, green, and blue values.
 
+        Components outside [0.0, 1.0] are clamped, so colors that conversions from
+        the perceptual spaces push out of the sRGB gamut land on its nearest edge.
+
         Args:
             r: The red value from 0.0 to 1.0.
             g: The green value from 0.0 to 1.0.
             b: The blue value from 0.0 to 1.0.
 
         Returns:
-            A `Color` Variant which may be `NoColor`, `ANSIColor`, `ANSI256Color`, or `RGBColor`.
+            A `Color.RGB` holding the color.
         """
-        return Color.RGB(rgb_to_hex(UInt8(r * 255.0), UInt8(g * 255.0), UInt8(b * 255.0)))
+        return Color.RGB(rgb_to_hex(_to_channel(r), _to_channel(g), _to_channel(b)))
 
     @staticmethod
     def from_rgb[linear: Bool, //, fast: Bool = False](rgb: RGB[linear]) -> Self:
@@ -460,7 +606,7 @@ __enum Color(ImplicitlyCopyable, Writable):
             else:
                 return Self.from_rgb(delinearize(r), delinearize(g), delinearize(b))
         else:
-            return Self.RGB(rgb_to_hex(UInt8(r * 255.0), UInt8(g * 255.0), UInt8(b * 255.0)))
+            return Self.from_rgb(r, g, b)
 
     def distance_rgb(self, c2: Self) -> Float64:
         """Computes the distance between two colors in RGB space.
@@ -548,10 +694,12 @@ __enum Color(ImplicitlyCopyable, Writable):
         """
         var rgb = self.to_linear_rgb[fast]()
         var rgb2 = c2.to_linear_rgb[fast]()
-        return Self.from_rgb(
-            rgb.R + t * (rgb2.R - rgb.R),
-            rgb.G + t * (rgb2.G - rgb.G),
-            rgb.B + t * (rgb2.B - rgb.B),
+        return Self.from_rgb[fast=fast](
+            RGB[linear=True](
+                rgb.R + t * (rgb2.R - rgb.R),
+                rgb.G + t * (rgb2.G - rgb.G),
+                rgb.B + t * (rgb2.B - rgb.B),
+            )
         )
 
     ############
@@ -581,8 +729,19 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             The new Color.
         """
-        var rgb = xyz(x, y, z).to_linear_rgb()
-        return Self.from_rgb(rgb)
+        return Self.from_xyz(xyz(x, y, z))
+
+    @staticmethod
+    def from_xyz(value: xyz) -> Self:
+        """Generates a color from CIE XYZ space.
+
+        Args:
+            value: The color in CIE XYZ space.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_rgb(value.to_linear_rgb())
 
     ############
     # Luv      #
@@ -619,8 +778,21 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             The new Color.
         """
-        var xyz = Luv(l, u, v).to_xyz(white_ref)
-        return Self.from_xyz(xyz.x, xyz.y, xyz.z)
+        return Self.from_Luv(Luv(l, u, v), white_ref=white_ref)
+
+    @staticmethod
+    def from_Luv(value: Luv, *, white_ref: WhiteReference = D65) -> Self:
+        """Generates a color from CIE L*u*v* space.
+        The reference white is the one the coordinates were computed against (i.e. the monitor's white).
+
+        Args:
+            value: The color in CIE L*u*v* space.
+            white_ref: The reference white.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_xyz(value.to_xyz(white_ref))
 
     def distance_Luv(self, c2: Self) -> Float64:
         """Good measure of visual similarity between two colors!
@@ -676,7 +848,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         return self.to_Luv[fast](white_ref=white_ref).to_LuvLCh()
 
     @staticmethod
-    def from_LuvLCh(l: Float64, c: Float64, h: Float64) -> Self:
+    def from_LuvLCh(l: Float64, c: Float64, h: Float64, *, white_ref: WhiteReference = D65) -> Self:
         """Generates a color by using data given in LuvLCh space, taking
         into account a given reference white. (i.e. the monitor's white)
         h values are in [0..360], C and L values are in [0..1].
@@ -685,12 +857,25 @@ __enum Color(ImplicitlyCopyable, Writable):
             l: The Luminance in [0..1].
             c: The Chroma in [0..1].
             h: The Hue in [0..360].
+            white_ref: The reference white.
 
         Returns:
             The new Color.
         """
-        var Luv = LuvLCh(l, c, h).to_Luv()
-        return Self.from_Luv(Luv.L, Luv.u, Luv.v)
+        return Self.from_LuvLCh(LuvLCh(l, c, h), white_ref=white_ref)
+
+    @staticmethod
+    def from_LuvLCh(value: LuvLCh, *, white_ref: WhiteReference = D65) -> Self:
+        """Generates a color from CIE LCh(uv) space.
+
+        Args:
+            value: The color in CIE LCh(uv) space.
+            white_ref: The reference white.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_Luv(value.to_Luv(), white_ref=white_ref)
 
     def blend_Luv_LCh(self, other: Self, t: Float64) -> Self:
         """Blends two colors in the cylindrical CIELUV color space.
@@ -708,7 +893,7 @@ __enum Color(ImplicitlyCopyable, Writable):
 
         # We know that h are both in [0..360]
         return Self.from_LuvLCh(
-            lch.L + t * (lch2.L - lch.L), lch.C + t * (lch2.C - lch.C), interp_angle(lch2.h, lch.h, t)
+            lch.L + t * (lch2.L - lch.L), lch.C + t * (lch2.C - lch.C), interp_angle(lch.h, lch2.h, t)
         )
 
     ############
@@ -732,11 +917,42 @@ __enum Color(ImplicitlyCopyable, Writable):
         """
         return self.to_LuvLCh[fast](white_ref).to_HSLuv()
 
-    def to_HSLuv(self) -> HSLuv:
-        """Hsl returns the Hue [0..360], Saturation [0..1], and Luminance (luminance) [0..1] of the color.
+    @staticmethod
+    def from_HSLuv(h: Float64, s: Float64, l: Float64, *, white_ref: WhiteReference = hSLuvD65) -> Self:
+        """Generates a color from HSLuv values: Hue in [0..360], Saturation and Luminance in [0..1].
+
+        Args:
+            h: The Hue in [0..360].
+            s: The Saturation in [0..1].
+            l: The Luminance in [0..1].
+            white_ref: The reference white.
 
         Returns:
-            The Hue, Saturation, and Luminance values.
+            The new Color.
+        """
+        return Self.from_HSLuv(HSLuv(h, s, l), white_ref=white_ref)
+
+    @staticmethod
+    def from_HSLuv(value: HSLuv, *, white_ref: WhiteReference = hSLuvD65) -> Self:
+        """Generates a color from HSLuv space.
+
+        Args:
+            value: The color in HSLuv space.
+            white_ref: The reference white.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_LuvLCh(value.to_LuvLCh(), white_ref=white_ref)
+
+    def to_hsl(self) -> HSL:
+        """Converts the color to HSL: Hue [0..360], Saturation [0..1], and Lightness [0..1].
+
+        This is the classic hexcone model computed from gamma-encoded sRGB, not the
+        perceptual HSLuv space; see `to_HSLuv` for that.
+
+        Returns:
+            The Hue, Saturation, and Lightness values.
         """
         var r, g, b = self.to_rgb_tuple()
         var R = Float64(r) / 255.0
@@ -749,7 +965,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         var l = (max + min) / 2.0
 
         if min == max:
-            return HSLuv(0.0, 0.0, l)
+            return HSL(0.0, 0.0, l)
 
         var s: Float64
         if l < 0.5:
@@ -770,7 +986,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         if h < 0.0:
             h += 360.0
 
-        return HSLuv(h, s, l)
+        return HSL(h, s, l)
 
     def distance_HSLuv(self, c2: Self) -> Float64:
         """Computes the distance between two colors in HSLuv space.
@@ -781,9 +997,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             The distance between the two colors in HSLuv space.
         """
-        var hsl = self.to_HSLuv()
-        var hsl2 = c2.to_HSLuv()
-        return math.sqrt(((hsl.H - hsl2.H) / 100.0) ** 2 + (hsl.S - hsl2.S) ** 2 + (hsl.L - hsl2.L) ** 2)
+        return _hsluv_distance(self.to_HSLuv(), c2.to_HSLuv())
 
     ############
     # HPLuv    #
@@ -807,6 +1021,36 @@ __enum Color(ImplicitlyCopyable, Writable):
             The Hue, Saturation, and Luminance values.
         """
         return self.to_LuvLCh[fast](white_ref).to_HPLuv()
+
+    @staticmethod
+    def from_HPLuv(h: Float64, p: Float64, l: Float64, *, white_ref: WhiteReference = hSLuvD65) -> Self:
+        """Generates a color from HPLuv values: Hue in [0..360], Saturation and Luminance in [0..1].
+        HPLuv only represents pastel colors, so `p` above 1 leaves the sRGB gamut and the
+        result is clamped to its edge.
+
+        Args:
+            h: The Hue in [0..360].
+            p: The Saturation in [0..1]; values above 1 are outside the sRGB gamut and clamp.
+            l: The Luminance in [0..1].
+            white_ref: The reference white.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_HPLuv(HPLuv(h, p, l), white_ref=white_ref)
+
+    @staticmethod
+    def from_HPLuv(value: HPLuv, *, white_ref: WhiteReference = hSLuvD65) -> Self:
+        """Generates a color from HPLuv space.
+
+        Args:
+            value: The color in HPLuv space.
+            white_ref: The reference white.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_LuvLCh(value.to_LuvLCh(), white_ref=white_ref)
 
     ############
     # HSV      #
@@ -885,6 +1129,18 @@ __enum Color(ImplicitlyCopyable, Writable):
             b = X
 
         return Self.from_rgb(m + r, m + g, m + b)
+
+    @staticmethod
+    def from_hsv(value: HSV) -> Self:
+        """Generates a color from HSV space.
+
+        Args:
+            value: The color in HSV space.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_hsv(value.H, value.S, value.V)
 
     ############
     # HSL      #
@@ -970,6 +1226,18 @@ __enum Color(ImplicitlyCopyable, Writable):
 
         return Self.from_rgb(r, g, b)
 
+    @staticmethod
+    def from_hsl(value: HSL) -> Self:
+        """Generates a color from HSL space.
+
+        Args:
+            value: The color in HSL space.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_hsl(value.H, value.S, value.L)
+
     ############
     # xyY      #
     ############
@@ -1002,8 +1270,19 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             The new Color.
         """
-        var xyz = xyY(x, y, Y).to_xyz()
-        return Self.from_xyz(xyz.x, xyz.y, xyz.z)
+        return Self.from_xyY(xyY(x, y, Y))
+
+    @staticmethod
+    def from_xyY(value: xyY) -> Self:
+        """Generates a color from CIE xyY space.
+
+        Args:
+            value: The color in CIE xyY space.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_xyz(value.to_xyz())
 
     ############
     # Lab      #
@@ -1038,8 +1317,20 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             The new Color.
         """
-        var xyz = Lab(L, a, b).to_xyz(white_ref)
-        return Self.from_xyz(xyz.x, xyz.y, xyz.z)
+        return Self.from_Lab(Lab(L, a, b), white_ref=white_ref)
+
+    @staticmethod
+    def from_Lab(value: Lab, *, white_ref: WhiteReference = D65) -> Self:
+        """Generates a color from CIE L*a*b* space.
+
+        Args:
+            value: The color in CIE L*a*b* space.
+            white_ref: The reference white.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_xyz(value.to_xyz(white_ref))
 
     def distance_lab[fast: Bool = False](self, other: Self) -> Float64:
         """`distance_Lab` is a good measure of visual similarity between two colors!
@@ -1155,88 +1446,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             The distance between the two colors in Lab space.
         """
-        var lab = self.to_Lab[fast]()
-        var lab2 = other.to_Lab[fast]()
-
-        # As with CIE94, we scale up the ranges of L,a,b beforehand and scale
-        # them down again afterwards.
-        var l1 = lab.L * 100.0
-        var a1 = lab.a * 100.0
-        var b1 = lab.b * 100.0
-        var l2 = lab2.L * 100.0
-        var a2 = lab2.a * 100.0
-        var b2 = lab2.b * 100.0
-
-        var cab1 = math.sqrt(sq(a1) + sq(b1))
-        var cab2 = math.sqrt(sq(a2) + sq(b2))
-        var cab_mean = (cab1 + cab2) / 2
-        var p: Float64 = 25.0
-
-        var g = 0.5 * (1 - math.sqrt((cab_mean**7) / ((cab_mean**7) + (p**7))))
-        var ap1 = (1 + g) * a1
-        var ap2 = (1 + g) * a2
-        var cp1 = math.sqrt(sq(ap1) + sq(b1))
-        var cp2 = math.sqrt(sq(ap2) + sq(b2))
-
-        var hp1 = 0.0
-        if b1 != ap1 or ap1 != 0:
-            hp1 = math.atan2(b1, ap1)
-            if hp1 < 0:
-                hp1 += math.pi * 2
-            hp1 *= 180 / math.pi
-        var hp2 = 0.0
-        if b2 != ap2 or ap2 != 0:
-            hp2 = math.atan2(b2, ap2)
-            if hp2 < 0:
-                hp2 += math.pi * 2
-            hp2 *= 180 / math.pi
-
-        var delta_Lp = l2 - l1
-        var delta_Cp = cp2 - cp1
-        var dhp = 0.0
-        var cpProduct = cp1 * cp2
-        if cpProduct != 0:
-            dhp = hp2 - hp1
-            if dhp > 180:
-                dhp -= 360
-            elif dhp < -180:
-                dhp += 360
-        var delta_Hp = 2 * math.sqrt(cpProduct) * math.sin(dhp / 2 * math.pi / 180)
-
-        var lp_mean = (l1 + l2) / 2
-        var cp_mean = (cp1 + cp2) / 2
-        var hp_mean = hp1 + hp2
-        if cpProduct != 0:
-            hp_mean /= 2
-            if abs(hp1 - hp2) > 180:
-                if hp1 + hp2 < 360:
-                    hp_mean += 180
-                else:
-                    hp_mean -= 180
-
-        var t = (
-            1
-            - 0.17 * math.cos((hp_mean - 30) * math.pi / 180)
-            + 0.24 * math.cos(2 * hp_mean * math.pi / 180)
-            + 0.32 * math.cos((3 * hp_mean + 6) * math.pi / 180)
-            - 0.2 * math.cos((4 * hp_mean - 63) * math.pi / 180)
-        )
-        var delta_theta = 30 * math.exp(-sq((hp_mean - 275) / 25))
-        var rc = 2 * math.sqrt((cp_mean**7) / ((cp_mean**7) + (p**7)))
-        var sl = 1 + (0.015 * sq(lp_mean - 50)) / math.sqrt(20 + sq(lp_mean - 50))
-        var sc = 1 + 0.045 * cp_mean
-        var sh = 1 + 0.015 * cp_mean * t
-        var rt = -math.sin(2 * delta_theta * math.pi / 180) * rc
-
-        return (
-            math.sqrt(
-                sq(delta_Lp / (kl * sl))
-                + sq(delta_Cp / (kc * sc))
-                + sq(delta_Hp / (kh * sh))
-                + rt * (delta_Cp / (kc * sc)) * (delta_Hp / (kh * sh))
-            )
-            * 0.01
-        )
+        return _ciede2000(self.to_Lab[fast](), other.to_Lab[fast](), kl, kc, kh)
 
     def blend_lab(self, c2: Self, t: Float64) -> Self:
         """Blends two colors in the L*a*b* color-space, which should result in a smoother blend.
@@ -1286,8 +1496,20 @@ __enum Color(ImplicitlyCopyable, Writable):
         Returns:
             The new Color.
         """
-        var Lab = hcl(h, c, l).to_Lab()
-        return Self.from_Lab(Lab.L, Lab.a, Lab.b, white_ref=white_ref)
+        return Self.from_hcl(hcl(h, c, l), white_ref=white_ref)
+
+    @staticmethod
+    def from_hcl(value: hcl, *, white_ref: WhiteReference = D65) -> Self:
+        """Generates a color from HCL space.
+
+        Args:
+            value: The color in HCL space.
+            white_ref: The reference white.
+
+        Returns:
+            The new Color.
+        """
+        return Self.from_Lab(value.to_Lab(), white_ref=white_ref)
 
     def blend_hcl(self, other: Self, t: Float64) -> Self:
         """BlendHcl blends two colors in the CIE-L*C*h° color-space, which should result in a smoother blend.
@@ -1303,7 +1525,7 @@ __enum Color(ImplicitlyCopyable, Writable):
         var hcl = self.to_hcl()
         var hcl2 = other.to_hcl()
         var h1 = hcl.h
-        var h2 = hcl.h
+        var h2 = hcl2.h
 
         if hcl.c <= 0.00015 and hcl2.c >= 0.00015:
             h1 = h2
@@ -1312,14 +1534,3 @@ __enum Color(ImplicitlyCopyable, Writable):
 
         # We know that h are both in [0..360]
         return Self.from_hcl(interp_angle(h1, h2, t), hcl.c + t * (hcl2.c - hcl.c), hcl.l + t * (hcl2.l - hcl.l))
-
-    # def clamped(color: Color) -> Color:
-    #     """Clamps the given color to the [0..1] range.
-
-    #     Args:
-    #         color: The color to clamp.
-
-    #     Returns:
-    #         The clamped color.
-    #     """
-    #     return Color(clamp01(color.R), clamp01(color.G), clamp01(color.B))
